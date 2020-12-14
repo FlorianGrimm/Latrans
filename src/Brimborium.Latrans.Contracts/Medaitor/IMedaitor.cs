@@ -10,11 +10,21 @@ namespace Brimborium.Latrans.Medaitor {
     public interface IMedaitorContext<TRequset, TResponse>: IMedaitorContext {
     }
     public interface IMedaitorHandler<TRequset, TResponse> {
+        Task ExecuteAsync(
+            IMedaitorContext<TRequset, TResponse> medaitorContext, 
+            CancellationToken cancellationToken
+            );
     }
 
     public interface IMedaitorClient {
-        
-        Task ExecuteAsync(CancellationToken cancellationToken);
+
+        IMedaitorContext<TRequset, TResponse> CreateContext<TRequset, TResponse>(
+            );
+
+        Task ExecuteAsync<TRequset, TResponse>(
+            IMedaitorContext<TRequset, TResponse> medaitorContext,
+            CancellationToken cancellationToken
+            );
     }
     public interface IMedaitorService {
 

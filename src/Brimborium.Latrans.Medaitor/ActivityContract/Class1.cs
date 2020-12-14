@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Brimborium.Latrans.Medaitor.ActivityContract {
+namespace Brimborium.Latrans.ActivityContract {
     class Class1 {
     }
 }
