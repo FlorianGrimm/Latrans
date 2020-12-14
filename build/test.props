@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DebugType Condition="'$(Configuration)'=='Release'">pdbonly</DebugType>
+    <DebugSymbols>True</DebugSymbols
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <SignAssembly>false</SignAssembly>
+    <RunCodeAnalysis>False</RunCodeAnalysis>
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <Target Name="Build">
+  </Target>
+</Project>
