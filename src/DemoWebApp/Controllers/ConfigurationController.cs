@@ -2,6 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Brimborium.Latrans.Medaitor;
+using Brimborium.Latrans.Utility;
+
+using DemoWebApp.ActivityModel.ConfigurationActivity;
+
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -12,11 +18,22 @@ namespace DemoWebApp.Controllers
     [ApiController]
     public class ConfigurationController : ControllerBase
     {
+        private readonly IMedaitorAccess _MedaitorAccess;
+
+        public ConfigurationController(IMedaitorAccess medaitorAccess) {
+            this._MedaitorAccess = medaitorAccess;
+        }
+
         // GET: api/<ConfigurationController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<ActionResult<IEnumerable<string>>> Get()
         {
-            return new string[] { "value1", "value2" };
+            using var cleanup = LocalDisposables.Create();
+            var medaitorClient = cleanup.AddUsingValue(this._MedaitorAccess.GetMedaitorClient());
+            var arguments = new GetConfigurationRequest();
+            var ctxt = medaitorClient.CreateContext(arguments);
+            await medaitorClient.ExecuteAsync(ctxt, this.HttpContext.RequestAborted);
+            return ctxt.ReturnAsActionResult<IEnumerable<string>>();
         }
 
         // GET api/<ConfigurationController>/5

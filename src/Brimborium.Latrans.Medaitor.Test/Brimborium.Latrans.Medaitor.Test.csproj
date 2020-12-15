@@ -20,5 +20,10 @@
     <ProjectReference Include="..\Brimborium.Latrans.Contracts\Brimborium.Latrans.Contracts.csproj" />
     <ProjectReference Include="..\Brimborium.Latrans.Medaitor\Brimborium.Latrans.Medaitor.csproj" />
   </ItemGroup>
-
+  <Target Name="Stryker">
+    <Exec Command="dotnet tool run dotnet-Stryker" />
+  </Target>
+  <!--
+   dotnet msbuild -target:Stryker
+  -->
 </Project>

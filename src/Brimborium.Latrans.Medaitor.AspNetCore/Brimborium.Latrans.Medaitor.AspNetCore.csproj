@@ -10,4 +10,10 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.10" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="3.1.10" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brimborium.Latrans.Contracts\Brimborium.Latrans.Contracts.csproj" />
+    <ProjectReference Include="..\Brimborium.Latrans.Medaitor\Brimborium.Latrans.Medaitor.csproj" />
+  </ItemGroup>
+
+  <Target Name="Stryker"></Target>
 </Project>

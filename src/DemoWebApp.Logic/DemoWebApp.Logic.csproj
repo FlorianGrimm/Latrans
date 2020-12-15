@@ -8,4 +8,5 @@
     <ProjectReference Include="..\DemoWebApp.Contracts\DemoWebApp.Contracts.csproj" />
   </ItemGroup>
 
+  <Target Name="Stryker"></Target>
 </Project>

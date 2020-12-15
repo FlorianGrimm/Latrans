@@ -7,6 +7,7 @@ Experimental WebApp
 - DemoWebApp
 - DemoWebApp.Contracts
 
+#setup
 
 ```
 dotnet new classlib -n Brimborium.Latrans.Medaitor -o src\Brimborium.Latrans.Medaitor
@@ -35,5 +36,24 @@ dotnet sln add src\DemoWebApp.Logic.Test
 
 dotnet new webapp -n DemoWebApp -o src\DemoWebApp
 dotnet sln add src\DemoWebApp
+
+dotnet new tool-manifest
+dotnet tool install dotnet-stryker
 ```
+
+# build
+
+```
+dotnet tool restore
+
+dotnet stryker --project-file G:\github\FlorianGrimm\Latrans\src\Brimborium.Latrans.Medaitor.Test\Brimborium.Latrans.Medaitor.
+Test.csproj
+
+dotnet stryker --project-file "src\Brimborium.Latrans.Medaitor.Test\Brimborium.Latrans.Medaitor.Test.csproj"
+dotnet stryker
+```
+
+
  
+
+

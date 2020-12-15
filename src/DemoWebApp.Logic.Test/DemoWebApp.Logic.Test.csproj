@@ -24,4 +24,5 @@
     <ProjectReference Include="..\Brimborium.Latrans.Contracts\Brimborium.Latrans.Contracts.csproj" />
   </ItemGroup>
 
+  <Target Name="Stryker"></Target>
 </Project>

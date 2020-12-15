@@ -1,31 +1,36 @@
-﻿using System;
+﻿using Brimborium.Latrans.Activity;
+using Brimborium.Latrans.Utility;
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Medaitor {
-    public interface IMedaitorContext {
+    public interface IMedaitorAccess {
+        IUsingValue<IMedaitorClient> GetMedaitorClient();
     }
-    public interface IMedaitorContext<TRequset, TResponse>: IMedaitorContext {
-    }
-    public interface IMedaitorHandler<TRequset, TResponse> {
-        Task ExecuteAsync(
-            IMedaitorContext<TRequset, TResponse> medaitorContext, 
+    public interface IMedaitorClient : IDisposable {
+        IActivityContext<TRequest> CreateContext<TRequest>(
+            TRequest request
+            );
+        IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(
+            TRequest request
+            );
+
+
+        Task SendAsync(
+            IActivityContext medaitorContext,
+            CancellationToken cancellationToken
+            );
+
+        Task WaitForAsync(
+            IActivityContext medaitorContext,
             CancellationToken cancellationToken
             );
     }
 
-    public interface IMedaitorClient {
-
-        IMedaitorContext<TRequset, TResponse> CreateContext<TRequset, TResponse>(
-            );
-
-        Task ExecuteAsync<TRequset, TResponse>(
-            IMedaitorContext<TRequset, TResponse> medaitorContext,
-            CancellationToken cancellationToken
-            );
-    }
     public interface IMedaitorService {
 
     }

@@ -9,8 +9,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Brimborium.Latrans.Contracts\Brimborium.Latrans.Contracts.csproj" />
+    <ProjectReference Include="..\Brimborium.Latrans.Medaitor.AspNetCore\Brimborium.Latrans.Medaitor.AspNetCore.csproj" />
     <ProjectReference Include="..\Brimborium.Latrans.Medaitor\Brimborium.Latrans.Medaitor.csproj" />
     <ProjectReference Include="..\DemoWebApp.Contracts\DemoWebApp.Contracts.csproj" />
     <ProjectReference Include="..\DemoWebApp.Logic\DemoWebApp.Logic.csproj" />
   </ItemGroup>
+
+    <Target Name="Stryker"></Target>
 </Project>

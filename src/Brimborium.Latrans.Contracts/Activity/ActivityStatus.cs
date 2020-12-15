@@ -1,4 +1,4 @@
-﻿namespace Brimborium.Latrans.ActivityContract {
+﻿namespace Brimborium.Latrans.Activity {
     public enum ActivityStatus { 
         Created,
         Running,
