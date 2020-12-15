@@ -12,10 +12,10 @@ namespace Brimborium.Latrans.Medaitor {
         IUsingValue<IMedaitorClient> GetMedaitorClient();
     }
     public interface IMedaitorClient : IDisposable {
-        IActivityContext<TRequest> CreateContext<TRequest>(
+        IActivityContext<TRequest> CreateContextByRequest<TRequest>(
             TRequest request
             );
-        IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(
+        IActivityContext<TRequest, TResponse> CreateContextByTypes<TRequest, TResponse>(
             TRequest request
             );
 

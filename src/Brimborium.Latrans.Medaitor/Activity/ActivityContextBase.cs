@@ -7,6 +7,7 @@ namespace Brimborium.Latrans.Activity {
         protected ActivityContextBase() {
         }
     }
+
     public class ActivityContext<TRequest, TResponse>
         : ActivityContextBase
         , IActivityContext<TRequest, TResponse> {

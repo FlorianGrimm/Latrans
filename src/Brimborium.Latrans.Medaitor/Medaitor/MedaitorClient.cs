@@ -13,7 +13,6 @@ namespace Brimborium.Latrans.Medaitor {
 
         }
         
-        
         protected virtual void Dispose(bool disposing) {
             if (!_DisposedValue) {
                 if (disposing) {
@@ -39,11 +38,11 @@ namespace Brimborium.Latrans.Medaitor {
             GC.SuppressFinalize(this);
         }
 
-        public IActivityContext<TRequest> CreateContext<TRequest>(TRequest request) {
+        public IActivityContext<TRequest> CreateContextByRequest<TRequest>(TRequest request) {
             throw new NotImplementedException();
         }
 
-        public IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(TRequest request) {
+        public IActivityContext<TRequest, TResponse> CreateContextByTypes<TRequest, TResponse>(TRequest request) {
             throw new NotImplementedException();
         }
 

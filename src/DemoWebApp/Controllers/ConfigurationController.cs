@@ -31,7 +31,7 @@ namespace DemoWebApp.Controllers
             using var cleanup = LocalDisposables.Create();
             var medaitorClient = cleanup.AddUsingValue(this._MedaitorAccess.GetMedaitorClient());
             var arguments = new GetConfigurationRequest();
-            var ctxt = medaitorClient.CreateContext(arguments);
+            var ctxt = medaitorClient.CreateContextByRequest(arguments);
             await medaitorClient.ExecuteAsync(ctxt, this.HttpContext.RequestAborted);
             return ctxt.ReturnAsActionResult<IEnumerable<string>>();
         }
