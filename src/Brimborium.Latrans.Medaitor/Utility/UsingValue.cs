@@ -42,14 +42,19 @@ namespace Brimborium.Latrans.Utility {
                 State state;
                 lock (this) {
                     state = this.CurrentState;
-                    if (state == State.Init) {
+                    if ((state == State.Init) && (this._Creator is object)) {
                         this._Value = this._Creator();
-                        this.CurrentState = State.Created;
+                        this.CurrentState = state = State.Created;
                     }
                 }
-                if ((state == State.Init)
-                    || (state == State.Created)) {
+                if (state == State.Created) {
                     return this._Value;
+                } else if (state == State.Init) {
+                    if (this._Creator is object) {
+                        throw new InvalidOperationException($"UsingValueFunction<{typeof(T).FullName}> Not created. ");
+                    } else {
+                        throw new InvalidOperationException($"UsingValueFunction<{typeof(T).FullName}> Not created. Provider not given.");
+                    }
                 } else if (state == State.Disposed) {
                     throw new ObjectDisposedException($"UsingValueFunction<{typeof(T).FullName}>");
                 } else {
@@ -100,19 +105,25 @@ namespace Brimborium.Latrans.Utility {
                 State state;
                 lock (this) {
                     state = this.CurrentState;
-                    if (state == State.Init) {
+                    if ((state == State.Init) && (this._Provider is object)) {
                         this._Value = this._Provider.GetRequiredService<T>();
-                        this.CurrentState = State.Created;
+                        this.CurrentState = state = State.Created;
                     }
                 }
-                if ((state == State.Init)
-                    || (state == State.Created)) {
+                if (state == State.Created) {
                     return this._Value;
+                } else if (state == State.Init) {
+                    if (this._Provider is object) {
+                        throw new InvalidOperationException($"UsingValueServiceProvider<{typeof(T).FullName}> Not created. ");
+                    } else {
+                        throw new InvalidOperationException($"UsingValueServiceProvider<{typeof(T).FullName}> Not created. Provider not given.");
+                    }
                 } else if (state == State.Disposed) {
-                    throw new ObjectDisposedException($"UsingValueFunction<{typeof(T).FullName}>");
+                    throw new ObjectDisposedException($"UsingValueServiceProvider<{typeof(T).FullName}>");
                 } else {
-                    throw new InvalidOperationException($"UsingValueFunction<{typeof(T).FullName}> Unknown State:{this.CurrentState}");
+                    throw new InvalidOperationException($"UsingValueServiceProvider<{typeof(T).FullName}> Unknown State:{this.CurrentState}");
                 }
+
             }
         }
         public void Dispose() {

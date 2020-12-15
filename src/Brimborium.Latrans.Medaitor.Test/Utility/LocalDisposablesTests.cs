@@ -5,7 +5,7 @@ using Xunit;
 namespace Brimborium.Latrans.Utility {
     public class LocalDisposablesTests {
         public void LocalDisposables_Test1() {
-            var d = new TestingIDisposable();
+            var d = new Dummy();
             Assert.False(d.IsDisposed);
             var sut = new LocalDisposables();
             var d2 = sut.Add(d);
@@ -16,13 +16,13 @@ namespace Brimborium.Latrans.Utility {
 
         public void LocalDisposables_Test2() {
             var sut = new LocalDisposables();
-            var d = sut.AddUsingValue(UsingValue.CreateByFunction(() => new TestingIDisposable()));
+            var d = sut.AddUsingValue(UsingValue.CreateByFunction(() => new Dummy()));
             Assert.False(d.IsDisposed);
             sut.Dispose();
             Assert.True(d.IsDisposed);
         }
 
-        public class TestingIDisposable : IDisposable {
+        public class Dummy : IDisposable {
             public int Value;
             public bool IsDisposed;
             public void Dispose() {
