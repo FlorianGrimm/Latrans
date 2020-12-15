@@ -7,50 +7,45 @@ using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Medaitor {
     public class MedaitorClient : IMedaitorClient, IDisposable {
-        private bool _DisposedValue;
+        private int _IsDisposed;
+        private readonly IMedaitorService _MedaitorService;
 
-        public MedaitorClient() {
-
+        public MedaitorClient(IMedaitorService medaitorService) {
+            this._MedaitorService = medaitorService ?? throw new ArgumentNullException(nameof(medaitorService));
         }
-        
-        protected virtual void Dispose(bool disposing) {
-            if (!_DisposedValue) {
-                if (disposing) {
-                    // TODO: dispose managed state (managed objects)
-                }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                _DisposedValue = true;
+        public bool IsDisposed => (this._IsDisposed == 1);
+
+        protected virtual void Dispose(bool disposing) {
+            if (0 == System.Threading.Interlocked.Exchange(ref this._IsDisposed, 1)) {
+                if (disposing) {
+                }
             }
         }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~MedaitorClient()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
+        ~MedaitorClient() {
+            Dispose(disposing: false);
+        }
 
         public void Dispose() {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 
         public IActivityContext<TRequest> CreateContextByRequest<TRequest>(TRequest request) {
-            throw new NotImplementedException();
+            return this._MedaitorService.CreateContextByRequest<TRequest>(this, request);
         }
 
-        public IActivityContext<TRequest, TResponse> CreateContextByTypes<TRequest, TResponse>(TRequest request) {
-            throw new NotImplementedException();
+        public Task SendAsync(
+            IActivityContext activityContext,
+            CancellationToken cancellationToken) {
+            return this._MedaitorService.SendAsync(this, activityContext, cancellationToken);
         }
 
-        public Task SendAsync(IActivityContext medaitorContext, CancellationToken cancellationToken) {
-            throw new NotImplementedException();
-        }
-
-        public Task WaitForAsync(IActivityContext medaitorContext, CancellationToken cancellationToken) {
+        public Task WaitForAsync(
+            IActivityContext activityContext,
+            ActivityWaitForSpecification waitForSpecification,
+            CancellationToken cancellationToken) {
             throw new NotImplementedException();
         }
     }

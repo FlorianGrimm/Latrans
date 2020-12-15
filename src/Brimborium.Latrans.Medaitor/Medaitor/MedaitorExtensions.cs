@@ -13,14 +13,14 @@ namespace Brimborium.Latrans.Medaitor {
         public static async Task ExecuteAsync(
             this IMedaitorClient medaitorClient,
             IActivityContext medaitorContext,
+            ActivityWaitForSpecification waitForSpecification,
             CancellationToken cancellationToken) {
             await medaitorClient.SendAsync(medaitorContext, cancellationToken);
             if (cancellationToken.IsCancellationRequested) {
                 return;
             } else { 
-                await medaitorClient.WaitForAsync(medaitorContext, cancellationToken);
+                await medaitorClient.WaitForAsync(medaitorContext, waitForSpecification, cancellationToken);
             }
-            throw new NotImplementedException();
         }
     }
 }

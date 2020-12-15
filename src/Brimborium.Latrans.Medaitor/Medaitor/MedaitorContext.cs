@@ -3,12 +3,27 @@ using Brimborium.Latrans.Medaitor;
 
 using System;
 
-namespace Brimborium.Latrans.Medaitor{
-    public class MedaitorContext<TRequset, TResponse>
-        : IActivityContext<TRequset, TResponse> {
-        public TRequset Request => throw new NotImplementedException();
+namespace Brimborium.Latrans.Medaitor {
+    public class MedaitorContext<TRequest, TResponse>
+        : IActivityContext<TRequest, TResponse>
+        , IActivityContextInternal<TRequest> {
+        private TRequest _Request;
 
-        public void SetActivityResult(IActivityResult medaitorResult) {
+        public MedaitorContext() {
+        }
+        public Type GetRequestType() => typeof(TRequest);
+
+        public TRequest Request {
+            get { return this._Request; }
+            set { this._Request = value; }
+        }
+
+        public void SetRequest(TRequest request) {
+            this._Request = request;
+        }
+
+
+        public void SetActivityResponse(IActivityResponse medaitorResult) {
             throw new NotImplementedException();
         }
 

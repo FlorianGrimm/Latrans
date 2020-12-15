@@ -27,27 +27,42 @@ namespace Brimborium.Latrans.Activity {
        where TResponse : IResponseBase {
     }
 
-    public interface IActivityResult {
+    public interface IActivityResponse {
     }
 
     public interface IActivityContext {
-    }
-    public interface IActivityContext<TRequset> : IActivityContext {
-        TRequset Request { get; }
-        //void SetResponse(TResponse response);
-        //void SetFailure(System.Exception error);
-        //void SetActivityResult(IActivityResult medaitorResult);
-    }
-    public interface IActivityContext<TRequset, TResponse> : IActivityContext {
-        TRequset Request { get; }
-        void SetResponse(TResponse response);
-        void SetFailure(System.Exception error);
-        void SetActivityResult(IActivityResult medaitorResult);
+        Type GetRequestType();
     }
 
-    public interface IActivityHandler<TRequset, TResponse> {
+    public interface IActivityContext<TRequest> : IActivityContext {
+        TRequest Request { get; }
+    }
+    
+    public interface IActivityContextInternal<TRequest> :IActivityContext<TRequest>{
+        void SetRequest(TRequest request);
+    }
+
+    public interface IActivityContext<TRequest, TResponse> : IActivityContext<TRequest> {
+        
+        void SetResponse(TResponse response);
+        
+        void SetFailure(System.Exception error);
+
+        void SetActivityResponse(IActivityResponse activityResponse);
+    }
+
+    public interface IActivityHandler {
+        Task SendAsync(
+            IActivityContext activityContext,
+            CancellationToken cancellationToken
+            );
+    }
+    public interface IActivityHandler<TRequest>: IActivityHandler {
+    }
+
+    public interface IActivityHandler<TRequest, TResponse>: IActivityHandler<TRequest> {
         Task ExecuteAsync(
-            IActivityContext<TRequset, TResponse> medaitorContext,
+            IActivityContext<TRequest, TResponse> activityContext,
             CancellationToken cancellationToken
             );
     }

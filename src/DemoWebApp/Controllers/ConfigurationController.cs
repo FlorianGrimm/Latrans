@@ -28,12 +28,15 @@ namespace DemoWebApp.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<string>>> Get()
         {
-            using var cleanup = LocalDisposables.Create();
-            var medaitorClient = cleanup.AddUsingValue(this._MedaitorAccess.GetMedaitorClient());
-            var arguments = new GetConfigurationRequest();
-            var ctxt = medaitorClient.CreateContextByRequest(arguments);
-            await medaitorClient.ExecuteAsync(ctxt, this.HttpContext.RequestAborted);
-            return ctxt.ReturnAsActionResult<IEnumerable<string>>();
+            try {
+                var medaitorClient = this._MedaitorAccess.GetMedaitorClient();
+                var arguments = new GetConfigurationRequest();
+                var ctxt = medaitorClient.CreateContextByRequest(arguments);
+                await medaitorClient.ExecuteAsync(ctxt, null, this.HttpContext.RequestAborted);
+                return ctxt.ReturnAsActionResult<IEnumerable<string>>();
+            } catch (System.Exception error) {
+                return this.StatusCode(500, error.Message);
+            }
         }
 
         // GET api/<ConfigurationController>/5

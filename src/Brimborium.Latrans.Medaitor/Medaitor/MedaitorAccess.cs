@@ -1,5 +1,7 @@
 ﻿using Brimborium.Latrans.Utility;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using System;
 
 namespace Brimborium.Latrans.Medaitor {
@@ -10,10 +12,15 @@ namespace Brimborium.Latrans.Medaitor {
             this._ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        public IUsingValue<IMedaitorClient> GetMedaitorClient() {
-            return UsingValue.CreateByServiceProvider<IMedaitorClient>(this._ServiceProvider);
-            //IMedaitorClient medaitorClient = this._ServiceProvider.GetRequiredService<IMedaitorClient>();
-            //throw new NotImplementedException();
+        public IMedaitorClient GetMedaitorClient() {
+            var result = this._ServiceProvider.GetRequiredService<IMedaitorClient>();
+            return result;
         }
+
+        //public IUsingValue<IMedaitorClient> GetMedaitorClient() {
+        //    return UsingValue.CreateByServiceProvider<IMedaitorClient>(this._ServiceProvider);
+        //    //IMedaitorClient medaitorClient = this._ServiceProvider.GetRequiredService<IMedaitorClient>();
+        //    //throw new NotImplementedException();
+        //}
     }
 }

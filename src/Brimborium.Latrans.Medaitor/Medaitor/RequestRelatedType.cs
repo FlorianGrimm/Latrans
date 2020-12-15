@@ -7,6 +7,9 @@ namespace Brimborium.Latrans.Medaitor {
         public RequestRelatedTypes() {
             this.Items = new Dictionary<Type, RequestRelatedType>();
         }
+        public RequestRelatedTypes(Dictionary<Type, RequestRelatedType> items) {
+            this.Items = new Dictionary<Type, RequestRelatedType>(items);
+        }
 
         public bool TryGetValue(Type requestType, out RequestRelatedType requestRelatedType)
             => this.Items.TryGetValue(requestType, out requestRelatedType);

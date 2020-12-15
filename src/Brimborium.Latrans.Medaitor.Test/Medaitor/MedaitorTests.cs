@@ -16,31 +16,60 @@ namespace Brimborium.Latrans.Medaitor {
         [Fact]
         public void Medaitor_Test1() {
             var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
-            servicesWebApp.AddMedaitor();
+            var b = servicesWebApp.AddLatransMedaitor();
             Assert.Contains(servicesWebApp, sd => typeof(IMedaitorAccess) == sd.ServiceType);
+            Assert.Contains(servicesWebApp, sd => typeof(IMedaitorClient) == sd.ServiceType);
+            Assert.Contains(servicesWebApp, sd => typeof(IMedaitorService) == sd.ServiceType);
         }
 
         [Fact]
-        public async Task Medaitor_Test2() {
+        public void Medaitor_Test2() {
             var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
-            servicesWebApp.AddMedaitor();
-            servicesMediator.AddTransient<IActivityHandler<TestRequest, TestResponse>, TestActivityHandler>();
-            servicesMediator.AddHandler<TestActivityHandler>();
+            var b = servicesWebApp.AddLatransMedaitor();
+            b.AddHandler<TestActivityHandler>();
+            Assert.Contains(b.Options.ServicesMediator, sd => typeof(IActivityHandler<TestRequest, TestResponse>) == sd.ServiceType);
+        }
+
+        [Fact]
+        public void Medaitor_Test3() {
+            var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            var b = servicesWebApp.AddLatransMedaitor();
+            b.AddHandler<TestActivityHandler>();
 
             using (var serviceProviderMediator = servicesMediator.BuildServiceProvider()) {
                 using (var serviceProviderWebApp = servicesWebApp.BuildServiceProvider()) {
                     using (var scopeWebApp = serviceProviderWebApp.CreateScope()) {
                         var scopedProviderWebApp = scopeWebApp.ServiceProvider;
-                        using (var localDisposables = new LocalDisposables()) {
-                            var medaitorClient = localDisposables.AddUsingValue(scopedProviderWebApp.GetRequiredService<IMedaitorAccess>().GetMedaitorClient());
+                        var medaitorClient = scopedProviderWebApp.GetRequiredService<IMedaitorAccess>().GetMedaitorClient();
 
-                            var request = new TestRequest() { A = 6, B = 7 };
-                            var ctxt = medaitorClient.CreateContextByRequest(request);
-                            await medaitorClient.SendAsync(ctxt, CancellationToken.None);
-                            await medaitorClient.WaitForAsync(ctxt, CancellationToken.None);
-                            //ctxt.GetResult();
-                        }
+                        var request = new TestRequest() { A = 6, B = 7 };
+                        var ctxt = medaitorClient.CreateContextByRequest(request);
+                        Assert.Same(request, ctxt.Request);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Medaitor_Test4() {
+            var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            var b = servicesWebApp.AddLatransMedaitor();
+            b.AddHandler<TestActivityHandler>();
+
+            using (var serviceProviderMediator = servicesMediator.BuildServiceProvider()) {
+                using (var serviceProviderWebApp = servicesWebApp.BuildServiceProvider()) {
+                    using (var scopeWebApp = serviceProviderWebApp.CreateScope()) {
+                        var scopedProviderWebApp = scopeWebApp.ServiceProvider;
+                        var medaitorClient = scopedProviderWebApp.GetRequiredService<IMedaitorAccess>().GetMedaitorClient();
+
+                        var request = new TestRequest() { A = 6, B = 7 };
+                        var ctxt = medaitorClient.CreateContextByRequest(request);
+                        await medaitorClient.SendAsync(ctxt, CancellationToken.None);
+                        await medaitorClient.WaitForAsync(ctxt, null, CancellationToken.None);
+                        //ctxt.GetResult();
                     }
                 }
             }
@@ -54,13 +83,13 @@ namespace Brimborium.Latrans.Medaitor {
             public int R { get; set; }
         }
 
-        public class TestActivityHandler : IActivityHandler<TestRequest, TestResponse> {
-            public Task ExecuteAsync(
-                IActivityContext<TestRequest, TestResponse> medaitorContext,
+        public class TestActivityHandler : ActivityHandlerBase<TestRequest, TestResponse> {
+            public override Task ExecuteAsync(
+                IActivityContext<TestRequest, TestResponse> activityContext,
                 CancellationToken cancellationToken) {
-                var request = medaitorContext.Request;
+                var request = activityContext.Request;
                 var response = new TestResponse() { R = request.A * request.B };
-                medaitorContext.SetResponse(response);
+                activityContext.SetResponse(response);
                 return Task.CompletedTask;
             }
         }
