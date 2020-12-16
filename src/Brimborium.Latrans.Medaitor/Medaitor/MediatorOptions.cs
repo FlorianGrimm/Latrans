@@ -22,13 +22,15 @@ namespace Brimborium.Latrans.Medaitor {
         private readonly IServiceCollection _Services;
         private readonly RequestRelatedTypes _RequestRelatedTypes;
 
-        public MediatorBuilder(MediatorOptions options) {
-            this._Options = options ?? throw new ArgumentNullException(nameof(options));
-            this._Services = options.ServicesMediator;
-            this._RequestRelatedTypes = options.RequestRelatedTypes;
+        public MediatorBuilder() {
+            this._Options = new MediatorOptions();
+            this._Services = this._Options.ServicesMediator;
+            this._RequestRelatedTypes = this._Options.RequestRelatedTypes;
         }
+        public IServiceCollection Services => this._Services;
 
         public MediatorOptions Options => this._Options;
+
         public void AddHandler<THandler>() {
             Type handlerType = typeof(THandler);
             var interfaces = handlerType.GetInterfaces();
@@ -57,18 +59,24 @@ namespace Brimborium.Latrans.Medaitor {
 
                             var activityContextType = typeof(Brimborium.Latrans.Medaitor.MedaitorContext<,>).MakeGenericType(requestType, responseType);
                             this._Services.AddTransient(activityContextType, activityContextType);
-                            Func<CreateActivityContextArguments, object, IActivityContext> createActivityContext
+                            var createActivityContext
                                 = (Func<CreateActivityContextArguments, object, IActivityContext>)activityContextType
                                 .GetMethod("GetCreateInstance", BindingFlags.Public | BindingFlags.Static)
                                 .Invoke(null, null);
-
+                            
+                            var medaitorClientConnectedType = typeof(Brimborium.Latrans.Medaitor.MedaitorClientConnected<,>).MakeGenericType(requestType, responseType);
+                            var createClientConnected
+                                = (Func<CreateClientConnectedArguments, object, IMedaitorClientConnected>)medaitorClientConnectedType
+                                .GetMethod("GetCreateInstance", BindingFlags.Public | BindingFlags.Static)
+                                .Invoke(null, null);
                             this._RequestRelatedTypes.Add(
                                 new RequestRelatedType(
                                     requestType,
                                     responseType,
                                     handlerType,
                                     activityContextType,
-                                    createActivityContext));
+                                    createActivityContext,
+                                    createClientConnected));
                         }
                     }
                 }

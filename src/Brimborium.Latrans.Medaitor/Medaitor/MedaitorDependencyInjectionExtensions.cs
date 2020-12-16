@@ -7,14 +7,17 @@ using System.Reflection;
 
 namespace Microsoft.Extensions.DependencyInjection {
     public static class MedaitorDependencyInjectionExtensions {
-        public static MediatorBuilder AddLatransMedaitor(this IServiceCollection services, Action<MediatorOptions> configure=null) {
-            var options = new MediatorOptions();
-            var builder = new MediatorBuilder(options);
+        public static MediatorBuilder AddLatransMedaitor(this IServiceCollection services, Action<MediatorBuilder> configure=null) {
+            
+            var builder = new MediatorBuilder();
             services.AddScoped<IMedaitorAccess, MedaitorAccess>();
             services.AddScoped<IMedaitorClient, MedaitorClient>();
-            services.AddSingleton<IMedaitorService>((sp)=>MedaitorService.Create(options));
+            services.AddSingleton<IMedaitorService>((sp)=>MedaitorService.Create(builder.Options));
+            //builder.Services.AddTransient<IMedaitorClientConnected, MedaitorClientConnected>();
+
+            //: 
             if (configure is object) {
-                configure(options);
+                configure(builder);
             }
             return builder;
         }

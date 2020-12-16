@@ -48,5 +48,12 @@ namespace Brimborium.Latrans.Medaitor {
             CancellationToken cancellationToken) {
             return this._MedaitorService.WaitForAsync(this, activityContext, waitForSpecification, cancellationToken);
         }
+
+        public async Task<IMedaitorClientConnected<TRequest>> ConnectAsync<TRequest>(TRequest request) {
+            var result = await this._MedaitorService.ConnectAsync<TRequest>(this, request);
+#warning TODO
+            return result;
+        }
     }
+
 }

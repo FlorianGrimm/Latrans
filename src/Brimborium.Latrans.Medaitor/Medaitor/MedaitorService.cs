@@ -99,7 +99,25 @@ namespace Brimborium.Latrans.Medaitor {
             ActivityWaitForSpecification waitForSpecification,
             CancellationToken cancellationToken
             ) {
-            await activityContext.GetActivityResponseAsync();
+            return await activityContext.GetActivityResponseAsync();
+        }
+
+        public async Task<IMedaitorClientConnected<TRequest>> ConnectAsync<TRequest>(
+            IMedaitorClient medaitorClient,
+            TRequest request) {
+            if (request is null) { throw new ArgumentNullException(nameof(request)); }
+            //
+            if (this.RequestRelatedTypes.Items.TryGetValue(typeof(TRequest), out var rrt)) {
+                var result = (IMedaitorClientConnectedInternal<TRequest>)rrt.CreateClientConnected(
+                    new CreateClientConnectedArguments() {
+                        //ServiceProvider = this._ServicesMediator
+                        MedaitorService = this
+                    },
+                    request);
+                return await result.SendAsync();
+            } else {
+                throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
+            }
         }
     }
 }

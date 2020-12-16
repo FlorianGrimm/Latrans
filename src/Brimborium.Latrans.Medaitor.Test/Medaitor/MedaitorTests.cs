@@ -76,6 +76,31 @@ namespace Brimborium.Latrans.Medaitor {
             }
         }
 
+        [Fact]
+        public async Task Medaitor_Test5() {
+            var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            var b = servicesWebApp.AddLatransMedaitor();
+            b.AddHandler<TestActivityHandler>();
+
+            using (var serviceProviderMediator = servicesMediator.BuildServiceProvider()) {
+                using (var serviceProviderWebApp = servicesWebApp.BuildServiceProvider()) {
+                    using (var scopeWebApp = serviceProviderWebApp.CreateScope()) {
+                        var scopedProviderWebApp = scopeWebApp.ServiceProvider;
+                        var medaitorClient = scopedProviderWebApp.GetRequiredService<IMedaitorAccess>().GetMedaitorClient();
+
+                        var request = new TestRequest() { A = 6, B = 7 };
+                        var connectedClient = await medaitorClient.ConnectAsync(request);
+                        //var ctxt = medaitorClient.CreateContextByRequest(request);
+                        //await medaitorClient.SendAsync(ctxt, CancellationToken.None);
+                        //await medaitorClient.WaitForAsync(ctxt, null, CancellationToken.None);
+                        //var activityResponse = await ctxt.GetActivityResponseAsync();
+                        //Assert.NotNull(activityResponse as OkResultActivityResponse<TestResponse>);
+                    }
+                }
+            }
+        }
+
         public class TestRequest : IRequest<TestResponse> {
             public int A { get; set; }
             public int B { get; set; }

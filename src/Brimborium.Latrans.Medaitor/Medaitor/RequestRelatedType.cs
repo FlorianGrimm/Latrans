@@ -25,6 +25,10 @@ namespace Brimborium.Latrans.Medaitor {
         public IMedaitorService MedaitorService;
     }
 
+    public class CreateClientConnectedArguments {
+        //public IServiceProvider ServiceProvider;
+        public IMedaitorService MedaitorService;
+    }
     public sealed class RequestRelatedType {
         public RequestRelatedType() {
         }
@@ -34,16 +38,20 @@ namespace Brimborium.Latrans.Medaitor {
             Type responseType,
             Type handlerType,
             Type activityContextType,
-            Func<CreateActivityContextArguments, object, IActivityContext> createActivityContext
+            Func<CreateActivityContextArguments, object, IActivityContext> createActivityContext,
+            Func<CreateClientConnectedArguments, object, IMedaitorClientConnected> createClientConnected
             ) {
             this.RequestType = requestType;
             this.ResponseType = responseType;
             this.HandlerTypes = new Type[] { handlerType };
             this.ActivityContextType = activityContextType;
             this.CreateActivityContext = createActivityContext;
+            this.CreateClientConnected = createClientConnected;
         }
 
         public Func<CreateActivityContextArguments, object, IActivityContext> CreateActivityContext { get; set; }
+        public Func<CreateClientConnectedArguments, object, IMedaitorClientConnected> CreateClientConnected { get; set; }
+        
         public Type RequestType { get; set; }
         public Type ResponseType { get; set; }
         public Type DispatcherType { get; set; }

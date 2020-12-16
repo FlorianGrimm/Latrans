@@ -4,7 +4,6 @@ using Brimborium.Latrans.Utility;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Medaitor {
