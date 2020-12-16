@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Platforms>AnyCPU;x64</Platforms>
+    <LangVersion>Latest</LangVersion>
+    <AssemblyName>Brimborium.Latrans.StoreageFASTER</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>FASTER.core</RootNamespace>  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Interactive.Async" Version="4.1.1" />
+  </ItemGroup>
+
+</Project>
