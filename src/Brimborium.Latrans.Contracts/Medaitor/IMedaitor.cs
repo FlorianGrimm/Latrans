@@ -35,10 +35,13 @@ namespace Brimborium.Latrans.Medaitor {
             IMedaitorClient medaitorClient,
             TRequest request
             );
+
         Task SendAsync(
             IMedaitorClient medaitorClient,
             IActivityContext activityContext, 
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken
+            );
+
         Task WaitForAsync(
             IMedaitorClient medaitorClient,
             IActivityContext activityContext,

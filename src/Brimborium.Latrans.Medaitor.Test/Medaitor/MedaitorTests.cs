@@ -69,7 +69,8 @@ namespace Brimborium.Latrans.Medaitor {
                         var ctxt = medaitorClient.CreateContextByRequest(request);
                         await medaitorClient.SendAsync(ctxt, CancellationToken.None);
                         await medaitorClient.WaitForAsync(ctxt, null, CancellationToken.None);
-                        //ctxt.GetResult();
+                        var activityResponse = await ctxt.GetActivityResponseAsync();
+                        Assert.NotNull(activityResponse as OkResultActivityResponse<TestResponse>);
                     }
                 }
             }

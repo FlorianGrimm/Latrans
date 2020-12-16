@@ -10,7 +10,14 @@ using System.Text;
 namespace Brimborium.Latrans.Medaitor
 {
     public static class ActivityContextExtensions {
-        public static ActionResult<T> ReturnAsActionResult<T>(this IActivityContext activityContext) {
+        public static ActionResult<T> ReturnAsActionResult<T>(
+            this IActivityContext activityContext
+            ) {
+            if (activityContext is null) {
+                throw new ArgumentNullException(nameof(activityContext));
+            }
+
+            //activityContext.GetResult();
             throw new NotImplementedException();
         }
     }

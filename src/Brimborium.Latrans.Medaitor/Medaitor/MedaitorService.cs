@@ -30,12 +30,12 @@ namespace Brimborium.Latrans.Medaitor {
         }
 
         private void Initialize() {
-            
+
         }
 
         protected virtual void Dispose(bool disposing) {
             if (0 == System.Threading.Interlocked.Exchange(ref this._IsDisposed, 1)) {
-                using (var services = this._ServicesMediator) { 
+                using (var services = this._ServicesMediator) {
                     if (disposing) {
                         this._ServicesMediator = null;
                     }
@@ -54,13 +54,16 @@ namespace Brimborium.Latrans.Medaitor {
 
         public IActivityContext<TRequest> CreateContextByRequest<TRequest>(
             IMedaitorClient medaitorClient,
-            TRequest request) {
+            TRequest request
+            ) {
             if (request is null) { throw new ArgumentNullException(nameof(request)); }
             //
             if (this.RequestRelatedTypes.Items.TryGetValue(typeof(TRequest), out var rrt)) {
-                var result = (IActivityContextInternal<TRequest>)this._ServicesMediator.GetRequiredService(rrt.ActivityContextType);
-                result.SetRequest(request);
-                return result;
+                var result = rrt.CreateActivityContext(this._ServicesMediator, request);
+                return (IActivityContext<TRequest>)result;
+                //var result = (IActivityContext<TRequest>)this._ServicesMediator.GetRequiredService(rrt.ActivityContextType);
+                //result.SetRequest(request);
+                //return result;
             } else {
                 throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
             }
@@ -69,10 +72,11 @@ namespace Brimborium.Latrans.Medaitor {
         public Task SendAsync(
             IMedaitorClient medaitorClient,
             IActivityContext activityContext,
-            CancellationToken cancellationToken) {
+            CancellationToken cancellationToken
+            ) {
             var requestType = activityContext.GetRequestType();
             if (this.RequestRelatedTypes.Items.TryGetValue(requestType, out var rrt)) {
-                Type handlerType=null;
+                Type handlerType = null;
                 if (rrt.HandlerTypes.Length == 1) {
                     handlerType = rrt.HandlerTypes[0];
                 }
@@ -87,12 +91,13 @@ namespace Brimborium.Latrans.Medaitor {
             }
         }
 
-        public Task WaitForAsync(
+        public async Task WaitForAsync(
             IMedaitorClient medaitorClient,
             IActivityContext activityContext,
             ActivityWaitForSpecification waitForSpecification,
-            CancellationToken cancellationToken) {
-            throw new NotImplementedException();
+            CancellationToken cancellationToken
+            ) {
+            await activityContext.GetActivityResponseAsync();
         }
     }
 }

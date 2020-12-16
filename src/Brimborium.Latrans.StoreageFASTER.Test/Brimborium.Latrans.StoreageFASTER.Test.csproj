@@ -20,6 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Brimborium.Latrans.Contracts\Brimborium.Latrans.Contracts.csproj" />
+    <ProjectReference Include="..\Brimborium.Latrans.Medaitor\Brimborium.Latrans.Medaitor.csproj" />
     <ProjectReference Include="..\Brimborium.Latrans.StoreageFASTER\Brimborium.Latrans.StoreageFASTER.csproj" />
   </ItemGroup>
 

@@ -22,6 +22,18 @@ dotnet sln add src\Brimborium.Latrans.Medaitor.AspNetCore
 dotnet new xunit -n Brimborium.Latrans.Medaitor.AspNetCore.Test -o src\Brimborium.Latrans.Medaitor.AspNetCore.Test
 dotnet sln add src\Brimborium.Latrans.Medaitor.AspNetCore.Test
 
+dotnet new classlib -n Brimborium.Latrans.StoreageFASTER -o src\Brimborium.Latrans.StoreageFASTER
+dotnet sln add src\Brimborium.Latrans.StoreageFASTER
+
+dotnet new xunit -n Brimborium.Latrans.StoreageFASTER.Test -o src\Brimborium.Latrans.StoreageFASTER.Test
+dotnet sln add src\Brimborium.Latrans.StoreageFASTER.Test
+
+dotnet new classlib -n Brimborium.Latrans.StoreageFASTERAzure -o src\Brimborium.Latrans.StoreageFASTERAzure
+dotnet sln add src\Brimborium.Latrans.StoreageFASTERAzure
+
+dotnet new xunit -n Brimborium.Latrans.StoreageFASTERAzure.Test -o src\Brimborium.Latrans.StoreageFASTERAzure.Test
+dotnet sln add src\Brimborium.Latrans.StoreageFASTERAzure.Test
+
 dotnet new classlib -n Brimborium.Latrans.Contracts -o src\Brimborium.Latrans.Contracts
 dotnet sln add src\Brimborium.Latrans.Contracts
 
@@ -44,13 +56,6 @@ dotnet tool install dotnet-stryker
 # build
 
 ```
-dotnet tool restore
-
-dotnet stryker --project-file G:\github\FlorianGrimm\Latrans\src\Brimborium.Latrans.Medaitor.Test\Brimborium.Latrans.Medaitor.
-Test.csproj
-
-dotnet stryker --project-file "src\Brimborium.Latrans.Medaitor.Test\Brimborium.Latrans.Medaitor.Test.csproj"
-dotnet stryker
 ```
 
 

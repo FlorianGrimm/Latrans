@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
+
+using Brimborium.Latrans.Activity;
 
 using Microsoft.Extensions.DependencyInjection;
 namespace Brimborium.Latrans.Medaitor {
@@ -13,6 +16,7 @@ namespace Brimborium.Latrans.Medaitor {
             this.ServicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
         }
     }
+
     public class MediatorBuilder {
         private readonly MediatorOptions _Options;
         private readonly IServiceCollection _Services;
@@ -47,18 +51,24 @@ namespace Brimborium.Latrans.Medaitor {
                         } else {
                             //var typeIActivityContext1 = typeof(Brimborium.Latrans.Activity.IActivityContext<>).MakeGenericType(requestType);
                             //var typeIActivityContext2 = typeof(Brimborium.Latrans.Activity.IActivityContext<,>).MakeGenericType(requestType, responceType);
-                            
+
                             //var activityContext1Type = typeof(Brimborium.Latrans.Activity.IActivityContext<>).MakeGenericType(requestType);
                             //this._Services.AddTransient(activityContext1Type, activityContext1Type);
 
                             var activityContextType = typeof(Brimborium.Latrans.Medaitor.MedaitorContext<,>).MakeGenericType(requestType, responseType);
                             this._Services.AddTransient(activityContextType, activityContextType);
+                            Func<IServiceProvider, object, IActivityContext> createActivityContext
+                                = (Func<IServiceProvider, object, IActivityContext>)activityContextType
+                                .GetMethod("GetCreateInstance", BindingFlags.Public | BindingFlags.Static)
+                                .Invoke(null, null);
 
-                            this._RequestRelatedTypes.Add(new RequestRelatedType(
-                                requestType, 
-                                responseType, 
-                                handlerType, 
-                                activityContextType));
+                            this._RequestRelatedTypes.Add(
+                                new RequestRelatedType(
+                                    requestType,
+                                    responseType,
+                                    handlerType,
+                                    activityContextType,
+                                    createActivityContext));
                         }
                     }
                 }

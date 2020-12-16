@@ -46,7 +46,7 @@ namespace Brimborium.Latrans.Medaitor {
             IActivityContext activityContext,
             ActivityWaitForSpecification waitForSpecification,
             CancellationToken cancellationToken) {
-            throw new NotImplementedException();
+            return this._MedaitorService.WaitForAsync(this, activityContext, waitForSpecification, cancellationToken);
         }
     }
 }

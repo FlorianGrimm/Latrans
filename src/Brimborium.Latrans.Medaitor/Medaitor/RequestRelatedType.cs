@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Brimborium.Latrans.Activity;
+
+using System;
 using System.Collections.Generic;
 
 namespace Brimborium.Latrans.Medaitor {
-    public class RequestRelatedTypes {
+    public sealed class RequestRelatedTypes {
         public readonly Dictionary<Type, RequestRelatedType> Items;
         public RequestRelatedTypes() {
             this.Items = new Dictionary<Type, RequestRelatedType>();
@@ -18,14 +20,26 @@ namespace Brimborium.Latrans.Medaitor {
             this.Items.Add(requestRelatedType.RequestType, requestRelatedType);
         }
     }
-    public class RequestRelatedType {
-        public RequestRelatedType(Type requestType, Type responseType, Type handlerType, Type activityContextType) {
+
+    public sealed class RequestRelatedType {
+        public RequestRelatedType() {
+        }
+
+        public RequestRelatedType(
+            Type requestType,
+            Type responseType,
+            Type handlerType,
+            Type activityContextType,
+            Func<IServiceProvider, object, IActivityContext> createActivityContext
+            ) {
             this.RequestType = requestType;
             this.ResponseType = responseType;
             this.HandlerTypes = new Type[] { handlerType };
             this.ActivityContextType = activityContextType;
+            this.CreateActivityContext = createActivityContext;
         }
 
+        public Func<IServiceProvider, object, IActivityContext> CreateActivityContext { get; set; }
         public Type RequestType { get; set; }
         public Type ResponseType { get; set; }
         public Type DispatcherType { get; set; }
@@ -38,5 +52,6 @@ namespace Brimborium.Latrans.Medaitor {
             old.CopyTo(next, 0);
             next[old.Length] = handlerType;
         }
+
     }
 }

@@ -15,4 +15,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.2.2" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Brimborium.Latrans.Contracts\Brimborium.Latrans.Contracts.csproj" />
+    <ProjectReference Include="..\Brimborium.Latrans.StoreageFASTER\Brimborium.Latrans.StoreageFASTER.csproj" />
+  </ItemGroup>
 </Project>

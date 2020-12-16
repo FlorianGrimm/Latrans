@@ -5,7 +5,7 @@ using System;
 using Xunit;
 
 namespace Brimborium.Latrans.StoreageFASTER.Test {
-    public class UnitTest1 {
+    public class BasicFasterTests {
         [Fact]
         public void Test1() {
             /*
@@ -23,7 +23,7 @@ namespace Brimborium.Latrans.StoreageFASTER.Test {
             new CheckpointSettings { CheckpointDir = test_path, CheckPointType = checkpointType },
             new SerializerSettings<MyKey, MyLargeValue> { keySerializer = () => new MyKeySerializer(), valueSerializer = () => new MyLargeValueSerializer() }
             );
-            /*
+            */
         }
     }
 }
