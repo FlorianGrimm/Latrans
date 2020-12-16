@@ -1,9 +1,10 @@
 ﻿using Brimborium.Latrans.Activity;
-using Brimborium.Latrans.Medaitor;
 using Brimborium.Latrans.Utility;
 
 using System;
-using System.Runtime.Serialization;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Medaitor {
@@ -11,33 +12,75 @@ namespace Brimborium.Latrans.Medaitor {
         : IActivityContext<TRequest, TResponse>
         , IDisposable {
 
-        public static Func<IServiceProvider, object, IActivityContext> GetCreateInstance()
-            => ((IServiceProvider serviceProvider, object request) => new MedaitorContext<TRequest, TResponse>(serviceProvider, (TRequest)request));
+        /// <summary>
+        /// Internal use.
+        /// Used in <see cref="MediatorBuilder.AddHandler{THandler}"/>.
+        /// </summary>
+        /// <returns>Function that creates the context.</returns>
+        public static Func<CreateActivityContextArguments, object, IActivityContext> GetCreateInstance()
+            => ((CreateActivityContextArguments arguments, object request) => new MedaitorContext<TRequest, TResponse>(arguments, (TRequest)request));
 
+        private IMedaitorService _MedaitorService;
         private TRequest _Request;
         private IActivityResponse _ActivityResponse;
         private int _IsDisposed;
         private ActivityCompletion<IActivityResponse> _ActivityCompletion;
+        private Guid _OperationId;
         private Guid _ExecutionId;
-        private IServiceProvider _ServiceProvider;
+        private readonly AtomicReference<ImmutableList<IActivityEvent>> _ActivityEvents;
+        //private IServiceProvider _ServiceProvider;
 
         public MedaitorContext() {
             this._ActivityCompletion = new ActivityCompletion<IActivityResponse>();
+            this._ActivityEvents = new AtomicReference<ImmutableList<IActivityEvent>>(
+                    ImmutableList<IActivityEvent>.Empty
+                );
         }
 
-        public MedaitorContext(IServiceProvider serviceProvider, TRequest request) {
-            this._ActivityCompletion = new ActivityCompletion<IActivityResponse>();
-            this.ExecutionId = Guid.NewGuid();
-            this._ServiceProvider = serviceProvider;
+        public MedaitorContext(CreateActivityContextArguments arguments, TRequest request) :this() {
+            //this._ServiceProvider = arguments.ServiceProvider;
+            this._MedaitorService = arguments.MedaitorService;
             this._Request = request;
+            this.OperationId = Guid.NewGuid();
+            this.ExecutionId = Guid.NewGuid();
         }
 
         public Type GetRequestType() => typeof(TRequest);
+        
+        public ActivityStatus Status { get; set; }
+
+        public Guid OperationId {
+            get {
+                if (this._OperationId == Guid.Empty) {
+                    lock (this) {
+                        if (this._OperationId == Guid.Empty) {
+                            this._OperationId = Guid.NewGuid();
+                        }
+                    }
+                }
+                return this._OperationId;
+            }
+            set {
+                if (this.Status != ActivityStatus.Initialize && this._OperationId != Guid.Empty) {
+                    throw new NotSupportedException($"{nameof(OperationId)} is already set.");
+                }
+                this._OperationId = value;
+            }
+        }
 
         public Guid ExecutionId {
-            get { return this._ExecutionId; }
+            get {
+                if (this._ExecutionId == Guid.Empty) {
+                    lock (this) {
+                        if (this._ExecutionId == Guid.Empty) {
+                            this._ExecutionId = Guid.NewGuid();
+                        }
+                    }
+                }
+                return this._ExecutionId;
+            }
             set {
-                if (this._ExecutionId != Guid.Empty) {
+                if (this.Status != ActivityStatus.Initialize && this._ExecutionId != Guid.Empty) {
                     throw new NotSupportedException($"{nameof(ExecutionId)} is already set.");
                 }
                 this._ExecutionId = value;
@@ -49,62 +92,73 @@ namespace Brimborium.Latrans.Medaitor {
             set { this._Request = value; }
         }
 
-        public IServiceProvider ServiceProvider {
-            get { return this._ServiceProvider; }
+        public IActivityEvent[] ActivityEvents {
+            get {
+                return this._ActivityEvents.Value.ToArray();
+            }
             set {
-                if (ReferenceEquals(this._ServiceProvider, value)) { return; }
-                if (this._ServiceProvider is object) {
-                    throw new ArgumentException("already set", nameof(this.ServiceProvider));
-                }
-                this._ServiceProvider = value;
+                this._ActivityEvents.Mutate((ignore) => ImmutableList<IActivityEvent>.Empty.AddRange(value));
             }
         }
 
-        public void AddActivityEvent(IActivityEvent activityEvent) {
-            throw new NotImplementedException();
-        }
-
-        public void SetActivityResponse(IActivityResponse activityResponse) {
-            if (activityResponse is object) {
-                if (activityResponse is FailureActivityResponse) {
-                    this.SetActivityResponseInternal(activityResponse);
-                    return;
+        //public IServiceProvider ServiceProvider {
+        //    get { return this._ServiceProvider; }
+        //    set {
+        //        if (ReferenceEquals(this._ServiceProvider, value)) { return; }
+        //        if (this._ServiceProvider is object) {
+        //            throw new ArgumentException("already set", nameof(this.ServiceProvider));
+        //        }
+        //        this._ServiceProvider = value;
+        //    }
+        //}
+        public IMedaitorService MedaitorService {
+            get { return this._MedaitorService; }
+            set {
+                if (ReferenceEquals(this._MedaitorService, value)) { return; }
+                if (this._MedaitorService is object) {
+                    throw new ArgumentException("already set", nameof(this.MedaitorService));
                 }
-
-                //        try {
-                //            throw new NotSupportedException();
-                //        } catch (System.Exception error) {
-                //            this._ActivityResponse = new FailureActivityResponse(error);
-                //        }
-
-                if (this._ActivityResponse is object) {
-                    if (this._ActivityResponse is FailureActivityResponse) {
-                        this.SetActivityResponseInternal(activityResponse);
-                        return;
-                    }
-                } else {
-                    this.SetActivityResponseInternal(activityResponse);
-                    return;
-                }
+                this._MedaitorService = value;
             }
         }
 
-        void SetActivityResponseInternal(IActivityResponse activityResponse) {
-            this._ActivityResponse = activityResponse;
-            this._ActivityCompletion.TrySetResult(activityResponse);
-            //if (activityResponse is IFailureActivityResponse failureActivityResponse) {
-            //    var error = (failureActivityResponse.GetError()) ?? (new Exception("Failed"));
-            //    this._ActivityCompletion.TrySetException(error);
-            //} else {
-            //}
+        public Task AddActivityEvent(IActivityEvent activityEvent) {
+            this._ActivityEvents.Mutate1<IActivityEvent>(
+                activityEvent,
+                (newItem, activityEvents) => {
+                    newItem.SequenceNo = activityEvents.Count + 1;
+                    return activityEvents.Add(newItem);
+                });
+            //if (activityEvent)
+            //this.Status= ActivityContextStatus.Running
+            // add to storage
+            return Task.CompletedTask;
         }
 
-        public void SetFailure(Exception error) {
-            this.SetActivityResponse(new FailureActivityResponse(error));
+        public async Task SetActivityResponse(IActivityResponse activityResponse) {
+            if (ReferenceEquals(this._ActivityResponse, activityResponse)) { return; }
+
+            if (activityResponse is null) {
+                throw new ArgumentNullException(nameof(activityResponse));
+            }
+
+            var prev = System.Threading.Interlocked.CompareExchange(ref this._ActivityResponse, activityResponse, null);
+            if (prev is null) {
+                var activityEvent = activityResponse.GetAsActivityEvent(this);
+                var taskAddActivityEvent = this.AddActivityEvent(activityEvent);
+                this._ActivityCompletion.TrySetResult(activityResponse);
+                await taskAddActivityEvent;
+            } else {
+                throw new ArgumentException("already set", nameof(activityResponse));
+            }
         }
 
-        public void SetResponse(TResponse response) {
-            this.SetActivityResponse(new OkResultActivityResponse<TResponse>(response));
+        public Task SetFailure(Exception error) {
+            return this.SetActivityResponse(new FailureActivityResponse(error));
+        }
+
+        public Task SetResponse(TResponse response) {
+            return this.SetActivityResponse(new OkResultActivityResponse<TResponse>(response));
         }
 
         public Task<IActivityResponse> GetActivityResponseAsync() {
@@ -123,7 +177,7 @@ namespace Brimborium.Latrans.Medaitor {
         private void Dispose(bool disposing) {
             if (0 == System.Threading.Interlocked.Exchange(ref this._IsDisposed, 1)) {
                 if (disposing) {
-                    if (_ActivityCompletion.IsNotDefined) { 
+                    if (_ActivityCompletion.IsNotDefined) {
                         _ActivityCompletion.TrySetResult(new FailureActivityResponse(new Exception("Disposing")));
                     }
                 } else {

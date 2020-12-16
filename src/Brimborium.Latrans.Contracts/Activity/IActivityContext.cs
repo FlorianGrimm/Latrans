@@ -2,15 +2,21 @@
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Activity {
-    
+
     public interface IActivityContext {
-        Type GetRequestType();
+        ActivityStatus Status {get;set;}
+
+        Guid OperationId { get; set; }
+
+        Guid ExecutionId { get; set; }
         
-        void AddActivityEvent(IActivityEvent activityEvent);
+        Type GetRequestType();
 
-        void SetFailure(System.Exception error);
+        Task AddActivityEvent(IActivityEvent activityEvent);
 
-        void SetActivityResponse(IActivityResponse activityResponse);
+        Task SetFailure(System.Exception error);
+
+        Task SetActivityResponse(IActivityResponse activityResponse);
 
         Task<IActivityResponse> GetActivityResponseAsync();
     }
@@ -22,6 +28,6 @@ namespace Brimborium.Latrans.Activity {
     public interface IActivityContext<TRequest, TResponse>
         : IActivityContext<TRequest>
         , IDisposable {
-        void SetResponse(TResponse response);
+        Task SetResponse(TResponse response);
     }
 }

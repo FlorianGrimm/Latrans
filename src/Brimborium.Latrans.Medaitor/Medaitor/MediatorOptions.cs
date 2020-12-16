@@ -29,8 +29,8 @@ namespace Brimborium.Latrans.Medaitor {
         }
 
         public MediatorOptions Options => this._Options;
-        public void AddHandler<T>() {
-            Type handlerType = typeof(T);
+        public void AddHandler<THandler>() {
+            Type handlerType = typeof(THandler);
             var interfaces = handlerType.GetInterfaces();
             foreach (var @interface in interfaces) {
                 if (@interface.IsGenericType) {
@@ -57,8 +57,8 @@ namespace Brimborium.Latrans.Medaitor {
 
                             var activityContextType = typeof(Brimborium.Latrans.Medaitor.MedaitorContext<,>).MakeGenericType(requestType, responseType);
                             this._Services.AddTransient(activityContextType, activityContextType);
-                            Func<IServiceProvider, object, IActivityContext> createActivityContext
-                                = (Func<IServiceProvider, object, IActivityContext>)activityContextType
+                            Func<CreateActivityContextArguments, object, IActivityContext> createActivityContext
+                                = (Func<CreateActivityContextArguments, object, IActivityContext>)activityContextType
                                 .GetMethod("GetCreateInstance", BindingFlags.Public | BindingFlags.Static)
                                 .Invoke(null, null);
 

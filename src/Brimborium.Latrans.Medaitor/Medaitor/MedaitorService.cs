@@ -59,11 +59,13 @@ namespace Brimborium.Latrans.Medaitor {
             if (request is null) { throw new ArgumentNullException(nameof(request)); }
             //
             if (this.RequestRelatedTypes.Items.TryGetValue(typeof(TRequest), out var rrt)) {
-                var result = rrt.CreateActivityContext(this._ServicesMediator, request);
+                var result = rrt.CreateActivityContext(
+                    new CreateActivityContextArguments() {
+                        //ServiceProvider = this._ServicesMediator
+                        MedaitorService = this
+                    },
+                    request);
                 return (IActivityContext<TRequest>)result;
-                //var result = (IActivityContext<TRequest>)this._ServicesMediator.GetRequiredService(rrt.ActivityContextType);
-                //result.SetRequest(request);
-                //return result;
             } else {
                 throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
             }
@@ -91,7 +93,7 @@ namespace Brimborium.Latrans.Medaitor {
             }
         }
 
-        public async Task WaitForAsync(
+        public async Task<IActivityResponse> WaitForAsync(
             IMedaitorClient medaitorClient,
             IActivityContext activityContext,
             ActivityWaitForSpecification waitForSpecification,

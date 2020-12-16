@@ -42,7 +42,7 @@ namespace Brimborium.Latrans.Medaitor {
             CancellationToken cancellationToken
             );
 
-        Task WaitForAsync(
+        Task<IActivityResponse> WaitForAsync(
             IMedaitorClient medaitorClient,
             IActivityContext activityContext,
             ActivityWaitForSpecification waitForSpecification,

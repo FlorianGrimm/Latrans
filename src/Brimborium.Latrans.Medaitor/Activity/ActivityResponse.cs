@@ -9,10 +9,23 @@ namespace Brimborium.Latrans.Activity {
         public OkResultActivityResponse(T result) {
             this.Result = result;
         }
+
+        public IActivityEvent GetAsActivityEvent(IActivityContext activityContext) {
+            return new ActivityEventStateChange(
+                activityContext.OperationId,
+                activityContext.ExecutionId,
+                -1,
+                System.DateTime.UtcNow,
+                ActivityStatus.Completed);
+        }
     }
 
     public class AcceptActivityResponse : IActivityResponse {
         public AcceptActivityResponse() {
+        }
+
+        public IActivityEvent GetAsActivityEvent(IActivityContext activityContext) {
+            throw new NotImplementedException();
         }
     }
 
@@ -25,6 +38,10 @@ namespace Brimborium.Latrans.Activity {
         }
 
         public Exception Error { get; set; }
+
+        public IActivityEvent GetAsActivityEvent(IActivityContext activityContext) {
+            throw new NotImplementedException();
+        }
 
         Exception IFailureActivityResponse.GetError() => this.Error;
     }
