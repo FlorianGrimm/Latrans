@@ -12,7 +12,7 @@ namespace Brimborium.Latrans.Activity {
         
         Type GetRequestType();
 
-        Task AddActivityEvent(IActivityEvent activityEvent);
+        Task AddActivityEventAsync(IActivityEvent activityEvent);
 
         Task SetFailure(System.Exception error);
 

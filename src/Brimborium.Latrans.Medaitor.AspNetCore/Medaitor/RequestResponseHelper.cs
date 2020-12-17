@@ -10,7 +10,7 @@ namespace Brimborium.Latrans.Mediator {
         where TRequest : IRequest<TResponse>, IRequestBase
         where TResponse : IResponseBase {
         public static async Task<ActionResult<TResult>> ExecuteToActionResultAsync<TResult>(
-            IMediatorAccess medaitorAccess,
+            IMediatorClientFactory medaitorAccess,
             TRequest request,
             Func<TResponse, TResult> extractResult,
             ActivityWaitForSpecification waitForSpecification,

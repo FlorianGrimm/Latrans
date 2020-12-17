@@ -9,10 +9,21 @@ namespace Brimborium.Latrans.Mediator {
     public class MediatorClient : IMediatorClient, IDisposable {
         private int _IsDisposed;
         private readonly IMediatorService _MedaitorService;
+        private readonly IServiceProvider _ServiceProvider;
 
-        public MediatorClient(IMediatorService medaitorService) {
+        public MediatorClient(
+            IMediatorService medaitorService
+            ) {
             this._MedaitorService = medaitorService ?? throw new ArgumentNullException(nameof(medaitorService));
         }
+        public MediatorClient(
+            IMediatorService medaitorService,
+            IServiceProvider serviceProvider
+            ) {
+            this._MedaitorService = medaitorService ?? throw new ArgumentNullException(nameof(medaitorService));
+            this._ServiceProvider = serviceProvider;
+        }
+        
 
         public bool IsDisposed => (this._IsDisposed == 1);
 

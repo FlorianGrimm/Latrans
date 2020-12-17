@@ -7,7 +7,26 @@ using Brimborium.Latrans.Activity;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Brimborium.Latrans.Mediator {
-    public class MediatorService : IMediatorService, IDisposable {
+    /// <summary>
+    /// public accessor - but internal use.
+    /// </summary>
+    public interface IMediatorServiceInternal : IMediatorService {
+        IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(
+            RequestRelatedType requestRelatedType,
+                TRequest request
+            );
+
+        IActivityHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(
+                RequestRelatedType requestRelatedType,
+                IActivityContext<TRequest, TResponse> activityContext
+            );
+        void AddRequestForAccepted202Redirect<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext);
+        void AddRequestAfterTimeout<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext);
+    }
+    public class MediatorService
+        : IMediatorService
+        , IMediatorServiceInternal
+        , IDisposable {
         public static MediatorService Create(MediatorOptions options) {
             var result = new MediatorService(options ?? throw new ArgumentNullException(nameof(options)));
             result.Initialize();
@@ -20,11 +39,12 @@ namespace Brimborium.Latrans.Mediator {
         public RequestRelatedTypes RequestRelatedTypes { get; }
         public ServiceProvider ServicesMediator { get => this._ServicesMediator; }
 
+        public IMediatorServiceStorage Storage => throw new NotImplementedException();
+
         public MediatorService(MediatorOptions options) {
             if (options is null) {
                 throw new ArgumentNullException(nameof(options));
             }
-
             this.RequestRelatedTypes = new RequestRelatedTypes(options.RequestRelatedTypes.Items);
             this._ServicesMediator = options.ServicesMediator.BuildServiceProvider();
         }
@@ -59,13 +79,23 @@ namespace Brimborium.Latrans.Mediator {
             if (request is null) { throw new ArgumentNullException(nameof(request)); }
             //
             if (this.RequestRelatedTypes.Items.TryGetValue(typeof(TRequest), out var rrt)) {
-                var result = rrt.CreateActivityContext(
-                    new CreateActivityContextArguments() {
-                        //ServiceProvider = this._ServicesMediator
-                        MedaitorService = this
-                    },
-                    request);
+                var result = rrt.FactoryActivityContext(
+                    this._ServicesMediator,
+                    new object[]{
+                        new CreateActivityContextArguments() {
+                            //ServiceProvider = this._ServicesMediator
+                            MedaitorService = this
+                        },
+                        request }
+                    );
                 return (IActivityContext<TRequest>)result;
+                //var result = rrt.CreateActivityContext(
+                //    new CreateActivityContextArguments() {
+                //        //ServiceProvider = this._ServicesMediator
+                //        MedaitorService = this
+                //    },
+                //    request);
+                //return (IActivityContext<TRequest>)result;
             } else {
                 throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
             }
@@ -109,33 +139,53 @@ namespace Brimborium.Latrans.Mediator {
             if (request is null) { throw new ArgumentNullException(nameof(request)); }
             //
             if (this.RequestRelatedTypes.Items.TryGetValue(typeof(TRequest), out var rrt)) {
-                var result = (IMediatorClientConnectedInternal<TRequest>)rrt.CreateClientConnected(
-                    new CreateClientConnectedArguments() {
-                        MedaitorService = this,
-                        RequestRelatedType = rrt
-                    },
-                    request);
+
+                var result = (IMediatorClientConnectedInternal<TRequest>)rrt.FactoryClientConnected(
+                    this._ServicesMediator,
+                    new object[] {
+                        new CreateClientConnectedArguments() {
+                            MedaitorService = this,
+                            RequestRelatedType = rrt
+                        },
+                        request });
                 return await result.SendAsync(cancellationToken);
+
+                //var result = (IMediatorClientConnectedInternal<TRequest>)rrt.CreateClientConnected(
+                //    new CreateClientConnectedArguments() {
+                //        MedaitorService = this,
+                //        RequestRelatedType = rrt
+                //    },
+                //    request);
+                //return await result.SendAsync(cancellationToken);
             } else {
                 throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
             }
         }
 
-        //public IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(
-        //        IRequestRelatedType requestRelatedType,
-        //        TRequest request
-        //    ) {
-        //    var result = ((RequestRelatedType)requestRelatedType).CreateActivityContext(
-        //        new CreateActivityContextArguments() {
-        //                //ServiceProvider = this._ServicesMediator
-        //                MedaitorService = this
-        //        },
-        //        request);
-        //    return (IActivityContext<TRequest, TResponse>)result;
-        //}
+        public IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(
+                RequestRelatedType requestRelatedType,
+                TRequest request
+            ) {
+            //var result = requestRelatedType.CreateActivityContext(
+            //    new CreateActivityContextArguments() {
+            //        //ServiceProvider = this._ServicesMediator
+            //        MedaitorService = this
+            //    },
+            //    request);
+            //return (IActivityContext<TRequest, TResponse>)result;
+            var result = requestRelatedType.FactoryActivityContext(
+                this._ServicesMediator,
+                new object[] {
+                        new CreateActivityContextArguments() {
+                        //ServiceProvider = this._ServicesMediator
+                        MedaitorService = this
+                    },
+                    request });
+            return (IActivityContext<TRequest, TResponse>)result;
+        }
 
         public IActivityHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(
-            IRequestRelatedType requestRelatedType,
+            RequestRelatedType requestRelatedType,
             IActivityContext<TRequest, TResponse> activityContext) {
             IActivityHandler<TRequest, TResponse> result = null;
             if (requestRelatedType.DispatcherType is object) {
@@ -158,6 +208,14 @@ namespace Brimborium.Latrans.Mediator {
             } else {
                 return result;
             }
+        }
+
+        public void AddRequestForAccepted202Redirect<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
+            throw new NotImplementedException();
+        }
+
+        public void AddRequestAfterTimeout<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
+            throw new NotImplementedException();
         }
     }
 }

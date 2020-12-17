@@ -1,5 +1,7 @@
 ﻿using Brimborium.Latrans.Activity;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using System;
 using System.Collections.Generic;
 using System.Runtime;
@@ -28,11 +30,11 @@ namespace Brimborium.Latrans.Mediator {
 
     public class CreateClientConnectedArguments {
         //public IServiceProvider ServiceProvider;
-        public IMediatorService MedaitorService;
+        public IMediatorServiceInternal MedaitorService;
         public RequestRelatedType RequestRelatedType;
     }
 
-    public sealed class RequestRelatedType: IRequestRelatedType {
+    public sealed class RequestRelatedType{
         public RequestRelatedType() {
         }
 
@@ -42,18 +44,23 @@ namespace Brimborium.Latrans.Mediator {
             Type handlerType,
             Type activityContextType,
             Func<CreateActivityContextArguments, object, IActivityContext> createActivityContext,
-            Func<CreateClientConnectedArguments, object, IMediatorClientConnected> createClientConnected
-            ) {
+            Func<CreateClientConnectedArguments, object, IMediatorClientConnected> createClientConnected,
+            ObjectFactory factoryActivityContext,
+            ObjectFactory factoryClientConnected) {
             this.RequestType = requestType;
             this.ResponseType = responseType;
             this.HandlerTypes = new Type[] { handlerType };
             this.ActivityContextType = activityContextType;
             this.CreateActivityContext = createActivityContext;
             this.CreateClientConnected = createClientConnected;
+            this.FactoryActivityContext = factoryActivityContext;
+            this.FactoryClientConnected = factoryClientConnected;
         }
 
         public Func<CreateActivityContextArguments, object, IActivityContext> CreateActivityContext { get; set; }
         public Func<CreateClientConnectedArguments, object, IMediatorClientConnected> CreateClientConnected { get; set; }
+        public ObjectFactory FactoryActivityContext { get; set; }
+        public ObjectFactory FactoryClientConnected { get; set; }
         
         public Type RequestType { get; set; }
         public Type ResponseType { get; set; }

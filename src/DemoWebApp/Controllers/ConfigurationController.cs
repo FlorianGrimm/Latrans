@@ -17,9 +17,9 @@ namespace DemoWebApp.Controllers {
     [Route("api/[controller]")]
     [ApiController]
     public class ConfigurationController : ControllerBase {
-        private readonly IMediatorAccess _MedaitorAccess;
+        private readonly IMediatorClientFactory _MedaitorAccess;
 
-        public ConfigurationController(IMediatorAccess medaitorAccess) {
+        public ConfigurationController(IMediatorClientFactory medaitorAccess) {
             this._MedaitorAccess = medaitorAccess;
         }
 
@@ -36,7 +36,6 @@ namespace DemoWebApp.Controllers {
             } catch (System.Exception error) {
                 return this.StatusCode(500, error.Message);
             }
-#endif
             try {
                 var request = new GetConfigurationRequest();
                 using var client = this._MedaitorAccess.GetMedaitorClient();
@@ -46,6 +45,16 @@ namespace DemoWebApp.Controllers {
             } catch (System.Exception error) {
                 return this.StatusCode(500, error.Message);
             }
+#endif
+            var request = new GetConfigurationRequest();
+            return await RequestResponseHelper<GetConfigurationRequest, GetConfigurationResponse>.
+                ExecuteToActionResultAsync<IEnumerable<string>>(
+                    this._MedaitorAccess,
+                    request,
+                    (r) => r.Result,
+                    null,
+                    this.HttpContext.RequestAborted
+                );
         }
 
         // GET api/<ConfigurationController>/5

@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Mediator {
-    public interface IMediatorAccess {
+    public interface IMediatorClientFactory {
         IMediatorClient GetMedaitorClient();
     }
     // 
@@ -55,7 +55,12 @@ namespace Brimborium.Latrans.Mediator {
     public interface IMediatorClientConnected<TRequest, TResponse> : IMediatorClientConnected<TRequest> {
     }
 
-    public interface IMediatorService : IDisposable {
+    public interface IMediatorServiceStorage : IDisposable {
+        Task AddActivityEventAsync(IActivityEvent activityEvent);
+    }
+        public interface IMediatorService : IDisposable {
+        IMediatorServiceStorage Storage { get; }
+
         IActivityContext<TRequest> CreateContextByRequest<TRequest>(
             IMediatorClient medaitorClient,
             TRequest request
@@ -80,20 +85,10 @@ namespace Brimborium.Latrans.Mediator {
             IMediatorClient medaitorClient,
             TRequest request,
             CancellationToken cancellationToken);
-        
-        //IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(
-        //        IRequestRelatedType requestRelatedType,
-        //        TRequest request
-        //    );
-
-        IActivityHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(
-                IRequestRelatedType requestRelatedType,
-                IActivityContext<TRequest, TResponse> activityContext
-            );
     }
 
-    public interface IRequestRelatedType {
-        public Type DispatcherType { get; set; }
-        public Type[] HandlerTypes { get; set; }
-    }
+    //public interface IRequestRelatedType {
+    //    public Type DispatcherType { get; set; }
+    //    public Type[] HandlerTypes { get; set; }
+    //}
 }

@@ -27,7 +27,6 @@ namespace Brimborium.Latrans.Mediator {
         private Guid _OperationId;
         private Guid _ExecutionId;
         private readonly AtomicReference<ImmutableList<IActivityEvent>> _ActivityEvents;
-        //private IServiceProvider _ServiceProvider;
 
         public MediatorContext() {
             this._ActivityCompletion = new ActivityCompletion<IActivityResponse>();
@@ -37,7 +36,6 @@ namespace Brimborium.Latrans.Mediator {
         }
 
         public MediatorContext(CreateActivityContextArguments arguments, TRequest request) :this() {
-            //this._ServiceProvider = arguments.ServiceProvider;
             this._MedaitorService = arguments.MedaitorService;
             this._Request = request;
             this.OperationId = Guid.NewGuid();
@@ -100,16 +98,6 @@ namespace Brimborium.Latrans.Mediator {
             }
         }
 
-        //public IServiceProvider ServiceProvider {
-        //    get { return this._ServiceProvider; }
-        //    set {
-        //        if (ReferenceEquals(this._ServiceProvider, value)) { return; }
-        //        if (this._ServiceProvider is object) {
-        //            throw new ArgumentException("already set", nameof(this.ServiceProvider));
-        //        }
-        //        this._ServiceProvider = value;
-        //    }
-        //}
         public IMediatorService MedaitorService {
             get { return this._MedaitorService; }
             set {
@@ -121,17 +109,17 @@ namespace Brimborium.Latrans.Mediator {
             }
         }
 
-        public Task AddActivityEvent(IActivityEvent activityEvent) {
+        public Task AddActivityEventAsync(IActivityEvent activityEvent) {
+            if (activityEvent is null) { return Task.CompletedTask; } 
             this._ActivityEvents.Mutate1<IActivityEvent>(
                 activityEvent,
                 (newItem, activityEvents) => {
                     newItem.SequenceNo = activityEvents.Count + 1;
                     return activityEvents.Add(newItem);
                 });
-            //if (activityEvent)
-            //this.Status= ActivityContextStatus.Running
-            // add to storage
-            return Task.CompletedTask;
+            var result = this._MedaitorService.Storage.AddActivityEventAsync(activityEvent);
+
+            return result;
         }
 
         public async Task SetActivityResponse(IActivityResponse activityResponse) {
@@ -144,7 +132,7 @@ namespace Brimborium.Latrans.Mediator {
             var prev = System.Threading.Interlocked.CompareExchange(ref this._ActivityResponse, activityResponse, null);
             if (prev is null) {
                 var activityEvent = activityResponse.GetAsActivityEvent(this);
-                var taskAddActivityEvent = this.AddActivityEvent(activityEvent);
+                var taskAddActivityEvent = this.AddActivityEventAsync(activityEvent);
                 this._ActivityCompletion.TrySetResult(activityResponse);
                 await taskAddActivityEvent;
             } else {

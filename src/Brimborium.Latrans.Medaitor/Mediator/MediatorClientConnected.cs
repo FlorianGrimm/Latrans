@@ -21,7 +21,7 @@ namespace Brimborium.Latrans.Mediator {
             => ((CreateClientConnectedArguments arguments, object request) => new MediatorClientConnected<TRequest, TResponse>(arguments, (TRequest)request));
 
         private readonly IActivityContext<TRequest, TResponse> _ActivityContext;
-        private readonly IMediatorService _MedaitorService;
+        private readonly IMediatorServiceInternal _MedaitorService;
         private int _IsDisposed;
         private IActivityHandler<TRequest, TResponse> _ActivityHandler;
 
@@ -55,10 +55,48 @@ namespace Brimborium.Latrans.Mediator {
             return this;
         }
 
-        public Task<IActivityResponse> WaitForAsync(
+        public async Task<IActivityResponse> WaitForAsync(
             ActivityWaitForSpecification waitForSpecification,
             CancellationToken cancellationToken
             ) {
+            waitForSpecification ??= ActivityWaitForSpecification.Default;
+            if (waitForSpecification.RespectRequestAborted) {
+                if (cancellationToken.IsCancellationRequested) {
+                    if (waitForSpecification.SupportAccepted202Redirect) {
+                        var redirectUrl = waitForSpecification.RedirectUrl(this._ActivityContext.ExecutionId);
+                        return new AcceptedActivityResponse(redirectUrl);
+                    } else { 
+                        return new CanceledActivityResponse();
+                    }
+                }
+            }
+            if (waitForSpecification.WaitTimeSpan == TimeSpan.MaxValue) {
+                var result = await this._ActivityContext.GetActivityResponseAsync();
+                return result;
+            } else {
+                var taskResult = this._ActivityContext.GetActivityResponseAsync();
+                var cts = (waitForSpecification.RespectRequestAborted)
+                    ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
+                    : new CancellationTokenSource();
+                var taskTimeout = Task.Delay(waitForSpecification.WaitTimeSpan, cts.Token);
+                var taskDone = await Task.WhenAny(taskResult, taskTimeout);
+                if (ReferenceEquals(taskResult, taskDone)) {
+                    // success
+                    cts.Cancel();
+                    try { await taskTimeout; } catch (TaskCanceledException) { }
+                    return await taskResult;
+                } else {
+                    // timeout
+                    if (waitForSpecification.SupportAccepted202Redirect) {
+                        this._MedaitorService.AddRequestForAccepted202Redirect(this._ActivityContext);
+                        var redirectUrl = waitForSpecification.RedirectUrl(this._ActivityContext.ExecutionId);
+                        return new AcceptedActivityResponse(redirectUrl);
+                    } else {
+                        this._MedaitorService.AddRequestAfterTimeout(this._ActivityContext);
+                        return new CanceledActivityResponse();
+                    }
+                }
+            }
             throw new NotImplementedException();
         }
 

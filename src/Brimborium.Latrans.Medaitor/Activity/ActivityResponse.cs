@@ -19,10 +19,24 @@ namespace Brimborium.Latrans.Activity {
                 ActivityStatus.Completed);
         }
     }
-
-    public class AcceptActivityResponse : IActivityResponse {
-        public AcceptActivityResponse() {
+    
+    public class CanceledActivityResponse : IActivityResponse {
+        public CanceledActivityResponse() {
         }
+
+        public IActivityEvent GetAsActivityEvent(IActivityContext activityContext) {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class AcceptedActivityResponse : IActivityResponse {
+        public AcceptedActivityResponse() {
+        }
+        public AcceptedActivityResponse(string redirectUrl) {
+            this.RedirectUrl = redirectUrl;
+        }
+
+        public string RedirectUrl { get; set; }
 
         public IActivityEvent GetAsActivityEvent(IActivityContext activityContext) {
             throw new NotImplementedException();
