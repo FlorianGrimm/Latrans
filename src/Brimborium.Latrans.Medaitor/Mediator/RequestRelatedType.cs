@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Brimborium.Latrans.Medaitor {
+namespace Brimborium.Latrans.Mediator {
     public sealed class RequestRelatedTypes {
         public readonly Dictionary<Type, RequestRelatedType> Items;
         public RequestRelatedTypes() {
@@ -22,12 +22,12 @@ namespace Brimborium.Latrans.Medaitor {
     }
     public class CreateActivityContextArguments {
         //public IServiceProvider ServiceProvider;
-        public IMedaitorService MedaitorService;
+        public IMediatorService MedaitorService;
     }
 
     public class CreateClientConnectedArguments {
         //public IServiceProvider ServiceProvider;
-        public IMedaitorService MedaitorService;
+        public IMediatorService MedaitorService;
     }
     public sealed class RequestRelatedType {
         public RequestRelatedType() {
@@ -39,7 +39,7 @@ namespace Brimborium.Latrans.Medaitor {
             Type handlerType,
             Type activityContextType,
             Func<CreateActivityContextArguments, object, IActivityContext> createActivityContext,
-            Func<CreateClientConnectedArguments, object, IMedaitorClientConnected> createClientConnected
+            Func<CreateClientConnectedArguments, object, IMediatorClientConnected> createClientConnected
             ) {
             this.RequestType = requestType;
             this.ResponseType = responseType;
@@ -50,7 +50,7 @@ namespace Brimborium.Latrans.Medaitor {
         }
 
         public Func<CreateActivityContextArguments, object, IActivityContext> CreateActivityContext { get; set; }
-        public Func<CreateClientConnectedArguments, object, IMedaitorClientConnected> CreateClientConnected { get; set; }
+        public Func<CreateClientConnectedArguments, object, IMediatorClientConnected> CreateClientConnected { get; set; }
         
         public Type RequestType { get; set; }
         public Type ResponseType { get; set; }

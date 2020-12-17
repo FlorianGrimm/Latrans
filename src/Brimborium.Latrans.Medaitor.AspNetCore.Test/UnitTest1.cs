@@ -1,7 +1,7 @@
 using System;
 using Xunit;
 
-namespace Brimborium.Latrans.Medaitor
+namespace Brimborium.Latrans.Mediator
 {
     public class UnitTest1
     {

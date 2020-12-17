@@ -6,10 +6,10 @@ using Brimborium.Latrans.Activity;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Brimborium.Latrans.Medaitor {
-    public class MedaitorService : IMedaitorService, IDisposable {
-        public static MedaitorService Create(MediatorOptions options) {
-            var result = new MedaitorService(options ?? throw new ArgumentNullException(nameof(options)));
+namespace Brimborium.Latrans.Mediator {
+    public class MediatorService : IMediatorService, IDisposable {
+        public static MediatorService Create(MediatorOptions options) {
+            var result = new MediatorService(options ?? throw new ArgumentNullException(nameof(options)));
             result.Initialize();
             return result;
         }
@@ -20,7 +20,7 @@ namespace Brimborium.Latrans.Medaitor {
         public RequestRelatedTypes RequestRelatedTypes { get; }
         public ServiceProvider ServicesMediator { get => this._ServicesMediator; }
 
-        public MedaitorService(MediatorOptions options) {
+        public MediatorService(MediatorOptions options) {
             if (options is null) {
                 throw new ArgumentNullException(nameof(options));
             }
@@ -43,7 +43,7 @@ namespace Brimborium.Latrans.Medaitor {
             }
         }
 
-        ~MedaitorService() {
+        ~MediatorService() {
             Dispose(disposing: false);
         }
 
@@ -53,7 +53,7 @@ namespace Brimborium.Latrans.Medaitor {
         }
 
         public IActivityContext<TRequest> CreateContextByRequest<TRequest>(
-            IMedaitorClient medaitorClient,
+            IMediatorClient medaitorClient,
             TRequest request
             ) {
             if (request is null) { throw new ArgumentNullException(nameof(request)); }
@@ -72,7 +72,7 @@ namespace Brimborium.Latrans.Medaitor {
         }
 
         public Task SendAsync(
-            IMedaitorClient medaitorClient,
+            IMediatorClient medaitorClient,
             IActivityContext activityContext,
             CancellationToken cancellationToken
             ) {
@@ -94,7 +94,7 @@ namespace Brimborium.Latrans.Medaitor {
         }
 
         public async Task<IActivityResponse> WaitForAsync(
-            IMedaitorClient medaitorClient,
+            IMediatorClient medaitorClient,
             IActivityContext activityContext,
             ActivityWaitForSpecification waitForSpecification,
             CancellationToken cancellationToken
@@ -102,13 +102,13 @@ namespace Brimborium.Latrans.Medaitor {
             return await activityContext.GetActivityResponseAsync();
         }
 
-        public async Task<IMedaitorClientConnected<TRequest>> ConnectAsync<TRequest>(
-            IMedaitorClient medaitorClient,
+        public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
+            IMediatorClient medaitorClient,
             TRequest request) {
             if (request is null) { throw new ArgumentNullException(nameof(request)); }
             //
             if (this.RequestRelatedTypes.Items.TryGetValue(typeof(TRequest), out var rrt)) {
-                var result = (IMedaitorClientConnectedInternal<TRequest>)rrt.CreateClientConnected(
+                var result = (IMediatorClientConnectedInternal<TRequest>)rrt.CreateClientConnected(
                     new CreateClientConnectedArguments() {
                         //ServiceProvider = this._ServicesMediator
                         MedaitorService = this

@@ -4,12 +4,12 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Brimborium.Latrans.Medaitor {
-    public class MedaitorClientConnected<TRequest, TResponse>
-        : IMedaitorClientConnected<TRequest, TResponse>
-        , IMedaitorClientConnectedInternal<TRequest>
-        , IMedaitorClientConnected<TRequest>
-        , IMedaitorClientConnected
+namespace Brimborium.Latrans.Mediator {
+    public class MediatorClientConnected<TRequest, TResponse>
+        : IMediatorClientConnected<TRequest, TResponse>
+        , IMediatorClientConnectedInternal<TRequest>
+        , IMediatorClientConnected<TRequest>
+        , IMediatorClientConnected
         , IDisposable {
 
         /// <summary>
@@ -17,27 +17,30 @@ namespace Brimborium.Latrans.Medaitor {
         /// Used in <see cref="MediatorBuilder.AddHandler{THandler}"/>.
         /// </summary>
         /// <returns>Function that creates the context.</returns>
-        public static Func<CreateClientConnectedArguments, object, IMedaitorClientConnected> GetCreateInstance()
-            => ((CreateClientConnectedArguments arguments, object request) => new MedaitorClientConnected<TRequest, TResponse>(arguments, (TRequest)request));
+        public static Func<CreateClientConnectedArguments, object, IMediatorClientConnected> GetCreateInstance()
+            => ((CreateClientConnectedArguments arguments, object request) => new MediatorClientConnected<TRequest, TResponse>(arguments, (TRequest)request));
 
         private int _IsDisposed;
 
-        public MedaitorClientConnected() {
+        public MediatorClientConnected() {
         }
 
-        public MedaitorClientConnected(CreateClientConnectedArguments arguments, TRequest request) {
+        public MediatorClientConnected(CreateClientConnectedArguments arguments, TRequest request) {
 
         }
 
-        public Task<IMedaitorClientConnected<TRequest>> SendAsync() {
+        public Task<IMediatorClientConnected<TRequest>> SendAsync() {
             throw new NotImplementedException();
         }
 
-        public Task<IActivityResponse> WaitForAsync(IActivityContext activityContext, ActivityWaitForSpecification waitForSpecification, CancellationToken cancellationToken) {
+        public Task<IActivityResponse> WaitForAsync(
+            ActivityWaitForSpecification waitForSpecification,
+            CancellationToken cancellationToken
+            ) {
             throw new NotImplementedException();
         }
 
-        ~MedaitorClientConnected() {
+        ~MediatorClientConnected() {
             this.Dispose(disposing: false);
         }
 

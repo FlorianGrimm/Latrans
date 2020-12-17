@@ -6,8 +6,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Brimborium.Latrans.Medaitor {
-    public class MedaitorContext<TRequest, TResponse>
+namespace Brimborium.Latrans.Mediator {
+    public class MediatorContext<TRequest, TResponse>
         : IActivityContext<TRequest, TResponse>
         , IDisposable {
 
@@ -17,9 +17,9 @@ namespace Brimborium.Latrans.Medaitor {
         /// </summary>
         /// <returns>Function that creates the context.</returns>
         public static Func<CreateActivityContextArguments, object, IActivityContext> GetCreateInstance()
-            => ((CreateActivityContextArguments arguments, object request) => new MedaitorContext<TRequest, TResponse>(arguments, (TRequest)request));
+            => ((CreateActivityContextArguments arguments, object request) => new MediatorContext<TRequest, TResponse>(arguments, (TRequest)request));
 
-        private IMedaitorService _MedaitorService;
+        private IMediatorService _MedaitorService;
         private TRequest _Request;
         private IActivityResponse _ActivityResponse;
         private int _IsDisposed;
@@ -29,14 +29,14 @@ namespace Brimborium.Latrans.Medaitor {
         private readonly AtomicReference<ImmutableList<IActivityEvent>> _ActivityEvents;
         //private IServiceProvider _ServiceProvider;
 
-        public MedaitorContext() {
+        public MediatorContext() {
             this._ActivityCompletion = new ActivityCompletion<IActivityResponse>();
             this._ActivityEvents = new AtomicReference<ImmutableList<IActivityEvent>>(
                     ImmutableList<IActivityEvent>.Empty
                 );
         }
 
-        public MedaitorContext(CreateActivityContextArguments arguments, TRequest request) :this() {
+        public MediatorContext(CreateActivityContextArguments arguments, TRequest request) :this() {
             //this._ServiceProvider = arguments.ServiceProvider;
             this._MedaitorService = arguments.MedaitorService;
             this._Request = request;
@@ -110,7 +110,7 @@ namespace Brimborium.Latrans.Medaitor {
         //        this._ServiceProvider = value;
         //    }
         //}
-        public IMedaitorService MedaitorService {
+        public IMediatorService MedaitorService {
             get { return this._MedaitorService; }
             set {
                 if (ReferenceEquals(this._MedaitorService, value)) { return; }
@@ -164,7 +164,7 @@ namespace Brimborium.Latrans.Medaitor {
             return this._ActivityCompletion.Task;
         }
 
-        ~MedaitorContext() {
+        ~MediatorContext() {
             this.Dispose(disposing: false);
         }
 

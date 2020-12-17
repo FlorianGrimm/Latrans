@@ -4,16 +4,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 using System;
 
-namespace Brimborium.Latrans.Medaitor {
-    public sealed class MedaitorAccess : IMedaitorAccess {
+namespace Brimborium.Latrans.Mediator {
+    public sealed class MediatorAccess : IMediatorAccess {
         private readonly IServiceProvider _ServiceProvider;
 
-        public MedaitorAccess(IServiceProvider serviceProvider) {
+        public MediatorAccess(IServiceProvider serviceProvider) {
             this._ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        public IMedaitorClient GetMedaitorClient() {
-            var result = this._ServiceProvider.GetRequiredService<IMedaitorClient>();
+        public IMediatorClient GetMedaitorClient() {
+            var result = this._ServiceProvider.GetRequiredService<IMediatorClient>();
             return result;
         }
 

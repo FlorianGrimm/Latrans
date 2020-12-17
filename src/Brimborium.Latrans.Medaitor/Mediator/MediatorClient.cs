@@ -1,16 +1,16 @@
 ﻿using Brimborium.Latrans.Activity;
-using Brimborium.Latrans.Medaitor;
+using Brimborium.Latrans.Mediator;
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Brimborium.Latrans.Medaitor {
-    public class MedaitorClient : IMedaitorClient, IDisposable {
+namespace Brimborium.Latrans.Mediator {
+    public class MediatorClient : IMediatorClient, IDisposable {
         private int _IsDisposed;
-        private readonly IMedaitorService _MedaitorService;
+        private readonly IMediatorService _MedaitorService;
 
-        public MedaitorClient(IMedaitorService medaitorService) {
+        public MediatorClient(IMediatorService medaitorService) {
             this._MedaitorService = medaitorService ?? throw new ArgumentNullException(nameof(medaitorService));
         }
 
@@ -23,7 +23,7 @@ namespace Brimborium.Latrans.Medaitor {
             }
         }
 
-        ~MedaitorClient() {
+        ~MediatorClient() {
             Dispose(disposing: false);
         }
 
@@ -49,7 +49,7 @@ namespace Brimborium.Latrans.Medaitor {
             return this._MedaitorService.WaitForAsync(this, activityContext, waitForSpecification, cancellationToken);
         }
 
-        public async Task<IMedaitorClientConnected<TRequest>> ConnectAsync<TRequest>(TRequest request) {
+        public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(TRequest request) {
             var result = await this._MedaitorService.ConnectAsync<TRequest>(this, request);
 #warning TODO
             return result;

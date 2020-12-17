@@ -1,7 +1,7 @@
 ﻿
 using System;
 
-namespace Brimborium.Latrans.Medaitor {
+namespace Brimborium.Latrans.Mediator {
     public class ActivityWaitForSpecification {
         public ActivityWaitForSpecification() {
             this.WaitTimeSpan = TimeSpan.MaxValue;

@@ -6,7 +6,7 @@ using System.Text;
 using Brimborium.Latrans.Activity;
 
 using Microsoft.Extensions.DependencyInjection;
-namespace Brimborium.Latrans.Medaitor {
+namespace Brimborium.Latrans.Mediator {
     public class MediatorOptions {
         public readonly IServiceCollection ServicesMediator;
         public readonly RequestRelatedTypes RequestRelatedTypes;
@@ -57,16 +57,16 @@ namespace Brimborium.Latrans.Medaitor {
                             //var activityContext1Type = typeof(Brimborium.Latrans.Activity.IActivityContext<>).MakeGenericType(requestType);
                             //this._Services.AddTransient(activityContext1Type, activityContext1Type);
 
-                            var activityContextType = typeof(Brimborium.Latrans.Medaitor.MedaitorContext<,>).MakeGenericType(requestType, responseType);
+                            var activityContextType = typeof(Brimborium.Latrans.Mediator.MediatorContext<,>).MakeGenericType(requestType, responseType);
                             this._Services.AddTransient(activityContextType, activityContextType);
                             var createActivityContext
                                 = (Func<CreateActivityContextArguments, object, IActivityContext>)activityContextType
                                 .GetMethod("GetCreateInstance", BindingFlags.Public | BindingFlags.Static)
                                 .Invoke(null, null);
                             
-                            var medaitorClientConnectedType = typeof(Brimborium.Latrans.Medaitor.MedaitorClientConnected<,>).MakeGenericType(requestType, responseType);
+                            var medaitorClientConnectedType = typeof(Brimborium.Latrans.Mediator.MediatorClientConnected<,>).MakeGenericType(requestType, responseType);
                             var createClientConnected
-                                = (Func<CreateClientConnectedArguments, object, IMedaitorClientConnected>)medaitorClientConnectedType
+                                = (Func<CreateClientConnectedArguments, object, IMediatorClientConnected>)medaitorClientConnectedType
                                 .GetMethod("GetCreateInstance", BindingFlags.Public | BindingFlags.Static)
                                 .Invoke(null, null);
                             this._RequestRelatedTypes.Add(

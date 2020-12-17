@@ -7,14 +7,15 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Brimborium.Latrans.Medaitor {
-    public interface IMedaitorAccess {
-        IMedaitorClient GetMedaitorClient();
+namespace Brimborium.Latrans.Mediator {
+    public interface IMediatorAccess {
+        IMediatorClient GetMedaitorClient();
     }
-    public interface IMedaitorClient : IDisposable {
-        bool IsDisposed {get;}
+    // 
+    public interface IMediatorClient : IDisposable {
+        bool IsDisposed { get; }
 
-        Task<IMedaitorClientConnected<TRequest>> ConnectAsync<TRequest>(
+        Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
             TRequest request
             );
 
@@ -34,44 +35,45 @@ namespace Brimborium.Latrans.Medaitor {
             );
     }
 
-    public interface IMedaitorClientConnected : IDisposable {
+    public interface IMediatorClientConnected : IDisposable {
     }
-    public interface IMedaitorClientConnected<TRequest> : IMedaitorClientConnected {
+
+    public interface IMediatorClientConnected<TRequest> : IMediatorClientConnected {
         Task<IActivityResponse> WaitForAsync(
-           IActivityContext activityContext,
            ActivityWaitForSpecification waitForSpecification,
            CancellationToken cancellationToken
            );
     }
-    public interface IMedaitorClientConnectedInternal<TRequest> : IMedaitorClientConnected<TRequest> {
-        Task<IMedaitorClientConnected<TRequest>> SendAsync();
+
+    public interface IMediatorClientConnectedInternal<TRequest> : IMediatorClientConnected<TRequest> {
+        Task<IMediatorClientConnected<TRequest>> SendAsync();
     }
 
-    public interface IMedaitorClientConnected<TRequest, TResponse> : IMedaitorClientConnected<TRequest> {
+    public interface IMediatorClientConnected<TRequest, TResponse> : IMediatorClientConnected<TRequest> {
     }
 
-        public interface IMedaitorService : IDisposable {
+    public interface IMediatorService : IDisposable {
         IActivityContext<TRequest> CreateContextByRequest<TRequest>(
-            IMedaitorClient medaitorClient,
+            IMediatorClient medaitorClient,
             TRequest request
             );
 
         Task SendAsync(
-            IMedaitorClient medaitorClient,
-            IActivityContext activityContext, 
+            IMediatorClient medaitorClient,
+            IActivityContext activityContext,
             CancellationToken cancellationToken
             );
 
         Task<IActivityResponse> WaitForAsync(
-            IMedaitorClient medaitorClient,
+            IMediatorClient medaitorClient,
             IActivityContext activityContext,
             ActivityWaitForSpecification waitForSpecification,
             CancellationToken cancellationToken
             );
 
 
-        Task<IMedaitorClientConnected<TRequest>> ConnectAsync<TRequest>(
-            IMedaitorClient medaitorClient,
+        Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
+            IMediatorClient medaitorClient,
             TRequest request);
     }
 }
