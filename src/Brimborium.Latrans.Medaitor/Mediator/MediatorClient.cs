@@ -42,7 +42,7 @@ namespace Brimborium.Latrans.Mediator {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
-
+#if false
         public IActivityContext<TRequest> CreateContextByRequest<TRequest>(TRequest request) {
             return this._MedaitorService.CreateContextByRequest<TRequest>(this, request);
         }
@@ -59,7 +59,7 @@ namespace Brimborium.Latrans.Mediator {
             CancellationToken cancellationToken) {
             return this._MedaitorService.WaitForAsync(this, activityContext, waitForSpecification, cancellationToken);
         }
-
+#endif
         public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(TRequest request, CancellationToken cancellationToken) {
             var result = await this._MedaitorService.ConnectAsync<TRequest>(this, request, cancellationToken);
 #warning TODO

@@ -32,6 +32,7 @@ namespace Brimborium.Latrans.Mediator {
             Assert.Contains(b.Services, sd => typeof(IActivityHandler<TestRequest, TestResponse>) == sd.ServiceType);
         }
 
+#if false
         [Fact]
         public void Medaitor_Test3() {
             var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
@@ -52,7 +53,9 @@ namespace Brimborium.Latrans.Mediator {
                 }
             }
         }
+#endif
 
+#if false
         [Fact]
         public async Task Medaitor_Test4() {
             var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
@@ -76,6 +79,7 @@ namespace Brimborium.Latrans.Mediator {
                 }
             }
         }
+#endif
 
         [Fact]
         public async Task Medaitor_Test5() {

@@ -20,8 +20,8 @@ namespace Brimborium.Latrans.Mediator {
                 RequestRelatedType requestRelatedType,
                 IActivityContext<TRequest, TResponse> activityContext
             );
-        void AddRequestForAccepted202Redirect<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext);
-        void AddRequestAfterTimeout<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext);
+        void HandleRequestForAccepted202Redirect<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext);
+        void HandleRequestAfterTimeout<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext);
     }
     public class MediatorService
         : IMediatorService
@@ -33,13 +33,15 @@ namespace Brimborium.Latrans.Mediator {
             return result;
         }
 
+        private Task _TimeoutTasks;
         private ServiceProvider _ServicesMediator;
         private int _IsDisposed;
+        private readonly IMediatorServiceStorage _Storage;
 
         public RequestRelatedTypes RequestRelatedTypes { get; }
         public ServiceProvider ServicesMediator { get => this._ServicesMediator; }
 
-        public IMediatorServiceStorage Storage => throw new NotImplementedException();
+        public IMediatorServiceStorage Storage => this._Storage;
 
         public MediatorService(MediatorOptions options) {
             if (options is null) {
@@ -47,6 +49,8 @@ namespace Brimborium.Latrans.Mediator {
             }
             this.RequestRelatedTypes = new RequestRelatedTypes(options.RequestRelatedTypes.Items);
             this._ServicesMediator = options.ServicesMediator.BuildServiceProvider();
+#warning xx
+            this._Storage = new MediatorServiceStorageNull();
         }
 
         private void Initialize() {
@@ -72,6 +76,7 @@ namespace Brimborium.Latrans.Mediator {
             GC.SuppressFinalize(this);
         }
 
+#if false
         public IActivityContext<TRequest> CreateContextByRequest<TRequest>(
             IMediatorClient medaitorClient,
             TRequest request
@@ -131,7 +136,7 @@ namespace Brimborium.Latrans.Mediator {
             ) {
             return await activityContext.GetActivityResponseAsync();
         }
-
+#endif
         public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
             IMediatorClient medaitorClient,
             TRequest request,
@@ -149,14 +154,6 @@ namespace Brimborium.Latrans.Mediator {
                         },
                         request });
                 return await result.SendAsync(cancellationToken);
-
-                //var result = (IMediatorClientConnectedInternal<TRequest>)rrt.CreateClientConnected(
-                //    new CreateClientConnectedArguments() {
-                //        MedaitorService = this,
-                //        RequestRelatedType = rrt
-                //    },
-                //    request);
-                //return await result.SendAsync(cancellationToken);
             } else {
                 throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
             }
@@ -166,18 +163,15 @@ namespace Brimborium.Latrans.Mediator {
                 RequestRelatedType requestRelatedType,
                 TRequest request
             ) {
-            //var result = requestRelatedType.CreateActivityContext(
-            //    new CreateActivityContextArguments() {
-            //        //ServiceProvider = this._ServicesMediator
-            //        MedaitorService = this
-            //    },
-            //    request);
-            //return (IActivityContext<TRequest, TResponse>)result;
+            if (requestRelatedType is null) {
+                if (!this.RequestRelatedTypes.TryGetValue(typeof(TRequest), out requestRelatedType)) {
+                    throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
+                }
+            }
             var result = requestRelatedType.FactoryActivityContext(
                 this._ServicesMediator,
                 new object[] {
-                        new CreateActivityContextArguments() {
-                        //ServiceProvider = this._ServicesMediator
+                    new CreateActivityContextArguments() {
                         MedaitorService = this
                     },
                     request });
@@ -187,6 +181,16 @@ namespace Brimborium.Latrans.Mediator {
         public IActivityHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(
             RequestRelatedType requestRelatedType,
             IActivityContext<TRequest, TResponse> activityContext) {
+            if (requestRelatedType is null) {
+                if (!this.RequestRelatedTypes.TryGetValue(typeof(TRequest), out requestRelatedType)) {
+                    throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
+                }
+            }
+
+            if (activityContext is null) {
+                throw new ArgumentNullException(nameof(activityContext));
+            }
+
             IActivityHandler<TRequest, TResponse> result = null;
             if (requestRelatedType.DispatcherType is object) {
                 var dispatchActivityHandler = (IDispatchActivityHandler<TRequest, TResponse>)this._ServicesMediator.GetService(requestRelatedType.DispatcherType);
@@ -210,11 +214,26 @@ namespace Brimborium.Latrans.Mediator {
             }
         }
 
-        public void AddRequestForAccepted202Redirect<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
+        public void HandleRequestForAccepted202Redirect<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
+            //activityContext.OperationId
+            //activityContext.ExecutionId
             throw new NotImplementedException();
         }
 
-        public void AddRequestAfterTimeout<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
+        public void HandleRequestAfterTimeout<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
+            lock (this) {
+                var taskRequest = activityContext.GetActivityResponseAsync();
+                this._TimeoutTasks = this._TimeoutTasks.ContinueWith((previousTask)=> {
+                    return taskRequest.ContinueWith((t2) => {
+                        if (t2.IsFaulted) {
+                            this.LogException(t2.Exception);
+                        }
+                    });
+                }).Unwrap();
+            }
+        }
+
+        private void LogException(AggregateException exception) {
             throw new NotImplementedException();
         }
     }

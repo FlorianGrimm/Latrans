@@ -10,15 +10,6 @@ namespace Brimborium.Latrans.Mediator {
     public class MediatorContext<TRequest, TResponse>
         : IActivityContext<TRequest, TResponse>
         , IDisposable {
-
-        /// <summary>
-        /// Internal use.
-        /// Used in <see cref="MediatorBuilder.AddHandler{THandler}"/>.
-        /// </summary>
-        /// <returns>Function that creates the context.</returns>
-        public static Func<CreateActivityContextArguments, object, IActivityContext> GetCreateInstance()
-            => ((CreateActivityContextArguments arguments, object request) => new MediatorContext<TRequest, TResponse>(arguments, (TRequest)request));
-
         private IMediatorService _MedaitorService;
         private TRequest _Request;
         private IActivityResponse _ActivityResponse;

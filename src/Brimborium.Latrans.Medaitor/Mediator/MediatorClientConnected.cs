@@ -11,19 +11,11 @@ namespace Brimborium.Latrans.Mediator {
         , IMediatorClientConnected<TRequest>
         , IMediatorClientConnected
         , IDisposable {
-
-        /// <summary>
-        /// Internal use.
-        /// Used in <see cref="MediatorBuilder.AddHandler{THandler}"/>.
-        /// </summary>
-        /// <returns>Function that creates the context.</returns>
-        public static Func<CreateClientConnectedArguments, object, IMediatorClientConnected> GetCreateInstance()
-            => ((CreateClientConnectedArguments arguments, object request) => new MediatorClientConnected<TRequest, TResponse>(arguments, (TRequest)request));
-
-        private readonly IActivityContext<TRequest, TResponse> _ActivityContext;
+        private IActivityContext<TRequest, TResponse> _ActivityContext;
         private readonly IMediatorServiceInternal _MedaitorService;
+        private readonly RequestRelatedType _RequestRelatedType;
+        private readonly TRequest _Request;
         private int _IsDisposed;
-        private IActivityHandler<TRequest, TResponse> _ActivityHandler;
 
         public MediatorClientConnected() {
         }
@@ -31,27 +23,30 @@ namespace Brimborium.Latrans.Mediator {
         public MediatorClientConnected(CreateClientConnectedArguments arguments, TRequest request) {
             var medaitorService = arguments.MedaitorService;
             this._MedaitorService = medaitorService;
-            //
-            // var activityContext = (IActivityContext<TRequest, TResponse>)medaitorService.CreateContext<TRequest, TResponse>(arguments.RequestRelatedType, request);
-            var activityContext = (IActivityContext<TRequest, TResponse>)arguments.RequestRelatedType.CreateActivityContext(
-                new CreateActivityContextArguments() {
-                    MedaitorService = medaitorService
-                },
-                request);
-            this._ActivityContext = activityContext;
-            //
-            var activityHandler = (IActivityHandler<TRequest, TResponse>)medaitorService.CreateHandler<TRequest, TResponse>(
-                arguments.RequestRelatedType,
-                activityContext);
-            this._ActivityHandler = activityHandler;
+            this._RequestRelatedType = arguments.RequestRelatedType;
+            this._Request = request;
         }
 
         public async Task<IMediatorClientConnected<TRequest>> SendAsync(
                 CancellationToken cancellationToken
             ) {
-#warning TODO this._ActivityContext.AddActivityEvent();
-            await this._ActivityHandler.ExecuteAsync(this._ActivityContext, cancellationToken);
-#warning TODO check this._ActivityContext.Status
+            //
+            var medaitorService = this._MedaitorService;
+
+            var activityContext = this._ActivityContext ??= medaitorService.CreateContext<TRequest, TResponse>(this._RequestRelatedType, this._Request);
+            //
+            var activityHandler = (IActivityHandler<TRequest, TResponse>)medaitorService.CreateHandler<TRequest, TResponse>(
+                this._RequestRelatedType,
+                activityContext);
+            await activityContext.AddActivityEventAsync(new ActivityEventStateChange(
+                activityContext.OperationId,
+                activityContext.ExecutionId,
+                0,
+                System.DateTime.UtcNow,
+                ActivityStatus.Running
+                ));
+            await activityHandler.ExecuteAsync(activityContext, cancellationToken);
+
             return this;
         }
 
@@ -65,7 +60,7 @@ namespace Brimborium.Latrans.Mediator {
                     if (waitForSpecification.SupportAccepted202Redirect) {
                         var redirectUrl = waitForSpecification.RedirectUrl(this._ActivityContext.ExecutionId);
                         return new AcceptedActivityResponse(redirectUrl);
-                    } else { 
+                    } else {
                         return new CanceledActivityResponse();
                     }
                 }
@@ -88,11 +83,11 @@ namespace Brimborium.Latrans.Mediator {
                 } else {
                     // timeout
                     if (waitForSpecification.SupportAccepted202Redirect) {
-                        this._MedaitorService.AddRequestForAccepted202Redirect(this._ActivityContext);
+                        this._MedaitorService.HandleRequestForAccepted202Redirect(this._ActivityContext);
                         var redirectUrl = waitForSpecification.RedirectUrl(this._ActivityContext.ExecutionId);
                         return new AcceptedActivityResponse(redirectUrl);
                     } else {
-                        this._MedaitorService.AddRequestAfterTimeout(this._ActivityContext);
+                        this._MedaitorService.HandleRequestAfterTimeout(this._ActivityContext);
                         return new CanceledActivityResponse();
                     }
                 }

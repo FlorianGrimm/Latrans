@@ -43,22 +43,16 @@ namespace Brimborium.Latrans.Mediator {
             Type responseType,
             Type handlerType,
             Type activityContextType,
-            Func<CreateActivityContextArguments, object, IActivityContext> createActivityContext,
-            Func<CreateClientConnectedArguments, object, IMediatorClientConnected> createClientConnected,
             ObjectFactory factoryActivityContext,
             ObjectFactory factoryClientConnected) {
             this.RequestType = requestType;
             this.ResponseType = responseType;
             this.HandlerTypes = new Type[] { handlerType };
             this.ActivityContextType = activityContextType;
-            this.CreateActivityContext = createActivityContext;
-            this.CreateClientConnected = createClientConnected;
             this.FactoryActivityContext = factoryActivityContext;
             this.FactoryClientConnected = factoryClientConnected;
         }
 
-        public Func<CreateActivityContextArguments, object, IActivityContext> CreateActivityContext { get; set; }
-        public Func<CreateClientConnectedArguments, object, IMediatorClientConnected> CreateClientConnected { get; set; }
         public ObjectFactory FactoryActivityContext { get; set; }
         public ObjectFactory FactoryClientConnected { get; set; }
         

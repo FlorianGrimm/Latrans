@@ -10,6 +10,7 @@ namespace Microsoft.Extensions.DependencyInjection {
 }
 namespace Brimborium.Latrans.Mediator {
     public static class MediatorExtensions {
+#if false
         public static async Task ExecuteAsync(
             this IMediatorClient medaitorClient,
             IActivityContext medaitorContext,
@@ -23,6 +24,7 @@ namespace Brimborium.Latrans.Mediator {
                 await medaitorClient.WaitForAsync(medaitorContext, waitForSpecification, cancellationToken);
             }
         }
+#endif
 
         public static IMediatorClientConnected<TRequest, TResponse> AsMediatorClientConnected<TRequest, TResponse>(
             IMediatorClientConnected<TRequest> mediatorClientConnected
@@ -31,28 +33,6 @@ namespace Brimborium.Latrans.Mediator {
             where TResponse : class, IResponseBase {
             return (IMediatorClientConnected<TRequest, TResponse>)mediatorClientConnected;
         }
-
-
-        //public static async Task<TResponse> XXXAsync<TRequest, TResponse>(
-        //    this IMediatorClient medaitorClient,
-        //    TRequest request
-        //    )
-        //    where TRequest: class, IRequest<TResponse>
-        //    where TResponse : class, IResponseBase {
-        //    await Task.CompletedTask;
-        //    return default;
-        //}
-        //public static async Task<TResponse> XXX2Async<TRequest, TResponse>(
-        //    this IMediatorClient medaitorClient,
-        //    TRequest request,
-        //    ActivityWaitForSpecification waitForSpecification,
-        //    CancellationToken cancellationToken
-        //    )
-        //    where TRequest : class, IRequest<TResponse>
-        //    where TResponse : class, IResponseBase {
-        //    await Task.CompletedTask;
-        //    return default;
-        //}
 
         public static bool TryGetResult<T>(
                 this IActivityResponse response,

@@ -19,7 +19,7 @@ namespace Brimborium.Latrans.Mediator {
             TRequest request,
             CancellationToken cancellationToken
             );
-
+#if false
         IActivityContext<TRequest> CreateContextByRequest<TRequest>(
             TRequest request
             );
@@ -34,6 +34,7 @@ namespace Brimborium.Latrans.Mediator {
             ActivityWaitForSpecification waitForSpecification,
             CancellationToken cancellationToken
             );
+#endif
     }
 
     public interface IMediatorClientConnected : IDisposable {
@@ -58,9 +59,10 @@ namespace Brimborium.Latrans.Mediator {
     public interface IMediatorServiceStorage : IDisposable {
         Task AddActivityEventAsync(IActivityEvent activityEvent);
     }
-        public interface IMediatorService : IDisposable {
+    public interface IMediatorService : IDisposable {
         IMediatorServiceStorage Storage { get; }
 
+#if false
         IActivityContext<TRequest> CreateContextByRequest<TRequest>(
             IMediatorClient medaitorClient,
             TRequest request
@@ -78,9 +80,9 @@ namespace Brimborium.Latrans.Mediator {
             ActivityWaitForSpecification waitForSpecification,
             CancellationToken cancellationToken
             );
-
+#endif
         ///////////////////////
-        
+
         Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
             IMediatorClient medaitorClient,
             TRequest request,

@@ -53,18 +53,18 @@ namespace Brimborium.Latrans.Mediator {
 
                             var activityContextType = typeof(Brimborium.Latrans.Mediator.MediatorContext<,>).MakeGenericType(requestType, responseType);
                             this._Services.AddTransient(activityContextType, activityContextType);
-                            var createActivityContext
-                                = (Func<CreateActivityContextArguments, object, IActivityContext>)activityContextType
-                                .GetMethod("GetCreateInstance", BindingFlags.Public | BindingFlags.Static)
-                                .Invoke(null, null);
+                            //var createActivityContext
+                            //    = (Func<CreateActivityContextArguments, object, IActivityContext>)activityContextType
+                            //    .GetMethod("GetCreateInstance", BindingFlags.Public | BindingFlags.Static)
+                            //    .Invoke(null, null);
 
                             var factoryActivityContext = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateFactory(activityContextType, new Type[] { typeof(CreateActivityContextArguments), requestType });
 
                             var medaitorClientConnectedType = typeof(Brimborium.Latrans.Mediator.MediatorClientConnected<,>).MakeGenericType(requestType, responseType);
-                            var createClientConnected
-                                = (Func<CreateClientConnectedArguments, object, IMediatorClientConnected>)medaitorClientConnectedType
-                                .GetMethod("GetCreateInstance", BindingFlags.Public | BindingFlags.Static)
-                                .Invoke(null, null);
+                            //var createClientConnected
+                            //    = (Func<CreateClientConnectedArguments, object, IMediatorClientConnected>)medaitorClientConnectedType
+                            //    .GetMethod("GetCreateInstance", BindingFlags.Public | BindingFlags.Static)
+                            //    .Invoke(null, null);
                             var factoryClientConnected = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateFactory(medaitorClientConnectedType, new Type[] { typeof(CreateClientConnectedArguments), requestType });
 
                             
@@ -74,8 +74,6 @@ namespace Brimborium.Latrans.Mediator {
                                     responseType,
                                     handlerType,
                                     activityContextType,
-                                    createActivityContext,
-                                    createClientConnected,
                                     factoryActivityContext,
                                     factoryClientConnected));
                         }
