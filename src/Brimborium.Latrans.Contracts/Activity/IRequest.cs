@@ -10,6 +10,5 @@ namespace Brimborium.Latrans.Activity {
     public interface IRequest<out TResponse> : IRequestBase
        where TResponse : IResponseBase {
     }
-
 }
 

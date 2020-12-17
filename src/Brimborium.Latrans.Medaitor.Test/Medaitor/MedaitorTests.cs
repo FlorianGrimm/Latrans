@@ -90,7 +90,7 @@ namespace Brimborium.Latrans.Mediator {
                         var medaitorClient = scopedProviderWebApp.GetRequiredService<IMediatorAccess>().GetMedaitorClient();
 
                         var request = new TestRequest() { A = 6, B = 7 };
-                        var connectedClient = await medaitorClient.ConnectAsync(request);
+                        var connectedClient = await medaitorClient.ConnectAsync(request, CancellationToken.None);
                         //var ctxt = medaitorClient.CreateContextByRequest(request);
                         //await medaitorClient.SendAsync(ctxt, CancellationToken.None);
                         //await medaitorClient.WaitForAsync(ctxt, null, CancellationToken.None);

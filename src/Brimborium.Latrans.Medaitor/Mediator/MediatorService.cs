@@ -104,19 +104,59 @@ namespace Brimborium.Latrans.Mediator {
 
         public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
             IMediatorClient medaitorClient,
-            TRequest request) {
+            TRequest request,
+            CancellationToken cancellationToken) {
             if (request is null) { throw new ArgumentNullException(nameof(request)); }
             //
             if (this.RequestRelatedTypes.Items.TryGetValue(typeof(TRequest), out var rrt)) {
                 var result = (IMediatorClientConnectedInternal<TRequest>)rrt.CreateClientConnected(
                     new CreateClientConnectedArguments() {
-                        //ServiceProvider = this._ServicesMediator
-                        MedaitorService = this
+                        MedaitorService = this,
+                        RequestRelatedType = rrt
                     },
                     request);
-                return await result.SendAsync();
+                return await result.SendAsync(cancellationToken);
             } else {
                 throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
+            }
+        }
+
+        //public IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(
+        //        IRequestRelatedType requestRelatedType,
+        //        TRequest request
+        //    ) {
+        //    var result = ((RequestRelatedType)requestRelatedType).CreateActivityContext(
+        //        new CreateActivityContextArguments() {
+        //                //ServiceProvider = this._ServicesMediator
+        //                MedaitorService = this
+        //        },
+        //        request);
+        //    return (IActivityContext<TRequest, TResponse>)result;
+        //}
+
+        public IActivityHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(
+            IRequestRelatedType requestRelatedType,
+            IActivityContext<TRequest, TResponse> activityContext) {
+            IActivityHandler<TRequest, TResponse> result = null;
+            if (requestRelatedType.DispatcherType is object) {
+                var dispatchActivityHandler = (IDispatchActivityHandler<TRequest, TResponse>)this._ServicesMediator.GetService(requestRelatedType.DispatcherType);
+                if (dispatchActivityHandler is null) {
+                    throw new NotSupportedException($"Unknown IDispatchActivityHandler { requestRelatedType.DispatcherType.FullName } RequestType: {typeof(TRequest).FullName} ResponseType: {typeof(TResponse).FullName}");
+                }
+                result = dispatchActivityHandler.GetActivityHandler(
+                    requestRelatedType.HandlerTypes,
+                    activityContext,
+                    (Type activityHandlerType) => (IActivityHandler<TRequest, TResponse>)this._ServicesMediator.GetService(activityHandlerType)
+                    );
+            } else if (requestRelatedType.HandlerTypes.Length == 1) {
+                result = (IActivityHandler<TRequest, TResponse>)this._ServicesMediator.GetRequiredService(requestRelatedType.HandlerTypes[0]);
+            } else {
+                result = this._ServicesMediator.GetService<IActivityHandler<TRequest, TResponse>>();
+            }
+            if (result is null) {
+                throw new NotSupportedException($"Unknown IActivityHandler RequestType: {typeof(TRequest).FullName} ResponseType: {typeof(TResponse).FullName}");
+            } else {
+                return result;
             }
         }
     }

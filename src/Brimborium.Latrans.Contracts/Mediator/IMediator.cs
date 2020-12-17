@@ -16,7 +16,8 @@ namespace Brimborium.Latrans.Mediator {
         bool IsDisposed { get; }
 
         Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
-            TRequest request
+            TRequest request,
+            CancellationToken cancellationToken
             );
 
         IActivityContext<TRequest> CreateContextByRequest<TRequest>(
@@ -46,7 +47,9 @@ namespace Brimborium.Latrans.Mediator {
     }
 
     public interface IMediatorClientConnectedInternal<TRequest> : IMediatorClientConnected<TRequest> {
-        Task<IMediatorClientConnected<TRequest>> SendAsync();
+        Task<IMediatorClientConnected<TRequest>> SendAsync(
+                CancellationToken cancellationToken
+            );
     }
 
     public interface IMediatorClientConnected<TRequest, TResponse> : IMediatorClientConnected<TRequest> {
@@ -71,9 +74,26 @@ namespace Brimborium.Latrans.Mediator {
             CancellationToken cancellationToken
             );
 
-
+        ///////////////////////
+        
         Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
             IMediatorClient medaitorClient,
-            TRequest request);
+            TRequest request,
+            CancellationToken cancellationToken);
+        
+        //IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(
+        //        IRequestRelatedType requestRelatedType,
+        //        TRequest request
+        //    );
+
+        IActivityHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(
+                IRequestRelatedType requestRelatedType,
+                IActivityContext<TRequest, TResponse> activityContext
+            );
+    }
+
+    public interface IRequestRelatedType {
+        public Type DispatcherType { get; set; }
+        public Type[] HandlerTypes { get; set; }
     }
 }

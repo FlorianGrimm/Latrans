@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime;
 
 namespace Brimborium.Latrans.Mediator {
     public sealed class RequestRelatedTypes {
@@ -28,8 +29,10 @@ namespace Brimborium.Latrans.Mediator {
     public class CreateClientConnectedArguments {
         //public IServiceProvider ServiceProvider;
         public IMediatorService MedaitorService;
+        public RequestRelatedType RequestRelatedType;
     }
-    public sealed class RequestRelatedType {
+
+    public sealed class RequestRelatedType: IRequestRelatedType {
         public RequestRelatedType() {
         }
 

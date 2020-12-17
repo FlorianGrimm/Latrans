@@ -20,17 +20,39 @@ namespace Brimborium.Latrans.Mediator {
         public static Func<CreateClientConnectedArguments, object, IMediatorClientConnected> GetCreateInstance()
             => ((CreateClientConnectedArguments arguments, object request) => new MediatorClientConnected<TRequest, TResponse>(arguments, (TRequest)request));
 
+        private readonly IActivityContext<TRequest, TResponse> _ActivityContext;
+        private readonly IMediatorService _MedaitorService;
         private int _IsDisposed;
+        private IActivityHandler<TRequest, TResponse> _ActivityHandler;
 
         public MediatorClientConnected() {
         }
 
         public MediatorClientConnected(CreateClientConnectedArguments arguments, TRequest request) {
-
+            var medaitorService = arguments.MedaitorService;
+            this._MedaitorService = medaitorService;
+            //
+            // var activityContext = (IActivityContext<TRequest, TResponse>)medaitorService.CreateContext<TRequest, TResponse>(arguments.RequestRelatedType, request);
+            var activityContext = (IActivityContext<TRequest, TResponse>)arguments.RequestRelatedType.CreateActivityContext(
+                new CreateActivityContextArguments() {
+                    MedaitorService = medaitorService
+                },
+                request);
+            this._ActivityContext = activityContext;
+            //
+            var activityHandler = (IActivityHandler<TRequest, TResponse>)medaitorService.CreateHandler<TRequest, TResponse>(
+                arguments.RequestRelatedType,
+                activityContext);
+            this._ActivityHandler = activityHandler;
         }
 
-        public Task<IMediatorClientConnected<TRequest>> SendAsync() {
-            throw new NotImplementedException();
+        public async Task<IMediatorClientConnected<TRequest>> SendAsync(
+                CancellationToken cancellationToken
+            ) {
+#warning TODO this._ActivityContext.AddActivityEvent();
+            await this._ActivityHandler.ExecuteAsync(this._ActivityContext, cancellationToken);
+#warning TODO check this._ActivityContext.Status
+            return this;
         }
 
         public Task<IActivityResponse> WaitForAsync(

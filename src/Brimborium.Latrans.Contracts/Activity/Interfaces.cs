@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Activity {
@@ -23,6 +24,7 @@ namespace Brimborium.Latrans.Activity {
             CancellationToken cancellationToken
             );
     }
+
     public interface IActivityHandler<TRequest>: IActivityHandler {
     }
 
@@ -30,6 +32,14 @@ namespace Brimborium.Latrans.Activity {
         Task ExecuteAsync(
             IActivityContext<TRequest, TResponse> activityContext,
             CancellationToken cancellationToken
+            );
+    }
+
+    public interface IDispatchActivityHandler<TRequest, TResponse> {
+        IActivityHandler<TRequest, TResponse> GetActivityHandler(
+            Type[] handlerTypes,
+            IActivityContext<TRequest, TResponse> activityContext,
+            Func<Type, IActivityHandler<TRequest, TResponse>> createActivityHandlerType
             );
     }
 }

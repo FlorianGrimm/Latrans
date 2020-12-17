@@ -49,8 +49,8 @@ namespace Brimborium.Latrans.Mediator {
             return this._MedaitorService.WaitForAsync(this, activityContext, waitForSpecification, cancellationToken);
         }
 
-        public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(TRequest request) {
-            var result = await this._MedaitorService.ConnectAsync<TRequest>(this, request);
+        public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(TRequest request, CancellationToken cancellationToken) {
+            var result = await this._MedaitorService.ConnectAsync<TRequest>(this, request, cancellationToken);
 #warning TODO
             return result;
         }

@@ -8,10 +8,8 @@ using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
-namespace Brimborium.Latrans.Mediator
-{
+namespace Brimborium.Latrans.Mediator {
     public static class ActivityContextExtensions {
         // old
         public static ActionResult<T> ReturnAsActionResult<T>(
@@ -28,14 +26,14 @@ namespace Brimborium.Latrans.Mediator
         // next
         public static ActionResult<TResult> ConvertResponseToActionResult<TResponse, TResult>(
             this IActivityResponse response,
-            Func<TResponse, TResult> project
+            Func<TResponse, TResult> extractResult
             ) {
             if (response is null) {
                 throw new ArgumentNullException(nameof(response));
             }
 
             if (response is OkResultActivityResponse<TResponse> okResult) {
-                var resultValue = project(okResult.Result);
+                var resultValue = extractResult(okResult.Result);
                 return new ActionResult<TResult>(resultValue);
                 //return new Microsoft.AspNetCore.Mvc.OkObjectResult();
             }
