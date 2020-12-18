@@ -1,4 +1,6 @@
 ﻿
+using Microsoft.Extensions.Options;
+
 using System;
 
 namespace Brimborium.Latrans.Mediator {
@@ -47,13 +49,25 @@ namespace Brimborium.Latrans.Mediator {
             return $"{redirectUrlBase}/{id}";
         }
     }
+
+    public class ActivityWaitForSpecificationOptions {
+        public ActivityWaitForSpecificationOptions() {
+            this.GetRedirectUrl = ActivityWaitForSpecification.DefaultGetRedirectUrl;
+        }
+        public string RedirectUrlBase { get; set; }
+        public Func<string, Guid, string> GetRedirectUrl { get; set; }
+    }
+
     public class ActivityWaitForSpecificationDefaults {
+        private readonly string _RedirectUrlBase;
+        private readonly Func<string, Guid, string> _GetRedirectUrl;
+
         public ActivityWaitForSpecificationDefaults(
-            string redirectUrlBase,
-            Func<string, Guid, string> getRedirectUrl
+            IOptions<ActivityWaitForSpecificationOptions> options
             ) {
-            this._RedirectUrlBase = redirectUrlBase;
-            this._GetRedirectUrl = getRedirectUrl;
+            var opt = options.Value;
+            this._RedirectUrlBase = opt.RedirectUrlBase;
+            this._GetRedirectUrl = opt.GetRedirectUrl;
         }
         private ActivityWaitForSpecification _ForQueryCancelable;
         public ActivityWaitForSpecification ForQueryCancelable
@@ -76,8 +90,7 @@ namespace Brimborium.Latrans.Mediator {
                 );
 
         private ActivityWaitForSpecification _ForLongRunning;
-        private readonly string _RedirectUrlBase;
-        private readonly Func<string, Guid, string> _GetRedirectUrl;
+        
 
         public ActivityWaitForSpecification ForLongRunning
             => _ForLongRunning ??= new ActivityWaitForSpecification(

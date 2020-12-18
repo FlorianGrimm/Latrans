@@ -14,7 +14,7 @@ using Xunit;
 namespace Brimborium.Latrans.Mediator {
     public class MedaitorTests {
         [Fact]
-        public void Medaitor_Test1() {
+        public void Medaitor_1AddLatransMedaitor() {
             var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             var b = servicesWebApp.AddLatransMedaitor();
             Assert.Contains(servicesWebApp, sd => typeof(IMediatorClientFactory) == sd.ServiceType);
@@ -23,23 +23,24 @@ namespace Brimborium.Latrans.Mediator {
         }
 
         [Fact]
-        public void Medaitor_Test2() {
+        public void Medaitor_2AddHandler() {
             var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             var b = servicesWebApp.AddLatransMedaitor();
             b.AddHandler<TestActivityHandler>();
-            
+
             Assert.Contains(b.Services, sd => typeof(IActivityHandler<TestRequest, TestResponse>) == sd.ServiceType);
         }
 
-#if false
         [Fact]
-        public void Medaitor_Test3() {
+        public async Task Medaitor_3ConnectAsync() {
             var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             var b = servicesWebApp.AddLatransMedaitor();
             b.AddHandler<TestActivityHandler>();
 
+            IMediatorClientConnected<TestRequest> connectedClient = null;
+            MediatorClientConnected<TestRequest, TestResponse> testConnectedClient = null;
             using (var serviceProviderMediator = servicesMediator.BuildServiceProvider()) {
                 using (var serviceProviderWebApp = servicesWebApp.BuildServiceProvider()) {
                     using (var scopeWebApp = serviceProviderWebApp.CreateScope()) {
@@ -47,17 +48,18 @@ namespace Brimborium.Latrans.Mediator {
                         var medaitorClient = scopedProviderWebApp.GetRequiredService<IMediatorClientFactory>().GetMedaitorClient();
 
                         var request = new TestRequest() { A = 6, B = 7 };
-                        var ctxt = medaitorClient.CreateContextByRequest(request);
-                        Assert.Same(request, ctxt.Request);
+                        connectedClient = await medaitorClient.ConnectAsync(request, CancellationToken.None);
+                        Assert.NotNull(connectedClient);
+                        testConnectedClient = (MediatorClientConnected<TestRequest, TestResponse>)connectedClient;
+                        Assert.False(testConnectedClient.IsDisposed());
                     }
                 }
             }
+            Assert.True(testConnectedClient.IsDisposed());
         }
-#endif
 
-#if false
         [Fact]
-        public async Task Medaitor_Test4() {
+        public async Task Medaitor_4WaitForAsync() {
             var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             var b = servicesWebApp.AddLatransMedaitor();
@@ -70,63 +72,10 @@ namespace Brimborium.Latrans.Mediator {
                         var medaitorClient = scopedProviderWebApp.GetRequiredService<IMediatorClientFactory>().GetMedaitorClient();
 
                         var request = new TestRequest() { A = 6, B = 7 };
-                        var ctxt = medaitorClient.CreateContextByRequest(request);
-                        await medaitorClient.SendAsync(ctxt, CancellationToken.None);
-                        await medaitorClient.WaitForAsync(ctxt, null, CancellationToken.None);
-                        var activityResponse = await ctxt.GetActivityResponseAsync();
+                        var connectedClient = await medaitorClient.ConnectAsync(request, CancellationToken.None);
+                        var activityResponse = await connectedClient.WaitForAsync(null, CancellationToken.None);
+                        Assert.NotNull(activityResponse);
                         Assert.NotNull(activityResponse as OkResultActivityResponse<TestResponse>);
-                    }
-                }
-            }
-        }
-#endif
-
-        [Fact]
-        public async Task Medaitor_Test5() {
-            var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
-            var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
-            var b = servicesWebApp.AddLatransMedaitor();
-            b.AddHandler<TestActivityHandler>();
-
-            using (var serviceProviderMediator = servicesMediator.BuildServiceProvider()) {
-                using (var serviceProviderWebApp = servicesWebApp.BuildServiceProvider()) {
-                    using (var scopeWebApp = serviceProviderWebApp.CreateScope()) {
-                        var scopedProviderWebApp = scopeWebApp.ServiceProvider;
-                        var medaitorClient = scopedProviderWebApp.GetRequiredService<IMediatorClientFactory>().GetMedaitorClient();
-
-                        var request = new TestRequest() { A = 6, B = 7 };
-                        var connectedClient = await medaitorClient.ConnectAsync(request, CancellationToken.None);
-                        //var ctxt = medaitorClient.CreateContextByRequest(request);
-                        //await medaitorClient.SendAsync(ctxt, CancellationToken.None);
-                        //await medaitorClient.WaitForAsync(ctxt, null, CancellationToken.None);
-                        //var activityResponse = await ctxt.GetActivityResponseAsync();
-                        //Assert.NotNull(activityResponse as OkResultActivityResponse<TestResponse>);
-                    }
-                }
-            }
-        }
-
-        [Fact]
-        public async Task Medaitor_Test6() {
-            var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
-            var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
-            var b = servicesWebApp.AddLatransMedaitor();
-            b.AddHandler<TestActivityHandler>();
-
-            using (var serviceProviderMediator = servicesMediator.BuildServiceProvider()) {
-                using (var serviceProviderWebApp = servicesWebApp.BuildServiceProvider()) {
-                    using (var scopeWebApp = serviceProviderWebApp.CreateScope()) {
-                        var scopedProviderWebApp = scopeWebApp.ServiceProvider;
-                        var medaitorClient = scopedProviderWebApp.GetRequiredService<IMediatorClientFactory>().GetMedaitorClient();
-
-                        var request = new TestRequest() { A = 6, B = 7 };
-                        var connectedClient = await medaitorClient.ConnectAsync(request, CancellationToken.None);
-                        var activityResponse =await connectedClient.WaitForAsync(null, CancellationToken.None);
-                        //var ctxt = medaitorClient.CreateContextByRequest(request);
-                        //await medaitorClient.SendAsync(ctxt, CancellationToken.None);
-                        //await medaitorClient.WaitForAsync(ctxt, null, CancellationToken.None);
-                        //var activityResponse = await ctxt.GetActivityResponseAsync();
-                        //Assert.NotNull(activityResponse as OkResultActivityResponse<TestResponse>);
                     }
                 }
             }

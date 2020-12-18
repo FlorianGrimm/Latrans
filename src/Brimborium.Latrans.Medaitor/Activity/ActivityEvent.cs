@@ -15,7 +15,7 @@ namespace Brimborium.Latrans.Activity {
             DateTime occurrence
         ) {
             this.OperationId = operationId;
-            this.ExecutionId = ExecutionId;
+            this.ExecutionId = executionId;
             this.SequenceNo = sequenceNo;
             this.Occurrence = occurrence;
         }

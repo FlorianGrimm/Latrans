@@ -4,12 +4,16 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Brimborium.Latrans.Activity;
+using Brimborium.Latrans.Medaitor.Controllers;
 using Brimborium.Latrans.Mediator;
 using Brimborium.Latrans.Utility;
+
 
 using DemoWebApp.ActivityModel.ConfigurationActivity;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -17,10 +21,10 @@ namespace DemoWebApp.Controllers {
     [Route("api/[controller]")]
     [ApiController]
     public class ConfigurationController : ControllerBase {
-        private readonly IMediatorClientFactory _MedaitorAccess;
+        private readonly ILogger<ConfigurationController> _Logger;
 
-        public ConfigurationController(IMediatorClientFactory medaitorAccess) {
-            this._MedaitorAccess = medaitorAccess;
+        public ConfigurationController(ILogger<ConfigurationController> logger) {
+            this._Logger = logger;
         }
 
         // GET: api/<ConfigurationController>
@@ -49,10 +53,10 @@ namespace DemoWebApp.Controllers {
             var request = new GetConfigurationRequest();
             return await RequestResponseHelper<GetConfigurationRequest, GetConfigurationResponse>.
                 ExecuteToActionResultAsync<IEnumerable<string>>(
-                    this._MedaitorAccess,
+                    this.GetMedaitorClient(),
                     request,
                     (r) => r.Result,
-                    null,
+                    null, //ActivityWaitForSpecification.,
                     this.HttpContext.RequestAborted
                 );
         }

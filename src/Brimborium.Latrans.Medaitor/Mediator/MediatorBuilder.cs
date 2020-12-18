@@ -9,23 +9,27 @@ namespace Brimborium.Latrans.Mediator {
     public class MediatorBuilder {
         private readonly IServiceCollection _Services;
         private readonly RequestRelatedTypes _RequestRelatedTypes;
-
+        
         public MediatorBuilder() {
             this._Services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             this._RequestRelatedTypes = new RequestRelatedTypes();
+            this._Services.AddOptions();
+            this._Services.AddOptions<ActivityWaitForSpecificationOptions>();
         }
 
         public IServiceCollection Services => this._Services;
         public RequestRelatedTypes RequestRelatedTypes => this._RequestRelatedTypes;
 
         internal MediatorOptions GetOptions() {
+            this._Services.AddSingleton<ActivityWaitForSpecificationDefaults>();
+
             return new MediatorOptions(
                 this._Services,
                 this._RequestRelatedTypes
                 );
         }
 
-        public void AddHandler<THandler>() {
+        public MediatorBuilder AddHandler<THandler>() {
             Type handlerType = typeof(THandler);
             var interfaces = handlerType.GetInterfaces();
             foreach (var @interface in interfaces) {
@@ -81,6 +85,7 @@ namespace Brimborium.Latrans.Mediator {
                 }
             }
             this._Services.AddTransient(handlerType, handlerType);
+            return this;
         }
     }
 }

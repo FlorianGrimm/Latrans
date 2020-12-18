@@ -92,8 +92,10 @@ namespace Brimborium.Latrans.Mediator {
                     }
                 }
             }
-            throw new NotImplementedException();
         }
+
+        public bool IsDisposed() 
+            => (this._IsDisposed != 0);
 
         ~MediatorClientConnected() {
             this.Dispose(disposing: false);

@@ -6,7 +6,7 @@ namespace Brimborium.Latrans.Utility {
     /// <summary>Holds a reference to an immutable class and updates it atomically.</summary>
     /// <typeparam name="T">An immutable class to reference.</typeparam>
     class AtomicReference<T> where T : class {
-        private volatile T _Value;
+        private T _Value;
 
         public AtomicReference(T initialValue) {
             this._Value = initialValue;
@@ -29,6 +29,7 @@ namespace Brimborium.Latrans.Utility {
 #pragma warning restore 420
 
                 if (ReferenceEquals(currentVal, oldValue)) {
+                    System.Threading.Interlocked.MemoryBarrier();
                     return oldValue;
                 } else {
                     oldValue = currentVal;
@@ -47,6 +48,7 @@ namespace Brimborium.Latrans.Utility {
 #pragma warning restore 420
 
                 if (ReferenceEquals(currentVal, oldValue)) {
+                    System.Threading.Interlocked.MemoryBarrier();
                     return oldValue;
                 } else {
                     oldValue = currentVal;

@@ -27,6 +27,7 @@ namespace Brimborium.Latrans.Mediator {
         : IMediatorService
         , IMediatorServiceInternal
         , IDisposable {
+
         public static MediatorService Create(MediatorOptions options) {
             var result = new MediatorService(options ?? throw new ArgumentNullException(nameof(options)));
             result.Initialize();
