@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Brimborium.Latrans.Utility {
     /// <summary>Holds a reference to an immutable class and updates it atomically.</summary>
@@ -20,16 +18,14 @@ namespace Brimborium.Latrans.Utility {
         /// This function may be called more than once.</param>
         /// <param name="dispose">A function to dispose a value that is not used.</param>
         /// <returns>The previous value that was used to generate the resulting new value.</returns>
-        public T Mutate(Func<T, T> mutator, Action<T> dispose=default) {
+        public T Mutate(Func<T, T> mutator, Action<T> dispose = default) {
             T oldValue = this._Value;
             while (true) {
                 T nextValue = mutator(oldValue);
-#pragma warning disable 420
+                System.Threading.Interlocked.MemoryBarrier();
                 T currentVal = System.Threading.Interlocked.CompareExchange(ref _Value, nextValue, oldValue);
-#pragma warning restore 420
 
                 if (ReferenceEquals(currentVal, oldValue)) {
-                    System.Threading.Interlocked.MemoryBarrier();
                     return oldValue;
                 } else {
                     oldValue = currentVal;
@@ -43,12 +39,10 @@ namespace Brimborium.Latrans.Utility {
             T oldValue = this._Value;
             while (true) {
                 T nextValue = mutator(argument, oldValue);
-#pragma warning disable 420
+                System.Threading.Interlocked.MemoryBarrier();
                 T currentVal = System.Threading.Interlocked.CompareExchange(ref _Value, nextValue, oldValue);
-#pragma warning restore 420
 
                 if (ReferenceEquals(currentVal, oldValue)) {
-                    System.Threading.Interlocked.MemoryBarrier();
                     return oldValue;
                 } else {
                     oldValue = currentVal;

@@ -8,7 +8,6 @@ using Brimborium.Latrans.Medaitor.Controllers;
 using Brimborium.Latrans.Mediator;
 using Brimborium.Latrans.Utility;
 
-
 using DemoWebApp.ActivityModel.ConfigurationActivity;
 
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +19,7 @@ using Microsoft.Extensions.Logging;
 namespace DemoWebApp.Controllers {
     [Route("api/[controller]")]
     [ApiController]
-    public class ConfigurationController : ControllerBase {
+    public class ConfigurationController : MedaitorControllerBase {
         private readonly ILogger<ConfigurationController> _Logger;
 
         public ConfigurationController(ILogger<ConfigurationController> logger) {
@@ -51,6 +50,8 @@ namespace DemoWebApp.Controllers {
             }
 #endif
             var request = new GetConfigurationRequest();
+            
+
             return await RequestResponseHelper<GetConfigurationRequest, GetConfigurationResponse>.
                 ExecuteToActionResultAsync<IEnumerable<string>>(
                     this.GetMedaitorClient(),
@@ -86,7 +87,7 @@ namespace DemoWebApp.Controllers {
             var request = new GetConfigurationRequest();
             return await RequestResponseHelper<GetConfigurationRequest, GetConfigurationResponse>.
                 ExecuteToActionResultAsync<string>(
-                    this._MedaitorAccess,
+                    this.GetMedaitorClient(),
                     request,
                     (r) => r.Result?.FirstOrDefault(),
                     null,
