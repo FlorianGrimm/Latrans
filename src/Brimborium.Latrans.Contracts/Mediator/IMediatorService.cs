@@ -15,4 +15,7 @@ namespace Brimborium.Latrans.Mediator {
             TRequest request,
             CancellationToken cancellationToken);
     }
+    public interface IStartupMediator {
+        void Config(IMediatorBuilder builder);
+    }
 }

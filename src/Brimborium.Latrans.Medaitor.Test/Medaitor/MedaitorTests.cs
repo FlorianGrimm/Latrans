@@ -17,6 +17,7 @@ namespace Brimborium.Latrans.Mediator {
         public void Medaitor_1AddLatransMedaitor() {
             var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             var b = servicesWebApp.AddLatransMedaitor();
+            //b.Build();
             Assert.Contains(servicesWebApp, sd => typeof(IMediatorClientFactory) == sd.ServiceType);
             Assert.Contains(servicesWebApp, sd => typeof(IMediatorClient) == sd.ServiceType);
             Assert.Contains(servicesWebApp, sd => typeof(IMediatorService) == sd.ServiceType);
@@ -27,7 +28,8 @@ namespace Brimborium.Latrans.Mediator {
             var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             var b = servicesWebApp.AddLatransMedaitor();
-            b.AddHandler<TestActivityHandler>();
+            b.AddActivityHandler<TestActivityHandler>()
+                .Build();
 
             Assert.Contains(b.Services, sd => typeof(IActivityHandler<TestRequest, TestResponse>) == sd.ServiceType);
         }
@@ -36,8 +38,9 @@ namespace Brimborium.Latrans.Mediator {
         public async Task Medaitor_3ConnectAsync() {
             var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
-            var b = servicesWebApp.AddLatransMedaitor();
-            b.AddHandler<TestActivityHandler>();
+            servicesWebApp.AddLatransMedaitor()
+                .AddActivityHandler<TestActivityHandler>()
+                .Build();
 
             IMediatorClientConnected<TestRequest> connectedClient = null;
             MediatorClientConnected<TestRequest, TestResponse> testConnectedClient = null;
@@ -62,8 +65,9 @@ namespace Brimborium.Latrans.Mediator {
         public async Task Medaitor_4WaitForAsync() {
             var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
-            var b = servicesWebApp.AddLatransMedaitor();
-            b.AddHandler<TestActivityHandler>();
+            servicesWebApp.AddLatransMedaitor()
+                .AddActivityHandler<TestActivityHandler>()
+                .Build();
 
             using (var serviceProviderMediator = servicesMediator.BuildServiceProvider()) {
                 using (var serviceProviderWebApp = servicesWebApp.BuildServiceProvider()) {

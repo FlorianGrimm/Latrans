@@ -51,12 +51,12 @@ namespace Brimborium.Latrans.Activity {
             this.Error = error;
         }
 
-        public Exception Error { get; set; }
+        public Exception? Error { get; set; }
 
         public IActivityEvent GetAsActivityEvent(IActivityContext activityContext) {
             throw new NotImplementedException();
         }
 
-        Exception IFailureActivityResponse.GetError() => this.Error;
+        Exception? IFailureActivityResponse.GetError() => this.Error;
     }
 }

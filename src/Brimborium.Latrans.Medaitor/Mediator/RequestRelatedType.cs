@@ -4,7 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime;
+using System.Threading;
 
 namespace Brimborium.Latrans.Mediator {
     public sealed class RequestRelatedTypes {
@@ -16,7 +18,7 @@ namespace Brimborium.Latrans.Mediator {
             this.Items = new Dictionary<Type, RequestRelatedType>(items);
         }
 
-        public bool TryGetValue(Type requestType, out RequestRelatedType requestRelatedType)
+        public bool TryGetValue(Type requestType, [MaybeNullWhen(false)] out RequestRelatedType requestRelatedType)
             => this.Items.TryGetValue(requestType, out requestRelatedType);
 
         public void Add(RequestRelatedType requestRelatedType) {
@@ -24,30 +26,40 @@ namespace Brimborium.Latrans.Mediator {
         }
     }
     public class CreateActivityContextArguments {
-        //public IServiceProvider ServiceProvider;
-        public IMediatorService MedaitorService;
+        public CreateActivityContextArguments(
+                IMediatorService medaitorService
+            ) {
+            this.MedaitorService = medaitorService;
+        }
+        public readonly IMediatorService MedaitorService;
     }
 
     public class CreateClientConnectedArguments {
-        //public IServiceProvider ServiceProvider;
-        public IMediatorServiceInternal MedaitorService;
-        public RequestRelatedType RequestRelatedType;
+        public CreateClientConnectedArguments(
+                IMediatorServiceInternal medaitorService,
+                RequestRelatedType requestRelatedType
+            ) {
+            this.MedaitorService = medaitorService;
+            this.RequestRelatedType = requestRelatedType;
+
+        }
+        public readonly IMediatorServiceInternal MedaitorService;
+        public readonly RequestRelatedType RequestRelatedType;
     }
 
-    public sealed class RequestRelatedType{
-        public RequestRelatedType() {
-        }
-
+    public sealed class RequestRelatedType {
         public RequestRelatedType(
             Type requestType,
             Type responseType,
-            Type handlerType,
+            Type? dispatcherType,
+            Type[] handlerTypes,
             Type activityContextType,
             ObjectFactory factoryActivityContext,
             ObjectFactory factoryClientConnected) {
             this.RequestType = requestType;
             this.ResponseType = responseType;
-            this.HandlerTypes = new Type[] { handlerType };
+            this.DispatcherType = dispatcherType;
+            this.HandlerTypes = handlerTypes;
             this.ActivityContextType = activityContextType;
             this.FactoryActivityContext = factoryActivityContext;
             this.FactoryClientConnected = factoryClientConnected;
@@ -55,18 +67,20 @@ namespace Brimborium.Latrans.Mediator {
 
         public ObjectFactory FactoryActivityContext { get; set; }
         public ObjectFactory FactoryClientConnected { get; set; }
-        
+
         public Type RequestType { get; set; }
         public Type ResponseType { get; set; }
-        public Type DispatcherType { get; set; }
+        public Type? DispatcherType { get; set; }
         public Type[] HandlerTypes { get; set; }
         public Type ActivityContextType { get; set; }
 
+#if false
         public void AddHandlerType(Type handlerType) {
             Type[] old = this.HandlerTypes;
             var next = new Type[old.Length + 1];
             old.CopyTo(next, 0);
             next[old.Length] = handlerType;
         }
+#endif
     }
 }

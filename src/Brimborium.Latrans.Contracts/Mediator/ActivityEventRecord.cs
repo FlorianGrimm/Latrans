@@ -16,8 +16,8 @@ namespace Brimborium.Latrans.Mediator {
         public int SequenceNo;
         public DateTime Occurrence;
         public ActivityStatus Status;
-        public string User;
-        public string Data;
+        public string? User;
+        public string? Data;
     }
 
     public enum ActivityEventRecordKind {

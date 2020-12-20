@@ -6,6 +6,6 @@
     // public interface IFinalActivityResponse : IActivityResponse {    }
 
     public interface IFailureActivityResponse : IActivityResponse {
-        System.Exception GetError();
+        System.Exception? GetError();
     }
 }

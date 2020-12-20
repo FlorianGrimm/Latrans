@@ -18,7 +18,7 @@ namespace Brimborium.Latrans.Utility {
         /// This function may be called more than once.</param>
         /// <param name="dispose">A function to dispose a value that is not used.</param>
         /// <returns>The previous value that was used to generate the resulting new value.</returns>
-        public T Mutate(Func<T, T> mutator, Action<T> dispose = default) {
+        public T Mutate(Func<T, T> mutator, Action<T>? dispose = default) {
             T oldValue = this._Value;
             while (true) {
                 T nextValue = mutator(oldValue);
@@ -35,7 +35,7 @@ namespace Brimborium.Latrans.Utility {
                 }
             }
         }
-        public T Mutate1<A>(A argument, Func<A, T, T> mutator, Action<T> dispose = default) {
+        public T Mutate1<A>(A argument, Func<A, T, T> mutator, Action<T>? dispose = default) {
             T oldValue = this._Value;
             while (true) {
                 T nextValue = mutator(argument, oldValue);

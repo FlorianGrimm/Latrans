@@ -17,10 +17,10 @@ namespace Brimborium.Latrans.Utility {
 
     public class LazyValueFunction<T> : ILazyValue<T>
         where T : class {
-        private Func<T> _Creator;
+        private Func<T>? _Creator;
         private enum State { Init, Created, Disposed }
         private int _StateValue;
-        private T _Value;
+        private T? _Value;
 
         public LazyValueFunction(Func<T> creator) {
             this._Creator = creator ?? throw new ArgumentNullException(nameof(creator));
@@ -37,18 +37,19 @@ namespace Brimborium.Latrans.Utility {
         public T GetValue() {
             if (this.CurrentState == State.Created) {
                 // happy path
-                return this._Value;
+                return this._Value!;
             } else {
                 State state;
                 lock (this) {
                     state = this.CurrentState;
-                    if ((state == State.Init) && (this._Creator is object)) {
-                        this._Value = this._Creator();
+                    var creator = this._Creator;
+                    if ((state == State.Init) && (creator is object)) {
+                        this._Value = creator();
                         this.CurrentState = state = State.Created;
                     }
                 }
                 if (state == State.Created) {
-                    return this._Value;
+                    return this._Value!;
                 } else if (state == State.Init) {
                     if (this._Creator is object) {
                         throw new InvalidOperationException($"LazyValueFunction<{typeof(T).FullName}> Not created. ");
@@ -71,12 +72,13 @@ namespace Brimborium.Latrans.Utility {
             }
         }
     }
+
     public class LazyValueServiceProvider<T> : ILazyValue<T>
         where T : class {
-        private IServiceProvider _Provider;
         private enum State { Init, Created, Disposed }
+        private IServiceProvider? _Provider;
         private int _StateValue;
-        private T _Value;
+        private T? _Value;
 
         public LazyValueServiceProvider(IServiceProvider provider) {
             this._Provider = provider ?? throw new ArgumentNullException(nameof(provider));
@@ -93,20 +95,21 @@ namespace Brimborium.Latrans.Utility {
         public T GetValue() {
             if (this.CurrentState == State.Created) {
                 // happy path
-                return this._Value;
+                return this._Value!;
             } else {
                 State state;
                 lock (this) {
                     state = this.CurrentState;
-                    if ((state == State.Init) && (this._Provider is object)) {
-                        this._Value = this._Provider.GetRequiredService<T>();
+                    var provider = this._Provider;
+                    if ((state == State.Init) && (provider is object)) {
+                        this._Value = provider.GetRequiredService<T>();
                         this.CurrentState = state = State.Created;
                     }
                 }
                 if (state == State.Created) {
-                    return this._Value;
+                    return this._Value!;
                 } else if (state == State.Init) {
-                    if (this._Provider is object) { 
+                    if (this._Provider is object) {
                         throw new InvalidOperationException($"LazyValueServiceProvider<{typeof(T).FullName}> Not created. ");
                     } else {
                         throw new InvalidOperationException($"LazyValueServiceProvider<{typeof(T).FullName}> Not created. Provider not given.");

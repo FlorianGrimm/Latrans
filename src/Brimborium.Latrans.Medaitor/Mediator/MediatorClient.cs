@@ -1,5 +1,6 @@
 ﻿using Brimborium.Latrans.Activity;
 using Brimborium.Latrans.Mediator;
+using Brimborium.Latrans.Utility;
 
 using System;
 using System.Threading;
@@ -9,37 +10,50 @@ namespace Brimborium.Latrans.Mediator {
     public class MediatorClient : IMediatorClient, IDisposable {
         private int _IsDisposed;
         private readonly IMediatorService _MedaitorService;
-        private readonly IServiceProvider _ServiceProvider;
+
+        // ScopedServiceProvider Web
+        private readonly IServiceProvider? _ServiceProvider;
+
+        // ScopedServiceProvider Web
+        private readonly ILocalDisposables _LocalDisposables;
+        private readonly bool _DisposeLocalDisposables;
 
         public MediatorClient(
             IMediatorService medaitorService
             ) {
             this._MedaitorService = medaitorService ?? throw new ArgumentNullException(nameof(medaitorService));
+            this._LocalDisposables = new LocalDisposables();
+            this._DisposeLocalDisposables = true;
         }
+
         public MediatorClient(
             IMediatorService medaitorService,
-            IServiceProvider serviceProvider
+            IServiceProvider serviceProvider,
+            ILocalDisposables localDisposables
             ) {
             this._MedaitorService = medaitorService ?? throw new ArgumentNullException(nameof(medaitorService));
-            this._ServiceProvider = serviceProvider;
+            this._ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this._LocalDisposables = localDisposables ?? throw new ArgumentNullException(nameof(localDisposables));
+            this._DisposeLocalDisposables = false;
         }
-        
+
 
         public bool IsDisposed => (this._IsDisposed == 1);
 
-        protected virtual void Dispose(bool disposing) {
+        private void Dispose(bool disposing) {
             if (0 == System.Threading.Interlocked.Exchange(ref this._IsDisposed, 1)) {
-                if (disposing) {
+                if (this._DisposeLocalDisposables) {
+                    this._LocalDisposables.Dispose();
                 }
             }
         }
 
         ~MediatorClient() {
-            Dispose(disposing: false);
+            this.Dispose(disposing: false);
         }
 
         public void Dispose() {
-            Dispose(disposing: true);
+            this.Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 #if false
@@ -62,6 +76,7 @@ namespace Brimborium.Latrans.Mediator {
 #endif
         public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(TRequest request, CancellationToken cancellationToken) {
             var result = await this._MedaitorService.ConnectAsync<TRequest>(this, request, cancellationToken);
+            this._LocalDisposables.Add(result);
 #warning TODO
             return result;
         }

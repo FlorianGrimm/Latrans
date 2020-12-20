@@ -29,6 +29,7 @@ namespace DemoWebApp {
                 builder.Services.AddOptions<ActivityWaitForSpecificationOptions>().Configure((cfg) => {
                     cfg.RedirectUrlBase = "~/";
                 });
+                builder.UseStartup<StartupMediator>();
             });
 
             services.AddSwaggerGen(c => {
@@ -63,6 +64,12 @@ namespace DemoWebApp {
                 endpoints.MapControllers();
                 endpoints.MapRazorPages();
             });
+        }
+    }
+
+    public class StartupMediator : IStartupMediator {
+        public void Config(IMediatorBuilder builder) {
+            throw new NotImplementedException();
         }
     }
 }

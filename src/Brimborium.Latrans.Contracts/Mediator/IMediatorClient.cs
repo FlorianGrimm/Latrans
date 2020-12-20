@@ -1,10 +1,9 @@
-﻿
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Mediator {
-    // 
+
     public interface IMediatorClient : IDisposable {
         bool IsDisposed { get; }
 

@@ -12,21 +12,27 @@ namespace Brimborium.Latrans.Mediator {
         , IDisposable {
         private IMediatorService _MedaitorService;
         private TRequest _Request;
-        private IActivityResponse _ActivityResponse;
+        private IActivityResponse? _ActivityResponse;
         private int _IsDisposed;
         private ActivityCompletion<IActivityResponse> _ActivityCompletion;
         private Guid _OperationId;
         private Guid _ExecutionId;
         private readonly AtomicReference<ImmutableList<IActivityEvent>> _ActivityEvents;
 
+#if false
         public MediatorContext() {
             this._ActivityCompletion = new ActivityCompletion<IActivityResponse>();
             this._ActivityEvents = new AtomicReference<ImmutableList<IActivityEvent>>(
                     ImmutableList<IActivityEvent>.Empty
                 );
         }
+#endif
 
-        public MediatorContext(CreateActivityContextArguments arguments, TRequest request) :this() {
+        public MediatorContext(CreateActivityContextArguments arguments, TRequest request) {
+            this._ActivityCompletion = new ActivityCompletion<IActivityResponse>();
+            this._ActivityEvents = new AtomicReference<ImmutableList<IActivityEvent>>(
+                    ImmutableList<IActivityEvent>.Empty
+                );
             this._MedaitorService = arguments.MedaitorService;
             this._Request = request;
             this.OperationId = Guid.NewGuid();
@@ -34,7 +40,7 @@ namespace Brimborium.Latrans.Mediator {
         }
 
         public Type GetRequestType() => typeof(TRequest);
-        
+
         public ActivityStatus Status { get; set; }
 
         public Guid OperationId {
@@ -101,7 +107,7 @@ namespace Brimborium.Latrans.Mediator {
         }
 
         public Task AddActivityEventAsync(IActivityEvent activityEvent) {
-            if (activityEvent is null) { return Task.CompletedTask; } 
+            if (activityEvent is null) { return Task.CompletedTask; }
             this._ActivityEvents.Mutate1<IActivityEvent>(
                 activityEvent,
                 (newItem, activityEvents) => {

@@ -17,14 +17,15 @@ namespace Brimborium.Latrans.Utility {
 
     public class UsingValueFunction<T> : IUsingValue<T>
         where T : class, IDisposable {
-        private Func<T> _Creator;
+        private Func<T>? _Creator;
         private enum State { Init, Created, Disposed }
         private int _StateValue;
-        private T _Value;
+        private T? _Value;
         
         public UsingValueFunction(Func<T> creator) {
             this._Creator = creator ?? throw new ArgumentNullException(nameof(creator));
             this.CurrentState = State.Init;
+            this._Value = default;
         }
 
         private State CurrentState {
@@ -37,18 +38,19 @@ namespace Brimborium.Latrans.Utility {
         public T GetValue() {
             if (this.CurrentState==State.Created) {
                 // happy path
-                return this._Value;
+                return this._Value!;
             } else {
                 State state;
                 lock (this) {
                     state = this.CurrentState;
-                    if ((state == State.Init) && (this._Creator is object)) {
-                        this._Value = this._Creator();
+                    var creator = this._Creator;
+                    if ((state == State.Init) && (creator is object)) {
+                        this._Value = creator();
                         this.CurrentState = state = State.Created;
                     }
                 }
                 if (state == State.Created) {
-                    return this._Value;
+                    return this._Value!;
                 } else if (state == State.Init) {
                     if (this._Creator is object) {
                         throw new InvalidOperationException($"UsingValueFunction<{typeof(T).FullName}> Not created. ");
@@ -73,21 +75,23 @@ namespace Brimborium.Latrans.Utility {
             var prevState = (State)System.Threading.Interlocked.Exchange(ref this._StateValue, (int)State.Disposed);
             if (prevState == State.Created) {
                 this._Creator = default;
-                var oldValue = System.Threading.Interlocked.Exchange<T>(ref this._Value, default);
+                var oldValue = System.Threading.Interlocked.Exchange<T?>(ref this._Value, default);
                 oldValue?.Dispose();
             }
         }
     }
+
     public class UsingValueServiceProvider<T> : IUsingValue<T>
         where T : class, IDisposable {
-        private IServiceProvider _Provider;
+        private IServiceProvider? _Provider;
         private enum State { Init, Created, Disposed }
         private int _StateValue;
-        private T _Value;
+        private T? _Value;
 
         public UsingValueServiceProvider(IServiceProvider provider) {
             this._Provider = provider ?? throw new ArgumentNullException(nameof(provider));
             this.CurrentState = State.Init;
+            this._Value = default;
         }
 
         private State CurrentState {
@@ -100,7 +104,7 @@ namespace Brimborium.Latrans.Utility {
         public T GetValue() {
             if (this.CurrentState == State.Created) {
                 // happy path
-                return this._Value;
+                return this._Value!;
             } else {
                 State state;
                 lock (this) {
@@ -111,7 +115,7 @@ namespace Brimborium.Latrans.Utility {
                     }
                 }
                 if (state == State.Created) {
-                    return this._Value;
+                    return this._Value!;
                 } else if (state == State.Init) {
                     if (this._Provider is object) {
                         throw new InvalidOperationException($"UsingValueServiceProvider<{typeof(T).FullName}> Not created. ");
@@ -130,14 +134,16 @@ namespace Brimborium.Latrans.Utility {
             this.Disposing();
             GC.SuppressFinalize(this);
         }
+
         ~UsingValueServiceProvider() {
             this.Disposing();
         }
+
         private void Disposing() {
             var prevState = (State)System.Threading.Interlocked.Exchange(ref this._StateValue, (int)State.Disposed);
             if (prevState == State.Created) {
                 this._Provider = default;
-                var oldValue = System.Threading.Interlocked.Exchange<T>(ref this._Value, default);
+                var oldValue = System.Threading.Interlocked.Exchange<T?>(ref this._Value, default);
                 oldValue?.Dispose();
             }
         }
