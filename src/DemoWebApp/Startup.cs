@@ -14,7 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
 namespace DemoWebApp {
-    public class Startup {
+    public class Startup : IStartupMediator {
         public Startup(IConfiguration configuration) {
             Configuration = configuration;
         }
@@ -25,17 +25,21 @@ namespace DemoWebApp {
         public void ConfigureServices(IServiceCollection services) {
             services.AddControllers();
             services.AddRazorPages();
-            services.AddLatransMedaitor((builder) => {
-                builder.Services.AddOptions<ActivityWaitForSpecificationOptions>().Configure((cfg) => {
-                    cfg.RedirectUrlBase = "~/";
-                });
-                builder.UseStartup<StartupMediator>();
-            });
+            
+            //services.AddLatransMedaitor((builder) => { }).UseStartup(this);
+
+            services.AddLatransMedaitor().UseConfigure(this);
 
             services.AddSwaggerGen(c => {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "DemoWebApp", Version = "v1" });
             });
             services.AddSwaggerGenNewtonsoftSupport(); // explicit opt-in - needs to be placed after AddSwaggerGen()
+        }
+
+        public void ConfigureMediatorServices(IMediatorBuilder mediatorBuilder) {
+            mediatorBuilder.Services.AddOptions<ActivityWaitForSpecificationOptions>().Configure((cfg) => {
+                cfg.RedirectUrlBase = "~/";
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -64,12 +68,6 @@ namespace DemoWebApp {
                 endpoints.MapControllers();
                 endpoints.MapRazorPages();
             });
-        }
-    }
-
-    public class StartupMediator : IStartupMediator {
-        public void Config(IMediatorBuilder builder) {
-            throw new NotImplementedException();
         }
     }
 }

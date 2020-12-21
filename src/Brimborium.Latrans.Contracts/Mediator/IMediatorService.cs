@@ -1,8 +1,4 @@
-﻿using Brimborium.Latrans.Utility;
-
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +11,15 @@ namespace Brimborium.Latrans.Mediator {
             TRequest request,
             CancellationToken cancellationToken);
     }
+    public interface IMediatorScopeService : IDisposable {
+        IMediatorServiceStorage Storage { get; }
+
+        Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
+            IMediatorClient medaitorClient,
+            TRequest request,
+            CancellationToken cancellationToken);
+    }
     public interface IStartupMediator {
-        void Config(IMediatorBuilder builder);
+        void ConfigureMediatorServices(IMediatorBuilder builder);
     }
 }

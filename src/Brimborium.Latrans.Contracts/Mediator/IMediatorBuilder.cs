@@ -1,22 +1,25 @@
-﻿
-using Brimborium.Latrans.Activity;
+﻿using Brimborium.Latrans.Activity;
+
+using Microsoft.Extensions.DependencyInjection;
 
 using System;
 
 namespace Brimborium.Latrans.Mediator {
     // 
     public interface IMediatorBuilder {
+        IServiceCollection Services { get; }
+
         IMediatorBuilder AddActivityHandler<THandler>()
             where THandler : IActivityHandler;
+        
         IMediatorBuilder AddDispatchHandler<THandler>()
             where THandler : IDispatchActivityHandler;
+        
         IMediatorBuilder AddHandlerType(Type handlerType);
-        IMediatorBuilder UseStartup<T>();
+
+        IMediatorBuilder UseConfigure<T>(T? instance = default)
+            where T : class, IStartupMediator;
+
         void Build();
     }
-
-    //public interface IRequestRelatedType {
-    //    public Type DispatcherType { get; set; }
-    //    public Type[] HandlerTypes { get; set; }
-    //}
 }

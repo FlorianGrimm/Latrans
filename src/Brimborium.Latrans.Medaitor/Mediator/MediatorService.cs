@@ -57,7 +57,7 @@ namespace Brimborium.Latrans.Mediator {
             }
             this.RequestRelatedTypes = new RequestRelatedTypes(options.RequestRelatedTypes.Items);
             this._ServicesMediator = options.ServicesMediator.BuildServiceProvider();
-#warning xx
+            this._TimeoutTasks = Task.CompletedTask;
             this._Storage = new MediatorServiceStorageNull();
         }
 
@@ -179,4 +179,59 @@ namespace Brimborium.Latrans.Mediator {
             throw new NotImplementedException();
         }
     }
+#if false
+    public class MediatorScopeService
+        : IMediatorScopeService
+        , IMediatorServiceInternal
+        , IDisposable {
+        private Task _TimeoutTasks;
+        private ServiceProvider _ServicesMediator;
+        private int _IsDisposed;
+        private readonly IMediatorServiceStorage _Storage;
+
+        public MediatorScopeService() {
+        }
+
+        public IMediatorServiceStorage Storage => throw new NotImplementedException();
+
+        protected virtual void Dispose(bool disposing) {
+            if (0 == System.Threading.Interlocked.Exchange(ref this._IsDisposed, 1)) {
+                using (var services = this._ServicesMediator) {
+                    if (disposing) {
+                        this._ServicesMediator = null;
+                    }
+                }
+            }
+        }
+
+        ~MediatorScopeService() {
+            Dispose(disposing: false);
+        }
+
+        public void Dispose() {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        public IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(RequestRelatedType? requestRelatedType, TRequest request) {
+            throw new NotImplementedException();
+        }
+
+        public IActivityHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(RequestRelatedType? requestRelatedType, IActivityContext<TRequest, TResponse> activityContext) {
+            throw new NotImplementedException();
+        }
+
+        public void HandleRequestForAccepted202Redirect<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
+            throw new NotImplementedException();
+        }
+
+        public void HandleRequestAfterTimeout<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
+            throw new NotImplementedException();
+        }
+
+        public Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(IMediatorClient medaitorClient, TRequest request, CancellationToken cancellationToken) {
+            throw new NotImplementedException();
+        }
+    }
+#endif
 }

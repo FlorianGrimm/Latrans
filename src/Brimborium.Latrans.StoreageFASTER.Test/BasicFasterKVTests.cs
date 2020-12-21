@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Xunit;
 
 namespace Brimborium.Latrans.StoreageFASTER.Test {
-    public class BasicFasterTests {
+    public class BasicFasterKVTests {
         [Fact]
         public async Task Faster_Test1() {
 
