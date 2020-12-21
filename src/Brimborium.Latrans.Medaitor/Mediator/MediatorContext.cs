@@ -11,6 +11,7 @@ namespace Brimborium.Latrans.Mediator {
         : IActivityContext<TRequest, TResponse>
         , IDisposable {
         private IMediatorService _MedaitorService;
+        private MediatorScopeService _MediatorScopeService;
         private TRequest _Request;
         private IActivityResponse? _ActivityResponse;
         private int _IsDisposed;
@@ -34,6 +35,7 @@ namespace Brimborium.Latrans.Mediator {
                     ImmutableList<IActivityEvent>.Empty
                 );
             this._MedaitorService = arguments.MedaitorService;
+            this._MediatorScopeService = arguments.MediatorScopeService;
             this._Request = request;
             this.OperationId = Guid.NewGuid();
             this.ExecutionId = Guid.NewGuid();
@@ -102,7 +104,24 @@ namespace Brimborium.Latrans.Mediator {
                 if (this._MedaitorService is object) {
                     throw new ArgumentException("already set", nameof(this.MedaitorService));
                 }
+                if (value is null) {
+                    throw new ArgumentNullException(nameof(this.MedaitorService));
+                }
                 this._MedaitorService = value;
+            }
+        }
+
+        public IMediatorScopeService MediatorScopeService {
+            get { return this._MediatorScopeService; }
+            set {
+                if (ReferenceEquals(this._MediatorScopeService, value)) { return; }
+                if (this._MediatorScopeService is object) {
+                    throw new ArgumentException("already set", nameof(this.MediatorScopeService));
+                }
+                if (value is null) {
+                    throw new ArgumentNullException(nameof(this.MediatorScopeService));
+                }
+                this._MediatorScopeService = (MediatorScopeService)value;
             }
         }
 
@@ -114,7 +133,7 @@ namespace Brimborium.Latrans.Mediator {
                     newItem.SequenceNo = activityEvents.Count + 1;
                     return activityEvents.Add(newItem);
                 });
-            var result = this._MedaitorService.Storage.AddActivityEventAsync(activityEvent);
+            var result = this._MediatorScopeService.Storage.AddActivityEventAsync(activityEvent);
 
             return result;
         }

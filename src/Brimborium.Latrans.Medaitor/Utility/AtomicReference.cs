@@ -3,7 +3,7 @@
 namespace Brimborium.Latrans.Utility {
     /// <summary>Holds a reference to an immutable class and updates it atomically.</summary>
     /// <typeparam name="T">An immutable class to reference.</typeparam>
-    class AtomicReference<T> where T : class {
+    public class AtomicReference<T> where T : class {
         private T _Value;
 
         public AtomicReference(T initialValue) {

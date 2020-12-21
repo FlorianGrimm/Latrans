@@ -11,18 +11,16 @@ namespace Brimborium.Latrans.Mediator {
         , IMediatorClientConnected<TRequest>
         , IMediatorClientConnected
         , IDisposable {
-        private IActivityContext<TRequest, TResponse> _ActivityContext;
-        private readonly IMediatorServiceInternal _MedaitorService;
+        private IActivityContext<TRequest, TResponse>? _ActivityContext;
+        private readonly IMediatorServiceInternalUse2 _MedaitorService;
         private readonly RequestRelatedType _RequestRelatedType;
         private readonly TRequest _Request;
         private int _IsDisposed;
 
-        public MediatorClientConnected() {
-        }
+        //public MediatorClientConnected() { }
 
         public MediatorClientConnected(CreateClientConnectedArguments arguments, TRequest request) {
-            var medaitorService = arguments.MedaitorService;
-            this._MedaitorService = medaitorService;
+            this._MedaitorService = arguments.MedaitorService;
             this._RequestRelatedType = arguments.RequestRelatedType;
             this._Request = request;
         }
@@ -33,16 +31,23 @@ namespace Brimborium.Latrans.Mediator {
             //
             var medaitorService = this._MedaitorService;
 
-            var activityContext = this._ActivityContext ??= medaitorService.CreateContext<TRequest, TResponse>(this._RequestRelatedType, this._Request);
-            //
-            var activityHandler = (IActivityHandler<TRequest, TResponse>)medaitorService.CreateHandler<TRequest, TResponse>(
+            var activityContext = this._ActivityContext ??= medaitorService.CreateContext<TRequest, TResponse>(
                 this._RequestRelatedType,
-                activityContext);
+                this._Request);
+            //
+            var mediatorScopeService = (IMediatorScopeServiceInternalUse)activityContext.MediatorScopeService;
+            mediatorScopeService.AddClientConnected<TRequest>(this);
+            var activityHandler = mediatorScopeService.CreateHandler<TRequest, TResponse > (
+                  this._RequestRelatedType,
+                  activityContext);
+            //var activityHandler = (IActivityHandler<TRequest, TResponse>)medaitorService.CreateHandler<TRequest, TResponse>(
+            //    this._RequestRelatedType,
+            //    activityContext);
             await activityContext.AddActivityEventAsync(new ActivityEventStateChange(
                 activityContext.OperationId,
                 activityContext.ExecutionId,
                 0,
-                System.DateTime.UtcNow,
+                medaitorService.GetUtcNow(),
                 ActivityStatus.Running
                 ));
             await activityHandler.ExecuteAsync(activityContext, cancellationToken);
@@ -94,7 +99,7 @@ namespace Brimborium.Latrans.Mediator {
             }
         }
 
-        public bool IsDisposed() 
+        public bool IsDisposed()
             => (this._IsDisposed != 0);
 
         ~MediatorClientConnected() {

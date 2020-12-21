@@ -27,23 +27,27 @@ namespace Brimborium.Latrans.Mediator {
     }
     public class CreateActivityContextArguments {
         public CreateActivityContextArguments(
-                IMediatorService medaitorService
-            ) {
+                IMediatorService medaitorService, 
+                MediatorScopeService mediatorScopeService) {
             this.MedaitorService = medaitorService;
+            this.MediatorScopeService = mediatorScopeService;
         }
+
         public readonly IMediatorService MedaitorService;
+
+        public readonly MediatorScopeService MediatorScopeService;
     }
 
     public class CreateClientConnectedArguments {
         public CreateClientConnectedArguments(
-                IMediatorServiceInternal medaitorService,
+                IMediatorServiceInternalUse2 medaitorService,
                 RequestRelatedType requestRelatedType
             ) {
             this.MedaitorService = medaitorService;
             this.RequestRelatedType = requestRelatedType;
 
         }
-        public readonly IMediatorServiceInternal MedaitorService;
+        public readonly IMediatorServiceInternalUse2 MedaitorService;
         public readonly RequestRelatedType RequestRelatedType;
     }
 

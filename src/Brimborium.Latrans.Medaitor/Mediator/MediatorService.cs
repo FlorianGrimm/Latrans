@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,32 +9,10 @@ using Brimborium.Latrans.Activity;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Brimborium.Latrans.Mediator {
-    /// <summary>
-    /// public accessor - but internal use.
-    /// </summary>
-    public interface IMediatorServiceInternal : IMediatorService {        
-        IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(
-                RequestRelatedType? requestRelatedType,
-                TRequest request
-            );
-
-        IActivityHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(
-                RequestRelatedType? requestRelatedType,
-                IActivityContext<TRequest, TResponse> activityContext
-            );
-
-        void HandleRequestForAccepted202Redirect<TRequest, TResponse>(
-                IActivityContext<TRequest, TResponse> activityContext
-            );
-
-        void HandleRequestAfterTimeout<TRequest, TResponse>(
-                IActivityContext<TRequest, TResponse> activityContext
-            );
-    }
 
     public class MediatorService
         : IMediatorService
-        , IMediatorServiceInternal
+        , IMediatorServiceInternalUse2
         , IDisposable {
 
         public static MediatorService Create(MediatorOptions options) {
@@ -45,6 +25,7 @@ namespace Brimborium.Latrans.Mediator {
         private ServiceProvider _ServicesMediator;
         private int _IsDisposed;
         private readonly IMediatorServiceStorage _Storage;
+        private readonly List<MediatorScopeService> _MediatorScopeServices;
 
         public RequestRelatedTypes RequestRelatedTypes { get; }
         public ServiceProvider ServicesMediator { get => this._ServicesMediator; }
@@ -58,6 +39,7 @@ namespace Brimborium.Latrans.Mediator {
             this.RequestRelatedTypes = new RequestRelatedTypes(options.RequestRelatedTypes.Items);
             this._ServicesMediator = options.ServicesMediator.BuildServiceProvider();
             this._TimeoutTasks = Task.CompletedTask;
+            this._MediatorScopeServices = new List<MediatorScopeService>();
             this._Storage = new MediatorServiceStorageNull();
         }
 
@@ -78,6 +60,9 @@ namespace Brimborium.Latrans.Mediator {
         ~MediatorService() {
             Dispose(disposing: false);
         }
+
+        public bool TryRequestRelatedType(Type type, [MaybeNullWhen(false)] out RequestRelatedType requestRelatedType)
+            => this.RequestRelatedTypes.Items.TryGetValue(type, out requestRelatedType);
 
         public void Dispose() {
             Dispose(disposing: true);
@@ -112,14 +97,32 @@ namespace Brimborium.Latrans.Mediator {
                     throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
                 }
             }
-            var result = requestRelatedType.FactoryActivityContext(
-                this._ServicesMediator,
+            var mediatorScopeService = this.CreateMediatorScopeService();
+            var resultObj = requestRelatedType.FactoryActivityContext(
+                mediatorScopeService.ServiceProvider,
                 new object[] {
-                    new CreateActivityContextArguments(this),
-                    request });
-            return (IActivityContext<TRequest, TResponse>)result;
+                    new CreateActivityContextArguments(
+                        this,
+                        mediatorScopeService
+                        ),
+                    request! });
+            if (resultObj is null) {
+                throw new InvalidOperationException("FactoryActivityContext returns null.");
+            }
+            var result = (IActivityContext<TRequest, TResponse>)resultObj;
+            var x=result.MediatorScopeService;
+            return result;
         }
 
+        private MediatorScopeService CreateMediatorScopeService() {
+            var mediatorScopeService = new MediatorScopeService(this);
+            lock (this._MediatorScopeServices) {
+                this._MediatorScopeServices.Add(mediatorScopeService);
+            }
+            return mediatorScopeService;
+        }
+
+#if false
         public IActivityHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(
             RequestRelatedType? requestRelatedType,
             IActivityContext<TRequest, TResponse> activityContext) {
@@ -155,6 +158,7 @@ namespace Brimborium.Latrans.Mediator {
                 return result;
             }
         }
+#endif
 
         public void HandleRequestForAccepted202Redirect<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
             //activityContext.OperationId
@@ -176,8 +180,10 @@ namespace Brimborium.Latrans.Mediator {
         }
 
         private void LogException(AggregateException? exception) {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
+
+        public DateTime GetUtcNow() => System.DateTime.UtcNow;
     }
 #if false
     public class MediatorScopeService

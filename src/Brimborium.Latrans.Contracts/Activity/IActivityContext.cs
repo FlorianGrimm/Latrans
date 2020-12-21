@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Brimborium.Latrans.Mediator;
+
+using System;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Activity {
@@ -19,6 +21,8 @@ namespace Brimborium.Latrans.Activity {
         Task SetActivityResponse(IActivityResponse activityResponse);
 
         Task<IActivityResponse> GetActivityResponseAsync();
+
+        IMediatorScopeService MediatorScopeService { get; }
     }
 
     public interface IActivityContext<TRequest> : IActivityContext {
