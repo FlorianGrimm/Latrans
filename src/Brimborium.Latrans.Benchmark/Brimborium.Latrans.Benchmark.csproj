@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <Configuration>Release</Configuration>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.12.0" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brimborium.Latrans.Contracts\Brimborium.Latrans.Contracts.csproj" />
+    <ProjectReference Include="..\Brimborium.Latrans.Utility\Brimborium.Latrans.Utility.csproj" />
+  </ItemGroup>
+</Project>

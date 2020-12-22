@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Brimborium.Latrans.Activity;
+using Brimborium.Latrans.Utility;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,13 +23,13 @@ namespace Brimborium.Latrans.Mediator {
         }
 
         private Task _TimeoutTasks;
-        private ServiceProvider _ServicesMediator;
+        private IServiceProvider _ServicesMediator;
         private int _IsDisposed;
         private readonly IMediatorServiceStorage _Storage;
         private readonly List<MediatorScopeService> _MediatorScopeServices;
 
         public RequestRelatedTypes RequestRelatedTypes { get; }
-        public ServiceProvider ServicesMediator { get => this._ServicesMediator; }
+        public IServiceProvider ServicesMediator { get => this._ServicesMediator; }
 
         public IMediatorServiceStorage Storage => this._Storage;
 
@@ -49,9 +50,9 @@ namespace Brimborium.Latrans.Mediator {
 
         protected virtual void Dispose(bool disposing) {
             if (0 == System.Threading.Interlocked.Exchange(ref this._IsDisposed, 1)) {
-                using (var services = this._ServicesMediator) {
+                using (var services = (this._ServicesMediator as IDisposable)) {
                     if (disposing) {
-                        this._ServicesMediator = null;
+                        this._ServicesMediator = DisposedServiceProvider.Instance;
                     }
                 }
             }

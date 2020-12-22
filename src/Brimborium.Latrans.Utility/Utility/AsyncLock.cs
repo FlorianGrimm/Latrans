@@ -11,7 +11,7 @@ namespace Brimborium.Latrans.Utility {
         /// <summary>
         /// Queue of tasks awaiting to acquire the lock.
         /// </summary>
-        protected readonly Queue<TaskCompletionSource<object>> Awaiters;
+        protected readonly Queue<TaskCompletionSource<object?>> Awaiters;
 
         /// <summary>
         /// True if the lock has been acquired, else false.
@@ -22,7 +22,7 @@ namespace Brimborium.Latrans.Utility {
         /// Initializes a new instance of the <see cref="AsyncLock"/> class.
         /// </summary>
         protected AsyncLock() {
-            this.Awaiters = new Queue<TaskCompletionSource<object>>();
+            this.Awaiters = new Queue<TaskCompletionSource<object?>>();
             this.IsAcquired = false;
         }
 
@@ -38,10 +38,10 @@ namespace Brimborium.Latrans.Utility {
         /// releases the lock when disposed. This is not a reentrant operation.
         /// </summary>
         public virtual async Task<Releaser> AcquireAsync() {
-            TaskCompletionSource<object> awaiter;
+            TaskCompletionSource<object?>? awaiter = null;
             lock (this.Awaiters) {
                 if (this.IsAcquired) {
-                    awaiter = new TaskCompletionSource<object>();
+                    awaiter = new TaskCompletionSource<object?>();
                     this.Awaiters.Enqueue(awaiter);
                 } else {
                     this.IsAcquired = true;
@@ -60,7 +60,7 @@ namespace Brimborium.Latrans.Utility {
         /// Releases the lock.
         /// </summary>
         protected virtual void Release() {
-            TaskCompletionSource<object> awaiter = null;
+            TaskCompletionSource<object?>? awaiter = null;
             lock (this.Awaiters) {
                 if (this.Awaiters.Count > 0) {
                     awaiter = this.Awaiters.Dequeue();
@@ -75,12 +75,12 @@ namespace Brimborium.Latrans.Utility {
         }
 
         protected virtual void Dispose(bool disposing) {
-            TaskCompletionSource<object>[] awaiters;
+            TaskCompletionSource<object?>[] awaiters;
             lock (this.Awaiters) {
                 awaiters = this.Awaiters.ToArray();
                 this.Awaiters.Clear();
             }
-            System.Exception rethrow = null;
+            System.Exception? rethrow = null;
             foreach (var awaiter in awaiters) {
                 try {
                     if (disposing) {
@@ -115,7 +115,7 @@ namespace Brimborium.Latrans.Utility {
             /// <summary>
             /// The acquired lock.
             /// </summary>
-            private AsyncLock _AsyncLock;
+            private AsyncLock? _AsyncLock;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Releaser"/> struct.

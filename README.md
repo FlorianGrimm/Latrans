@@ -6,10 +6,19 @@ Experimental WebApp
 - Brimborium.Latrans.Medaitor
 - DemoWebApp
 - DemoWebApp.Contracts
+benchmark
 
 #setup
-
 ```
+dotnet new "Benchmark Project" -n Brimborium.Latrans.Benchmark  -o src\Brimborium.Latrans.Benchmark 
+dotnet sln add src\Brimborium.Latrans.Benchmark 
+
+dotnet new classlib -n Brimborium.Latrans.Utility  -o src\Brimborium.Latrans.Utility 
+dotnet sln add src\Brimborium.Latrans.Utility 
+
+dotnet new xunit -n Brimborium.Latrans.Utility.Test -o src\Brimborium.Latrans.Utility.Test
+dotnet sln add src\Brimborium.Latrans.Utility.Test
+
 dotnet new classlib -n Brimborium.Latrans.Medaitor -o src\Brimborium.Latrans.Medaitor
 dotnet sln add src\Brimborium.Latrans.Medaitor
 
@@ -53,12 +62,28 @@ dotnet new tool-manifest
 dotnet tool install dotnet-stryker
 ```
 
+# setup computer
+
+```
+dotnet tool install -g BenchmarkDotNet.Tool
+```
+
+dotnet run -c Release --project src\Brimborium.Latrans.Benchmark --runtimes netcoreapp31 --list Tree
+dotnet run -c Release -- --job short --runtimes clr core --filter *BenchmarkClass1*
+
+```
+dotnet build -c Release src\Brimborium.Latrans.Benchmark
+dotnet benchmark output\Brimborium.Latrans.Benchmark\bin\Release\netcoreapp3.1\Brimborium.Latrans.Benchmark.dll --filter *
+
+G:\github\FlorianGrimm\Latrans\output\Brimborium.Latrans.Benchmark\bin\Release\netcoreapp3.1\Brimborium.Latrans.Benchmark.dll
+G:\github\FlorianGrimm\Latrans\output\Brimborium.Latrans.Benchmark\bin\Debug\netcoreapp3.1\Brimborium.Latrans.Benchmark.dll
+```
+
 # build
 
-```
-```
 
-
- 
+```
+dotnet build /restore
+```
 
 
