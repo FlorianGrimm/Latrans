@@ -31,13 +31,18 @@ namespace Brimborium.Latrans.Mediator {
 #endif
         public static async Task<ActionResult<TResult>> ExecuteToActionResultAsync<TResult>(
             IMediatorClient client,
+            ActivityId activityId, 
             TRequest request,
             Func<TResponse, TResult> extractResult,
-            ActivityWaitForSpecification waitForSpecification,
+            ActivityExecutionConfiguration activityExecutionConfiguration,
             System.Threading.CancellationToken requestAborted) {
             try {
-                using var connected = await client.ConnectAsync(request, requestAborted);
-                var response = await connected.WaitForAsync(waitForSpecification, requestAborted);
+                using var connected = await client.ConnectAsync(
+                    activityId,
+                    request,
+                    activityExecutionConfiguration,
+                    requestAborted);
+                var response = await connected.WaitForAsync(activityExecutionConfiguration, requestAborted);
                 return response.ConvertResponseToActionResult<TResponse, TResult>(extractResult);
             } catch (System.Exception error) {
                 return new ObjectResult(error.Message) {

@@ -13,7 +13,7 @@ namespace Brimborium.Latrans.Mediator {
 
     public class MediatorService
         : IMediatorService
-        , IMediatorServiceInternalUse2
+        , IMediatorServiceInternalUse
         , IDisposable {
 
         public static MediatorService Create(MediatorOptions options) {
@@ -72,26 +72,36 @@ namespace Brimborium.Latrans.Mediator {
 
         public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
             IMediatorClient medaitorClient,
+            ActivityId activityId,
             TRequest request,
+            ActivityExecutionConfiguration activityExecutionConfiguration,
             CancellationToken cancellationToken) {
             if (request is null) { throw new ArgumentNullException(nameof(request)); }
             //
             if (this.RequestRelatedTypes.Items.TryGetValue(typeof(TRequest), out var rrt)) {
 
-                var result = (IMediatorClientConnectedInternal<TRequest>)rrt.FactoryClientConnected(
-                    this._ServicesMediator,
-                    new object[] {
-                        new CreateClientConnectedArguments(this, rrt),
-                        request });
-                return await result.SendAsync(cancellationToken);
+                var mediatorClientConnected
+                    = (IMediatorClientConnectedInternal<TRequest>)rrt.FactoryClientConnected(
+                        this._ServicesMediator,
+                        new object[] {
+                            new CreateClientConnectedArguments(
+                                this, 
+                                medaitorClient,
+                                activityId,
+                                rrt),
+                            request });
+                mediatorClientConnected.Initialize();
+                var result = await mediatorClientConnected.SendAsync(cancellationToken);
+                return result;
             } else {
                 throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
             }
         }
 
         public IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(
-                RequestRelatedType? requestRelatedType,
-                TRequest request
+                ActivityId activityId,
+                TRequest request,
+                RequestRelatedType? requestRelatedType
             ) {
             if (requestRelatedType is null) {
                 if (!this.RequestRelatedTypes.TryGetValue(typeof(TRequest), out requestRelatedType)) {
@@ -104,14 +114,15 @@ namespace Brimborium.Latrans.Mediator {
                 new object[] {
                     new CreateActivityContextArguments(
                         this,
-                        mediatorScopeService
+                        mediatorScopeService,
+                        activityId
                         ),
                     request! });
             if (resultObj is null) {
                 throw new InvalidOperationException("FactoryActivityContext returns null.");
             }
             var result = (IActivityContext<TRequest, TResponse>)resultObj;
-            var x=result.MediatorScopeService;
+#warning TODO var x = result.MediatorScopeService;
             return result;
         }
 
@@ -184,7 +195,6 @@ namespace Brimborium.Latrans.Mediator {
             //throw new NotImplementedException();
         }
 
-        public DateTime GetUtcNow() => System.DateTime.UtcNow;
     }
 #if false
     public class MediatorScopeService

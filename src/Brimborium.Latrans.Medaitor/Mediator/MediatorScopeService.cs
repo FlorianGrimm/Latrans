@@ -4,6 +4,7 @@ using Brimborium.Latrans.Utility;
 using Microsoft.Extensions.DependencyInjection;
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,12 +18,14 @@ namespace Brimborium.Latrans.Mediator {
         private IServiceScope _Scope;
         private IServiceProvider _ServiceProvider;
         private int _IsDisposed;
+        private readonly List<IMediatorClientConnected> _MediatorClientConnecteds;
 
         public MediatorScopeService(
             MediatorService mediatorService) {
             this._MediatorService = mediatorService;
             this._Scope = mediatorService.ServicesMediator.CreateScope();
             this._ServiceProvider = this._Scope.ServiceProvider;
+            this._MediatorClientConnecteds = new List<IMediatorClientConnected>();
         }
 
         protected virtual void Dispose(bool disposing) {
@@ -49,9 +52,29 @@ namespace Brimborium.Latrans.Mediator {
 
         public IMediatorServiceStorage Storage => this._MediatorService.Storage;
 
-        public void AddClientConnected<TRequest>(
+        public bool AddClientConnected<TRequest>(
             IMediatorClientConnected<TRequest> mediatorClientConnected
             ) {
+            bool result = true;
+            lock (this._MediatorClientConnecteds) {
+                foreach(var mcc in this._MediatorClientConnecteds) {
+                    if (ReferenceEquals(mcc, mediatorClientConnected)) {
+                        result = false;
+                    }
+                }
+                if (result) { 
+                    this._MediatorClientConnecteds.Add(mediatorClientConnected);
+                }
+            }
+            return result;
+        }
+
+        public bool RemoveClientConnected<TRequest>(IMediatorClientConnected<TRequest> mediatorClientConnected) {
+            bool result = false;
+            lock (this._MediatorClientConnecteds) {
+                result = this._MediatorClientConnecteds.Remove(mediatorClientConnected);
+            }
+            return result;
         }
 
         public IActivityHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(
@@ -90,6 +113,35 @@ namespace Brimborium.Latrans.Mediator {
                 return result;
             }
         }
+
+
+        public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
+            ActivityId activityId,
+            TRequest request, 
+            ActivityExecutionConfiguration activityExecutionConfiguration,
+            CancellationToken cancellationToken) {
+            if (request is null) { throw new ArgumentNullException(nameof(request)); }
+            //
+            if (this._MediatorService.TryRequestRelatedType(typeof(TRequest), out var rrt)) {
+                var mediatorClientConnected
+                    = (IMediatorClientConnectedInternal<TRequest>)rrt.FactoryClientConnected(
+                        this._ServiceProvider,
+                        new object[] {
+                            new CreateClientConnectedArguments(
+                                this._MediatorService,
+                                this,
+                                activityId,
+                                rrt),
+                            request });
+                mediatorClientConnected.Initialize();
+                var result = await mediatorClientConnected.SendAsync(cancellationToken);
+                return result;
+            } else {
+                throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
+            }
+        }
+
+
 
         //public Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(IMediatorClient medaitorClient, TRequest request, CancellationToken cancellationToken) {
         //    throw new System.NotImplementedException();

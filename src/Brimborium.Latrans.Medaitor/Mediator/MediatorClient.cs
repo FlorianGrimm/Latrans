@@ -7,7 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Mediator {
-    public class MediatorClient : IMediatorClient, IDisposable {
+    public class MediatorClient 
+        : IMediatorClient
+        , IDisposable {
         private int _IsDisposed;
         private readonly IMediatorService _MedaitorService;
 
@@ -56,6 +58,23 @@ namespace Brimborium.Latrans.Mediator {
             this.Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+
+        public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
+            ActivityId activityId,
+            TRequest request,
+            ActivityExecutionConfiguration activityExecutionConfiguration,
+            CancellationToken cancellationToken) {
+            var result = await this._MedaitorService.ConnectAsync<TRequest>(
+                this, 
+                activityId,
+                request,
+                activityExecutionConfiguration,
+                cancellationToken);
+            this._LocalDisposables.Add(result);
+#warning TODO
+            return result;
+        }
+
 #if false
         public IActivityContext<TRequest> CreateContextByRequest<TRequest>(TRequest request) {
             return this._MedaitorService.CreateContextByRequest<TRequest>(this, request);
@@ -74,12 +93,5 @@ namespace Brimborium.Latrans.Mediator {
             return this._MedaitorService.WaitForAsync(this, activityContext, waitForSpecification, cancellationToken);
         }
 #endif
-        public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(TRequest request, CancellationToken cancellationToken) {
-            var result = await this._MedaitorService.ConnectAsync<TRequest>(this, request, cancellationToken);
-            this._LocalDisposables.Add(result);
-#warning TODO
-            return result;
-        }
     }
-
 }

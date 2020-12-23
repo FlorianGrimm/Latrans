@@ -1,20 +1,19 @@
-﻿
-using System;
+﻿using System;
 
 namespace Brimborium.Latrans.Mediator {
 
-    public class ActivityWaitForSpecification {
-        private static ActivityWaitForSpecification? _Default;
-        public static ActivityWaitForSpecification Default
-            => _Default ??= new ActivityWaitForSpecification();
+    public class ActivityExecutionConfiguration {
+        private static ActivityExecutionConfiguration? _Default;
+        public static ActivityExecutionConfiguration Default
+            => _Default ??= new ActivityExecutionConfiguration();
 
-        public ActivityWaitForSpecification() {
+        public ActivityExecutionConfiguration() {
             this.WaitTimeSpan = TimeSpan.MaxValue;
             this.RespectRequestAborted = false;
             this.SupportAccepted202Redirect = false;
         }
 
-        public ActivityWaitForSpecification(
+        public ActivityExecutionConfiguration(
             TimeSpan waitTimeSpan,
             bool respectRequestAborted,
             bool supportAccepted202Redirect,

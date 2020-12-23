@@ -12,8 +12,7 @@ namespace Brimborium.Latrans.Activity {
 
         public IActivityEvent GetAsActivityEvent(IActivityContext activityContext) {
             return new ActivityEventStateChange(
-                activityContext.OperationId,
-                activityContext.ExecutionId,
+                activityContext.ActivityId,
                 -1,
                 System.DateTime.UtcNow,
                 ActivityStatus.Completed);

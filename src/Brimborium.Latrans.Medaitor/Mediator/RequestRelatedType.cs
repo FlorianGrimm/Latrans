@@ -26,28 +26,49 @@ namespace Brimborium.Latrans.Mediator {
         }
     }
     public class CreateActivityContextArguments {
+        public readonly IMediatorService MedaitorService;
+        public readonly MediatorScopeService MediatorScopeService;
+        public readonly ActivityId ActivityId;
+
         public CreateActivityContextArguments(
                 IMediatorService medaitorService, 
-                MediatorScopeService mediatorScopeService) {
+                MediatorScopeService mediatorScopeService,
+                ActivityId activityId
+            ) {
             this.MedaitorService = medaitorService;
             this.MediatorScopeService = mediatorScopeService;
+            this.ActivityId = activityId;
         }
-
-        public readonly IMediatorService MedaitorService;
-
-        public readonly MediatorScopeService MediatorScopeService;
     }
 
     public class CreateClientConnectedArguments {
         public CreateClientConnectedArguments(
-                IMediatorServiceInternalUse2 medaitorService,
+                IMediatorServiceInternalUse medaitorService,
+                IMediatorScopeServiceInternalUse mediatorScopeService,
+                ActivityId activityId,
                 RequestRelatedType requestRelatedType
             ) {
             this.MedaitorService = medaitorService;
+            this.MediatorScopeService = mediatorScopeService;
+            this.ActivityId = activityId;
+            this.RequestRelatedType = requestRelatedType;
+        }
+        public CreateClientConnectedArguments(
+                IMediatorServiceInternalUse medaitorService,
+                IMediatorClient medaitorClient,
+                ActivityId activityId,
+                RequestRelatedType requestRelatedType
+            ) {
+            this.MedaitorService = medaitorService;
+            this.MedaitorClient = medaitorClient;
+            this.ActivityId = activityId;
             this.RequestRelatedType = requestRelatedType;
 
         }
-        public readonly IMediatorServiceInternalUse2 MedaitorService;
+        public readonly IMediatorServiceInternalUse MedaitorService;
+        public readonly IMediatorClient? MedaitorClient;
+        public readonly IMediatorScopeServiceInternalUse? MediatorScopeService;
+        public readonly ActivityId ActivityId;
         public readonly RequestRelatedType RequestRelatedType;
     }
 

@@ -1,16 +1,19 @@
 ﻿using Brimborium.Latrans.Mediator;
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Activity {
 
-    public interface IActivityContext {
+    public interface IActivityContext 
+        : IMediatorClient {
         ActivityStatus Status {get;set;}
 
-        Guid OperationId { get; set; }
-
-        Guid ExecutionId { get; set; }
+        ActivityId ActivityId { get; set; }
+        
+        //Guid OperationId { get; set; }
+        //Guid ExecutionId { get; set; }
         
         Type GetRequestType();
 

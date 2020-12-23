@@ -18,7 +18,8 @@ namespace Brimborium.Latrans.Mediator {
             this.Services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             this.RequestRelatedTypes = new RequestRelatedTypes();
             this.Services.AddOptions();
-            this.Services.AddOptions<ActivityWaitForSpecificationOptions>();
+            this.Services.AddOptions<ActivityExecutionConfigurationOptions>();
+            this.Services.AddTransient<ActivityExecutionConfigurationDefaults>();
             this.ActivityHandlers = new List<ReqResHandler>();
             this.DispatchActivityHandlers = new List<ReqResHandler>();
         }
@@ -30,7 +31,7 @@ namespace Brimborium.Latrans.Mediator {
         //}
 
         public MediatorOptions GetOptions() {
-            this.Services.AddSingleton<ActivityWaitForSpecificationDefaults>();
+            this.Services.AddSingleton<ActivityExecutionConfigurationDefaults>();
 
             return new MediatorOptions(
                 this.Services,

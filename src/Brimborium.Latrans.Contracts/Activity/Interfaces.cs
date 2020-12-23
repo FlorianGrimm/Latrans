@@ -19,10 +19,12 @@ namespace Brimborium.Latrans.Activity {
 
 
     public interface IActivityHandler {
+        /*
         Task SendAsync(
             IActivityContext activityContext,
             CancellationToken cancellationToken
             );
+         */
     }
 
     public interface IActivityHandler<TRequest> : IActivityHandler {

@@ -9,19 +9,16 @@ namespace Brimborium.Latrans.Activity {
         public ActivityEvent() {
         }
         public ActivityEvent(
-            Guid operationId,
-            Guid executionId,
+            ActivityId activityId,
             int sequenceNo,
             DateTime occurrence
         ) {
-            this.OperationId = operationId;
-            this.ExecutionId = executionId;
+            this.ActivityId = activityId;
             this.SequenceNo = sequenceNo;
             this.Occurrence = occurrence;
         }
 
-        public Guid OperationId { get; set; }
-        public Guid ExecutionId { get; set; }
+        public ActivityId ActivityId { get; set; }
         public int SequenceNo { get; set; }
         public DateTime Occurrence { get; set; }
     }
@@ -31,14 +28,12 @@ namespace Brimborium.Latrans.Activity {
         }
 
         public ActivityEventStateChange(
-                Guid operationId,
-                Guid executionId,
+                ActivityId activityId,
                 int sequenceNo,
                 DateTime occurrence,
                 ActivityStatus status
             ) : base(
-                operationId,
-                executionId,
+                activityId,
                 sequenceNo,
                 occurrence
             ) {
@@ -51,15 +46,13 @@ namespace Brimborium.Latrans.Activity {
         public ActivityEventProgress() {
         }
         public ActivityEventProgress(
-                Guid operationId,
-                Guid executionId,
+                ActivityId activityId,
                 int sequenceNo,
                 DateTime occurrence,
                 string category,
                 int stepNo
             ) : base(
-                operationId,
-                executionId,
+                activityId,
                 sequenceNo,
                 occurrence
             ) {

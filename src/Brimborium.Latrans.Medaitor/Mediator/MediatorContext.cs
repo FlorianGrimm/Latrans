@@ -1,9 +1,11 @@
 ﻿using Brimborium.Latrans.Activity;
+using Brimborium.Latrans.Collections;
 using Brimborium.Latrans.Utility;
 
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Mediator {
@@ -15,11 +17,12 @@ namespace Brimborium.Latrans.Mediator {
         private TRequest _Request;
         private IActivityResponse? _ActivityResponse;
         private int _IsDisposed;
-        private ActivityCompletion<IActivityResponse> _ActivityCompletion;
-        private Guid _OperationId;
-        private Guid _ExecutionId;
-        private readonly AtomicReference<ImmutableList<IActivityEvent>> _ActivityEvents;
-
+        private readonly ActivityCompletion<IActivityResponse> _ActivityCompletion;
+        private readonly AtomicReference<ImList<IActivityEvent>> _ActivityEvents;
+        private readonly LocalDisposables _LocalDisposables;
+        private ActivityId _ActivityId;
+        //private Guid _OperationId;
+        //private Guid _ExecutionId;
 #if false
         public MediatorContext() {
             this._ActivityCompletion = new ActivityCompletion<IActivityResponse>();
@@ -31,57 +34,65 @@ namespace Brimborium.Latrans.Mediator {
 
         public MediatorContext(CreateActivityContextArguments arguments, TRequest request) {
             this._ActivityCompletion = new ActivityCompletion<IActivityResponse>();
-            this._ActivityEvents = new AtomicReference<ImmutableList<IActivityEvent>>(
-                    ImmutableList<IActivityEvent>.Empty
-                );
+            this._ActivityEvents = new AtomicReference<ImList<IActivityEvent>>(ImList<IActivityEvent>.Empty);
+            this._Request = request;
+            //this.OperationId = Guid.NewGuid();
+            //this.ExecutionId = Guid.NewGuid();
+            this._LocalDisposables = LocalDisposables.Create(this);
+            //
             this._MedaitorService = arguments.MedaitorService;
             this._MediatorScopeService = arguments.MediatorScopeService;
-            this._Request = request;
-            this.OperationId = Guid.NewGuid();
-            this.ExecutionId = Guid.NewGuid();
         }
 
         public Type GetRequestType() => typeof(TRequest);
 
         public ActivityStatus Status { get; set; }
 
-        public Guid OperationId {
+        public ActivityId ActivityId { 
             get {
-                if (this._OperationId == Guid.Empty) {
-                    lock (this) {
-                        if (this._OperationId == Guid.Empty) {
-                            this._OperationId = Guid.NewGuid();
-                        }
-                    }
-                }
-                return this._OperationId;
+                return this._ActivityId;
             }
             set {
-                if (this.Status != ActivityStatus.Initialize && this._OperationId != Guid.Empty) {
-                    throw new NotSupportedException($"{nameof(OperationId)} is already set.");
-                }
-                this._OperationId = value;
+                this._ActivityId = value;
             }
         }
+        //public Guid OperationId {
+        //    get {
+        //        if (this._OperationId == Guid.Empty) {
+        //            lock (this) {
+        //                if (this._OperationId == Guid.Empty) {
+        //                    this._OperationId = Guid.NewGuid();
+        //                }
+        //            }
+        //        }
+        //        return this._OperationId;
+        //    }
+        //    set {
+        //        if (this.Status != ActivityStatus.Initialize && this._OperationId != Guid.Empty) {
+        //            throw new NotSupportedException($"{nameof(OperationId)} is already set.");
+        //        }
+        //        this._OperationId = value;
+        //    }
+        //}
 
-        public Guid ExecutionId {
-            get {
-                if (this._ExecutionId == Guid.Empty) {
-                    lock (this) {
-                        if (this._ExecutionId == Guid.Empty) {
-                            this._ExecutionId = Guid.NewGuid();
-                        }
-                    }
-                }
-                return this._ExecutionId;
-            }
-            set {
-                if (this.Status != ActivityStatus.Initialize && this._ExecutionId != Guid.Empty) {
-                    throw new NotSupportedException($"{nameof(ExecutionId)} is already set.");
-                }
-                this._ExecutionId = value;
-            }
-        }
+        //public Guid ExecutionId {
+        //    get {
+        //        if (this._ExecutionId == Guid.Empty) {
+        //            lock (this) {
+        //                if (this._ExecutionId == Guid.Empty) {
+        //                    this._ExecutionId = Guid.NewGuid();
+        //                }
+        //            }
+        //        }
+        //        return this._ExecutionId;
+        //    }
+        //    set {
+        //        if (this.Status != ActivityStatus.Initialize && this._ExecutionId != Guid.Empty) {
+        //            throw new NotSupportedException($"{nameof(ExecutionId)} is already set.");
+        //        }
+        //        this._ExecutionId = value;
+        //    }
+        //}
 
         public TRequest Request {
             get { return this._Request; }
@@ -93,7 +104,7 @@ namespace Brimborium.Latrans.Mediator {
                 return this._ActivityEvents.Value.ToArray();
             }
             set {
-                this._ActivityEvents.Mutate((ignore) => ImmutableList<IActivityEvent>.Empty.AddRange(value));
+                this._ActivityEvents.SetValue(new ImList<IActivityEvent>(value));
             }
         }
 
@@ -124,6 +135,8 @@ namespace Brimborium.Latrans.Mediator {
                 this._MediatorScopeService = (MediatorScopeService)value;
             }
         }
+
+        public bool IsDisposed => throw new NotImplementedException();
 
         public Task AddActivityEventAsync(IActivityEvent activityEvent) {
             if (activityEvent is null) { return Task.CompletedTask; }
@@ -168,6 +181,17 @@ namespace Brimborium.Latrans.Mediator {
             return this._ActivityCompletion.Task;
         }
 
+        public async Task<IMediatorClientConnected<TRequestInner>> ConnectAsync<TRequestInner>(
+                ActivityId activityId,
+                TRequestInner request,
+                ActivityExecutionConfiguration activityExecutionConfiguration,
+                CancellationToken cancellationToken
+            ) {
+            var result = await this._MediatorScopeService.ConnectAsync(activityId, request, activityExecutionConfiguration, cancellationToken);
+            this._LocalDisposables.Add(result);
+            return result;
+        }
+
         ~MediatorContext() {
             this.Dispose(disposing: false);
         }
@@ -188,7 +212,8 @@ namespace Brimborium.Latrans.Mediator {
                         _ActivityCompletion.TrySetResult(new FailureActivityResponse(new Exception("Disposed")));
                     }
                 }
-                _ActivityCompletion.Dispose();
+                this._ActivityCompletion.Dispose();
+                this._LocalDisposables.Dispose();
             }
         }
     }

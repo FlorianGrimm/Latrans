@@ -22,9 +22,9 @@ namespace Brimborium.Latrans.Medaitor.Controllers {
         }
 
         [NonAction]
-        public ActivityWaitForSpecificationDefaults GetActivityWaitForSpecificationDefaults() {
+        public ActivityExecutionConfigurationDefaults GetActivityWaitForSpecificationDefaults() {
             var requestServices = this.HttpContext?.RequestServices;
-            return requestServices?.GetService<ActivityWaitForSpecificationDefaults>();
+            return requestServices?.GetService<ActivityExecutionConfigurationDefaults>();
         }
     }
 }

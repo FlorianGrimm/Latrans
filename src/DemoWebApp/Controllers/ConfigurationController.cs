@@ -55,6 +55,7 @@ namespace DemoWebApp.Controllers {
             return await RequestResponseHelper<GetConfigurationRequest, GetConfigurationResponse>.
                 ExecuteToActionResultAsync<IEnumerable<string>>(
                     this.GetMedaitorClient(),
+                    ActivityId.NewId(),
                     request,
                     (r) => r.Result,
                     null, //ActivityWaitForSpecification.,
@@ -88,6 +89,7 @@ namespace DemoWebApp.Controllers {
             return await RequestResponseHelper<GetConfigurationRequest, GetConfigurationResponse>.
                 ExecuteToActionResultAsync<string>(
                     this.GetMedaitorClient(),
+                    ActivityId.NewId(),
                     request,
                     (r) => r.Result?.FirstOrDefault(),
                     null,

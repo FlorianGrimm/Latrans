@@ -3,6 +3,7 @@ using Brimborium.Latrans.Mediator;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,7 +37,7 @@ namespace Brimborium.Latrans.Mediator {
 
         public static bool TryGetResult<T>(
                 this IActivityResponse response,
-                out T result
+                [MaybeNullWhen(false)] out T result
             ) {
             if (response is OkResultActivityResponse<T> okResult) {
                 result = okResult.Result;
@@ -49,7 +50,7 @@ namespace Brimborium.Latrans.Mediator {
 
         public static T GetResultOrDefault<T>(
                 this IActivityResponse response,
-                T defaultValue = default
+                T defaultValue
             ) {
             if (response is OkResultActivityResponse<T> okResult) {
                 return okResult.Result;

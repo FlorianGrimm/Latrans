@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Brimborium.Latrans.Activity;
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,7 +10,9 @@ namespace Brimborium.Latrans.Mediator {
         bool IsDisposed { get; }
 
         Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
+            ActivityId activityId,
             TRequest request,
+            ActivityExecutionConfiguration activityExecutionConfiguration,
             CancellationToken cancellationToken
             );
 #if false
@@ -28,9 +32,4 @@ namespace Brimborium.Latrans.Mediator {
             );
 #endif
     }
-
-    //public interface IRequestRelatedType {
-    //    public Type DispatcherType { get; set; }
-    //    public Type[] HandlerTypes { get; set; }
-    //}
 }

@@ -37,7 +37,7 @@ namespace DemoWebApp {
         }
 
         public void ConfigureMediatorServices(IMediatorBuilder mediatorBuilder) {
-            mediatorBuilder.Services.AddOptions<ActivityWaitForSpecificationOptions>().Configure((cfg) => {
+            mediatorBuilder.Services.AddOptions<ActivityExecutionConfigurationOptions>().Configure((cfg) => {
                 cfg.RedirectUrlBase = "~/";
             });
         }

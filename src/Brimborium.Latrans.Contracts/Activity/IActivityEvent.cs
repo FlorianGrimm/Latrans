@@ -2,9 +2,7 @@
 
 namespace Brimborium.Latrans.Activity {
     public interface IActivityEvent {
-        Guid OperationId { get; set; }
-
-        Guid ExecutionId { get; set; }
+        ActivityId ActivityId { get; set; }
 
         int SequenceNo { get; set; }
 

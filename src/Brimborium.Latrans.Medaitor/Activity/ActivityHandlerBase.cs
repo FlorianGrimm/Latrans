@@ -7,12 +7,14 @@ namespace Brimborium.Latrans.Activity {
         protected ActivityHandlerBase() {
         }
 
+        /*
         Task IActivityHandler.SendAsync(
             IActivityContext activityContext,
             CancellationToken cancellationToken) {
             var activityContext2 = (IActivityContext<TRequest, TResponse>)activityContext;
             return this.ExecuteAsync(activityContext2, cancellationToken);
         }
+        */
 
         public virtual Task ExecuteAsync(
             IActivityContext<TRequest, TResponse> activityContext,

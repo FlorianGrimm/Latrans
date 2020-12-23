@@ -10,12 +10,11 @@ namespace Brimborium.Latrans.Mediator {
 
         Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
             IMediatorClient medaitorClient,
+            ActivityId activityId,
             TRequest request,
-            CancellationToken cancellationToken);
-    }
-
-    public interface IMediatorServiceInternalUse { 
-        DateTime GetUtcNow();
+            ActivityExecutionConfiguration activityExecutionConfiguration,
+            CancellationToken cancellationToken
+            );
     }
 
     public interface IMediatorScopeService : IDisposable {
@@ -23,7 +22,17 @@ namespace Brimborium.Latrans.Mediator {
 
         IServiceProvider ServiceProvider { get; }
 
-        void AddClientConnected<TRequest>(
+        Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
+            ActivityId activityId,
+            TRequest request,
+            ActivityExecutionConfiguration activityExecutionConfiguration,
+            CancellationToken cancellationToken);
+
+        bool AddClientConnected<TRequest>(
+            IMediatorClientConnected<TRequest> mediatorClientConnected
+            );
+
+        bool RemoveClientConnected<TRequest>(
             IMediatorClientConnected<TRequest> mediatorClientConnected
             );
     }
