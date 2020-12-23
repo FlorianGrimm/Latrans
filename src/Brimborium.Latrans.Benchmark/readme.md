@@ -2,8 +2,16 @@
 
 
 ```
-dotnet run -c Release --project src\Brimborium.Latrans.Benchmark --runtimes netcoreapp31 --memory --filter *
+dotnet run -c Release --project src\Brimborium.Latrans.Benchmark --runtimes netcoreapp31 --memory --filter *.SingleThreaded.*
+
+dotnet run -c Release --project src\Brimborium.Latrans.Benchmark --runtimes netcoreapp31 --memory --filter *.MultiThreaded.*
+
+dotnet run -c Release --project src\Brimborium.Latrans.Benchmark --runtimes netcoreapp31 --memory --filter * --warmupCount 1 --iterationCount 1 --invocationCount 1
+
+dotnet run -c Release --project src\Brimborium.Latrans.Benchmark --runtimes netcoreapp31 --memory --filter *.MultiThreaded.* --warmupCount 1 --iterationCount 1 --invocationCount 16
+
 ```
+
 
 |                 Method |        Mean |      Error |     StdDev | Ratio | RatioSD |    Gen 0 |  Gen 1 | Gen 2 |  Allocated |
 |----------------------- |------------:|-----------:|-----------:|------:|--------:|---------:|-------:|------:|-----------:|
