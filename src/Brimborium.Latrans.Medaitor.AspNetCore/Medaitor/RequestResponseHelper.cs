@@ -37,7 +37,7 @@ namespace Brimborium.Latrans.Mediator {
             ActivityExecutionConfiguration activityExecutionConfiguration,
             System.Threading.CancellationToken requestAborted) {
             try {
-                using var connected = await client.ConnectAsync(
+                using var connected = await client.ConnectAndSendAsync(
                     activityId,
                     request,
                     activityExecutionConfiguration,

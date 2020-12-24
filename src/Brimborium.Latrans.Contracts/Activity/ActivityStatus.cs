@@ -1,5 +1,6 @@
 ﻿namespace Brimborium.Latrans.Activity {
     public enum ActivityStatus {
+        Unknown,
         Initialize,
         Triggered,
         Running,

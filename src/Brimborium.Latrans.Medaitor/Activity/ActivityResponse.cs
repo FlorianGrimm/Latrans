@@ -3,8 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Brimborium.Latrans.Activity {
-    public class OkResultActivityResponse<T> : IActivityResponse {
+    public class OkResultActivityResponse<T>
+        : IActivityResponse
+        , IOkResultActivityResponse
+        //, IActivityEventChangeStatus
+        {
+        
         public T Result { get; set; }
+
 
         public OkResultActivityResponse(T result) {
             this.Result = result;
@@ -18,7 +24,7 @@ namespace Brimborium.Latrans.Activity {
                 ActivityStatus.Completed);
         }
     }
-    
+
     public class CanceledActivityResponse : IActivityResponse {
         public CanceledActivityResponse() {
         }
@@ -35,7 +41,7 @@ namespace Brimborium.Latrans.Activity {
             this.RedirectUrl = redirectUrl;
         }
 
-        public string RedirectUrl { get; set; }
+        public string? RedirectUrl { get; set; }
 
         public IActivityEvent GetAsActivityEvent(IActivityContext activityContext) {
             throw new NotImplementedException();

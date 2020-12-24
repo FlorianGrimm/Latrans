@@ -9,12 +9,19 @@ namespace Brimborium.Latrans.Mediator {
         IMediatorServiceStorage Storage { get; }
 
         Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
-            IMediatorClient medaitorClient,
-            ActivityId activityId,
-            TRequest request,
-            ActivityExecutionConfiguration activityExecutionConfiguration,
-            CancellationToken cancellationToken
+                IMediatorClient medaitorClient,
+                ActivityId activityId,
+                TRequest request,
+                ActivityExecutionConfiguration activityExecutionConfiguration,
+                CancellationToken cancellationToken
             );
+
+        Task<MediatorActivityStatus[]> GetStatusAsync();
+    }
+    public struct GetStatusFilter { 
+        public DateTime RangeStart { get; set; }
+        public DateTime RangeFinish { get; set; }
+        public ActivityStatus[] ActivityStatus { get; set; }
     }
 
     public interface IMediatorScopeService : IDisposable {

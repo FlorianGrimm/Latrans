@@ -70,31 +70,34 @@ namespace Brimborium.Latrans.Mediator {
             GC.SuppressFinalize(this);
         }
 
-        public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
+        public Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
             IMediatorClient medaitorClient,
             ActivityId activityId,
             TRequest request,
             ActivityExecutionConfiguration activityExecutionConfiguration,
             CancellationToken cancellationToken) {
-            if (request is null) { throw new ArgumentNullException(nameof(request)); }
-            //
-            if (this.RequestRelatedTypes.Items.TryGetValue(typeof(TRequest), out var rrt)) {
+            try {
+                if (request is null) { throw new ArgumentNullException(nameof(request)); }
+                //
+                if (this.RequestRelatedTypes.Items.TryGetValue(typeof(TRequest), out var rrt)) {
 
-                var mediatorClientConnected
-                    = (IMediatorClientConnectedInternal<TRequest>)rrt.FactoryClientConnected(
-                        this._ServicesMediator,
-                        new object[] {
+                    var mediatorClientConnected
+                        = (IMediatorClientConnected<TRequest>)rrt.FactoryClientConnected(
+                            this._ServicesMediator,
+                            new object[] {
                             new CreateClientConnectedArguments(
-                                this, 
+                                this,
                                 medaitorClient,
                                 activityId,
                                 rrt),
                             request });
-                mediatorClientConnected.Initialize();
-                var result = await mediatorClientConnected.SendAsync(cancellationToken);
-                return result;
-            } else {
-                throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
+                    mediatorClientConnected.Initialize();
+                    return Task<IMediatorClientConnected<TRequest>>.FromResult(mediatorClientConnected);
+                } else {
+                    throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
+                }
+            } catch (System.Exception error){
+                return Task.FromException<IMediatorClientConnected<TRequest>>(error);
             }
         }
 
@@ -195,6 +198,9 @@ namespace Brimborium.Latrans.Mediator {
             //throw new NotImplementedException();
         }
 
+        public Task<MediatorActivityStatus[]> GetStatusAsync() {
+            throw new NotImplementedException();
+        }
     }
 #if false
     public class MediatorScopeService

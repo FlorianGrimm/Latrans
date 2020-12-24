@@ -57,12 +57,12 @@ namespace Brimborium.Latrans.Mediator {
             ) {
             bool result = true;
             lock (this._MediatorClientConnecteds) {
-                foreach(var mcc in this._MediatorClientConnecteds) {
+                foreach (var mcc in this._MediatorClientConnecteds) {
                     if (ReferenceEquals(mcc, mediatorClientConnected)) {
                         result = false;
                     }
                 }
-                if (result) { 
+                if (result) {
                     this._MediatorClientConnecteds.Add(mediatorClientConnected);
                 }
             }
@@ -82,7 +82,7 @@ namespace Brimborium.Latrans.Mediator {
            IActivityContext<TRequest, TResponse> activityContext) {
             if (requestRelatedType is null) {
                 if (!this._MediatorService.TryRequestRelatedType(typeof(TRequest), out requestRelatedType)
-                    || (requestRelatedType is null)) { 
+                    || (requestRelatedType is null)) {
                     throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
                 }
             }
@@ -115,29 +115,32 @@ namespace Brimborium.Latrans.Mediator {
         }
 
 
-        public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
+        public Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
             ActivityId activityId,
-            TRequest request, 
+            TRequest request,
             ActivityExecutionConfiguration activityExecutionConfiguration,
             CancellationToken cancellationToken) {
-            if (request is null) { throw new ArgumentNullException(nameof(request)); }
-            //
-            if (this._MediatorService.TryRequestRelatedType(typeof(TRequest), out var rrt)) {
-                var mediatorClientConnected
-                    = (IMediatorClientConnectedInternal<TRequest>)rrt.FactoryClientConnected(
-                        this._ServiceProvider,
-                        new object[] {
+            try {
+                if (request is null) { throw new ArgumentNullException(nameof(request)); }
+                //
+                if (this._MediatorService.TryRequestRelatedType(typeof(TRequest), out var rrt)) {
+                    var mediatorClientConnected
+                        = (IMediatorClientConnected<TRequest>)rrt.FactoryClientConnected(
+                            this._ServiceProvider,
+                            new object[] {
                             new CreateClientConnectedArguments(
                                 this._MediatorService,
                                 this,
                                 activityId,
                                 rrt),
                             request });
-                mediatorClientConnected.Initialize();
-                var result = await mediatorClientConnected.SendAsync(cancellationToken);
-                return result;
-            } else {
-                throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
+                    mediatorClientConnected.Initialize();
+                    return Task.FromResult<IMediatorClientConnected<TRequest>>(mediatorClientConnected);
+                } else {
+                    throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
+                }
+            } catch (System.Exception error) {
+                return Task.FromException<IMediatorClientConnected<TRequest>>(error);
             }
         }
 

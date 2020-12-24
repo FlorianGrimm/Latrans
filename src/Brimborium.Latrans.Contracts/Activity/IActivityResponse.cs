@@ -5,6 +5,9 @@
 
     // public interface IFinalActivityResponse : IActivityResponse {    }
 
+    public interface IOkResultActivityResponse : IActivityResponse { 
+    }
+
     public interface IFailureActivityResponse : IActivityResponse {
         System.Exception? GetError();
     }

@@ -52,11 +52,12 @@ namespace Brimborium.Latrans.Mediator {
                         var medaitorClient = scopedProviderWebApp.GetRequiredService<IMediatorClientFactory>().GetMedaitorClient();
 
                         var request = new TestRequest1() { A = 6, B = 7 };
-                        connectedClient = await medaitorClient.ConnectAsync(
+                        connectedClient = await medaitorClient.ConnectAndSendAsync(
                             ActivityId.NewId(),
-                            request, 
-                            null, 
+                            request,
+                            null,
                             CancellationToken.None);
+                        Assert.False(connectedClient.GetActivityContext().IsDisposed);
                         Assert.NotNull(connectedClient);
                         testConnectedClient = (MediatorClientConnected<TestRequest1, TestResponse1>)connectedClient;
                         Assert.False(testConnectedClient.IsDisposed());
@@ -84,19 +85,112 @@ namespace Brimborium.Latrans.Mediator {
 
                         var activityExecutionConfiguration = scopedProviderWebApp.GetRequiredService<ActivityExecutionConfigurationDefaults>().ForQueryCancelable;
                         var request = new TestRequest1() { A = 6, B = 7 };
-                        var connectedClient = await medaitorClient.ConnectAsync(
+                        var connectedClient = await medaitorClient.ConnectAndSendAsync(
                             activityId,
                             request,
-                            activityExecutionConfiguration, 
+                            activityExecutionConfiguration,
                             CancellationToken.None);
                         var activityResponse = await connectedClient.WaitForAsync(activityExecutionConfiguration, CancellationToken.None);
+                        var status = await medaitorClient.GetStatusAsync();
+                        Assert.Equal(ActivityStatus.Completed, status.Status);
                         Assert.NotNull(activityResponse);
                         Assert.NotNull(activityResponse as OkResultActivityResponse<TestResponse1>);
-                        Assert.Equal(6*7+1,  ((OkResultActivityResponse<TestResponse1>)activityResponse).Result.R);
+                        Assert.Equal(6 * 7 + 1, ((OkResultActivityResponse<TestResponse1>)activityResponse).Result.R);
                     }
                 }
             }
         }
+
+
+        [Fact]
+        public async Task Medaitor_5Cancel() {
+            var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            servicesWebApp.AddLatransMedaitor()
+                .AddActivityHandler<TestActivityHandler5>()
+                .Build();
+
+            ActivityId activityId = ActivityId.NewId();
+            using (var serviceProviderMediator = servicesMediator.BuildServiceProvider()) {
+                using (var serviceProviderWebApp = servicesWebApp.BuildServiceProvider()) {
+                    using (var scopeWebApp1 = serviceProviderWebApp.CreateScope()) {
+                        var scopedProviderWebApp1 = scopeWebApp1.ServiceProvider;
+                        var medaitorClient1 = scopedProviderWebApp1.GetRequiredService<IMediatorClientFactory>().GetMedaitorClient();
+
+                        var activityExecutionConfiguration1 = scopedProviderWebApp1.GetRequiredService<ActivityExecutionConfigurationDefaults>().ForQueryCancelable;
+                        var request5 = new TestRequest5() { A = 6, B = 7 };
+                        var cts = new CancellationTokenSource();
+                        var taskConnectedClient = medaitorClient1.ConnectAndSendAsync(
+                            activityId,
+                            request5,
+                            activityExecutionConfiguration1,
+                            cts.Token);
+                        //
+                        cts.Cancel();
+                        IMediatorClientConnected<TestRequest5> connectedClient;
+                        try {
+                            connectedClient = await taskConnectedClient;
+                        } catch {
+                            connectedClient = null;
+                        }
+                        //
+                        if (connectedClient is null) {
+                            //
+                        } else {
+                            var activityResponse = await connectedClient.WaitForAsync(activityExecutionConfiguration1, CancellationToken.None);
+                            Assert.NotNull(activityResponse);
+                            Assert.NotNull(activityResponse as OkResultActivityResponse<TestResponse5>);
+                            Assert.Equal(6 * 7 + 1, ((OkResultActivityResponse<TestResponse5>)activityResponse).Result.R);
+                        }
+                    }
+                }
+            }
+        }
+
+
+#if false
+        [Fact]
+        public async Task Medaitor_9Monitor() {
+            var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            servicesWebApp.AddLatransMedaitor()
+                .AddActivityHandler<TestActivityHandler5>()
+                .Build();
+
+            ActivityId activityId = ActivityId.NewId();
+            using (var serviceProviderMediator = servicesMediator.BuildServiceProvider()) {
+                using (var serviceProviderWebApp = servicesWebApp.BuildServiceProvider()) {
+                    using (var scopeWebApp2 = serviceProviderWebApp.CreateScope()) {
+                        var scopedProviderWebApp2 = scopeWebApp2.ServiceProvider;
+                        var medaitorClient2 = scopedProviderWebApp2.GetRequiredService<IMediatorClientFactory>().GetMedaitorClient();
+
+
+                        using (var scopeWebApp1 = serviceProviderWebApp.CreateScope()) {
+                            var scopedProviderWebApp1 = scopeWebApp1.ServiceProvider;
+                            var medaitorClient1 = scopedProviderWebApp1.GetRequiredService<IMediatorClientFactory>().GetMedaitorClient();
+
+                            var activityExecutionConfiguration1 = scopedProviderWebApp1.GetRequiredService<ActivityExecutionConfigurationDefaults>().ForQueryCancelable;
+                            var request5 = new TestRequest5() { A = 6, B = 7 };
+                            var connectedClient = await medaitorClient1.ConnectAsync(
+                                activityId,
+                                request5,
+                                activityExecutionConfiguration1,
+                                CancellationToken.None);
+                            //
+
+                            //medaitorClient2.
+                            //
+                            var activityResponse = await connectedClient.WaitForAsync(activityExecutionConfiguration1, CancellationToken.None);
+                            Assert.NotNull(activityResponse);
+                            Assert.NotNull(activityResponse as OkResultActivityResponse<TestResponse5>);
+                            Assert.Equal(6 * 7 + 1, ((OkResultActivityResponse<TestResponse5>)activityResponse).Result.R);
+                        }
+                    }
+                }
+            }
+        }
+#endif
+
         public class TestRequest1 : IRequest<TestResponse1> {
             public int A { get; set; }
             public int B { get; set; }
@@ -112,18 +206,18 @@ namespace Brimborium.Latrans.Mediator {
                 var request = activityContext.Request;
                 var request2 = new TestRequest2() { A = request.A, B = request.B };
                 ActivityId activityId = ActivityId.NewId();
-                using var connectedClient = await activityContext.ConnectAsync(
+                using var connectedClient = await activityContext.ConnectAndSendAsync(
                             activityId,
                             request2,
                             null, // activityExecutionConfiguration,
                             cancellationToken);
                 var response2 = await connectedClient.WaitForAsync(null, cancellationToken);
-                if (response2.TryGetResult<TestResponse2>(out var result2)) {                     
+                if (response2.TryGetResult<TestResponse2>(out var result2)) {
                     var response = new TestResponse1() { R = result2.R + 1 };
-                    await activityContext.SetResponse(response);
+                    await activityContext.SetResponseAsync(response);
                     return;
                 } else {
-                    await activityContext.SetActivityResponse(response2);
+                    await activityContext.SetActivityResponseAsync(response2);
                 }
             }
         }
@@ -142,9 +236,74 @@ namespace Brimborium.Latrans.Mediator {
                 var request = activityContext.Request;
                 //activityContext.
                 var response = new TestResponse2() { R = request.A * request.B };
+                activityContext.SetResponseAsync(response);
+                return Task.CompletedTask;
+            }
+        }
+
+        public class TestRequest5 : IRequest<TestResponse5> {
+            public int A { get; set; }
+            public int B { get; set; }
+        }
+        public class TestResponse5 : IResponseBase {
+            public int R { get; set; }
+        }
+
+        public class TestActivityHandler5 : ActivityHandlerBase<TestRequest5, TestResponse5> {
+            public override async Task ExecuteAsync(
+                IActivityContext<TestRequest5, TestResponse5> activityContext,
+                CancellationToken cancellationToken) {
+                var request = activityContext.Request;
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                var response = new TestResponse5() { R = request.A * request.B };
+                await activityContext.SetResponseAsync(response);
+                return;
+            }
+        }
+
+        /*
+        public class TestRequest4 : IRequest<TestResponse4> {
+            public int A { get; set; }
+            public int B { get; set; }
+        }
+        public class TestResponse4 : IResponseBase {
+            public int R { get; set; }
+        }
+
+        public class TestActivityHandler4 : ActivityHandlerBase<TestRequest4, TestResponse4> {
+            public override Task ExecuteAsync(
+                IActivityContext<TestRequest4, TestResponse4> activityContext,
+                CancellationToken cancellationToken) {
+                var request = activityContext.Request;
+                //activityContext.
+                var response = new TestResponse4() { R = request.A * request.B };
                 activityContext.SetResponse(response);
                 return Task.CompletedTask;
             }
         }
+
+        */
+
+#if false
+        public class TestRequestXXX : IRequest<TestResponseXXX> {
+            public int A { get; set; }
+            public int B { get; set; }
+        }
+        public class TestResponseXXX : IResponseBase {
+            public int R { get; set; }
+        }
+
+        public class TestActivityHandlerXXX : ActivityHandlerBase<TestRequestXXX, TestResponseXXX> {
+            public override Task ExecuteAsync(
+                IActivityContext<TestRequestXXX, TestResponseXXX> activityContext,
+                CancellationToken cancellationToken) {
+                var request = activityContext.Request;
+                //activityContext.
+                var response = new TestResponseXXX() { R = request.A * request.B };
+                activityContext.SetResponse(response);
+                return Task.CompletedTask;
+            }
+        }
+#endif
     }
 }

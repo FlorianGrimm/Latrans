@@ -2,6 +2,9 @@
 
 namespace Brimborium.Latrans.Activity {
     public struct ActivityId {
+        public static ActivityId Empty()
+            => new ActivityId(Guid.Empty, Guid.Empty);
+
         public static ActivityId NewId()
             => new ActivityId(Guid.NewGuid(), Guid.NewGuid());
 

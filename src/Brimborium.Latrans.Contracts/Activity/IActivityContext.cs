@@ -8,6 +8,7 @@ namespace Brimborium.Latrans.Activity {
 
     public interface IActivityContext 
         : IMediatorClient {
+
         ActivityStatus Status {get;set;}
 
         ActivityId ActivityId { get; set; }
@@ -19,9 +20,9 @@ namespace Brimborium.Latrans.Activity {
 
         Task AddActivityEventAsync(IActivityEvent activityEvent);
 
-        Task SetFailure(System.Exception error);
+        Task SetFailureAsync(System.Exception error);
 
-        Task SetActivityResponse(IActivityResponse activityResponse);
+        Task SetActivityResponseAsync(IActivityResponse activityResponse);
 
         Task<IActivityResponse> GetActivityResponseAsync();
 
@@ -35,6 +36,6 @@ namespace Brimborium.Latrans.Activity {
     public interface IActivityContext<TRequest, TResponse>
         : IActivityContext<TRequest>
         , IDisposable {
-        Task SetResponse(TResponse response);
+        Task SetResponseAsync(TResponse response);
     }
 }

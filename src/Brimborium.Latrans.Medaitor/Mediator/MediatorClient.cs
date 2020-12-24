@@ -7,11 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Mediator {
-    public class MediatorClient 
+    public class MediatorClient
         : IMediatorClient
         , IDisposable {
-        private int _IsDisposed;
         private readonly IMediatorService _MedaitorService;
+        private int _IsDisposed;
+        private IMediatorClientConnected? _MediatorClientConnected;
 
         // ScopedServiceProvider Web
         private readonly IServiceProvider? _ServiceProvider;
@@ -59,20 +60,36 @@ namespace Brimborium.Latrans.Mediator {
             GC.SuppressFinalize(this);
         }
 
-        public async Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
+        public async Task<IMediatorClientConnected<TRequest>> ConnectAndSendAsync<TRequest>(
             ActivityId activityId,
             TRequest request,
             ActivityExecutionConfiguration activityExecutionConfiguration,
             CancellationToken cancellationToken) {
             var result = await this._MedaitorService.ConnectAsync<TRequest>(
-                this, 
+                this,
                 activityId,
                 request,
                 activityExecutionConfiguration,
                 cancellationToken);
             this._LocalDisposables.Add(result);
-#warning TODO
+            this._MediatorClientConnected = result;
+            await result.SendAsync(cancellationToken);
             return result;
+        }
+
+        public Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(ActivityId activityId, CancellationToken cancellationToken) {
+            throw new NotImplementedException();
+        }
+
+        public async Task<MediatorActivityStatus> GetStatusAsync() {
+            var activityContext = this._MediatorClientConnected?.GetActivityContext();
+            if (activityContext is object) {
+                return await activityContext.GetStatusAsync();
+            } else {
+                return new MediatorActivityStatus() {
+                    Status = ActivityStatus.Unknown
+                };
+            }
         }
 
 #if false

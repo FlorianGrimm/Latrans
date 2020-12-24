@@ -32,16 +32,16 @@ namespace Brimborium.Latrans.Mediator {
         }
 #endif
 
+        [Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor()]
         public MediatorContext(CreateActivityContextArguments arguments, TRequest request) {
             this._ActivityCompletion = new ActivityCompletion<IActivityResponse>();
             this._ActivityEvents = new AtomicReference<ImList<IActivityEvent>>(ImList<IActivityEvent>.Empty);
             this._Request = request;
-            //this.OperationId = Guid.NewGuid();
-            //this.ExecutionId = Guid.NewGuid();
             this._LocalDisposables = LocalDisposables.Create(this);
             //
             this._MedaitorService = arguments.MedaitorService;
             this._MediatorScopeService = arguments.MediatorScopeService;
+            this.Status = ActivityStatus.Unknown;
         }
 
         public Type GetRequestType() => typeof(TRequest);
@@ -136,22 +136,26 @@ namespace Brimborium.Latrans.Mediator {
             }
         }
 
-        public bool IsDisposed => throw new NotImplementedException();
+        public bool IsDisposed => (this._IsDisposed != 0);
 
-        public Task AddActivityEventAsync(IActivityEvent activityEvent) {
-            if (activityEvent is null) { return Task.CompletedTask; }
-            this._ActivityEvents.Mutate1<IActivityEvent>(
-                activityEvent,
-                (newItem, activityEvents) => {
-                    newItem.SequenceNo = activityEvents.Count + 1;
-                    return activityEvents.Add(newItem);
-                });
-            var result = this._MediatorScopeService.Storage.AddActivityEventAsync(activityEvent);
-
-            return result;
+        public async Task AddActivityEventAsync(IActivityEvent activityEvent) {
+            if (activityEvent is null) {
+                return;
+            } else {
+                this._ActivityEvents.Mutate1<IActivityEvent>(
+                    activityEvent,
+                    (newItem, activityEvents) => {
+                        newItem.SequenceNo = activityEvents.Count + 1;
+                        return activityEvents.Add(newItem);
+                    });
+                await this._MediatorScopeService.Storage.AddActivityEventAsync(activityEvent);
+                if (activityEvent is IActivityEventChangeStatus activityEventChangeStatus) {
+                    this.Status = activityEventChangeStatus.Status;
+                }
+            }
         }
 
-        public async Task SetActivityResponse(IActivityResponse activityResponse) {
+        public async Task SetActivityResponseAsync(IActivityResponse activityResponse) {
             if (ReferenceEquals(this._ActivityResponse, activityResponse)) { return; }
 
             if (activityResponse is null) {
@@ -161,27 +165,26 @@ namespace Brimborium.Latrans.Mediator {
             var prev = System.Threading.Interlocked.CompareExchange(ref this._ActivityResponse, activityResponse, null);
             if (prev is null) {
                 var activityEvent = activityResponse.GetAsActivityEvent(this);
-                var taskAddActivityEvent = this.AddActivityEventAsync(activityEvent);
+                await this.AddActivityEventAsync(activityEvent);
                 this._ActivityCompletion.TrySetResult(activityResponse);
-                await taskAddActivityEvent;
             } else {
                 throw new ArgumentException("already set", nameof(activityResponse));
             }
         }
 
-        public Task SetFailure(Exception error) {
-            return this.SetActivityResponse(new FailureActivityResponse(error));
+        public Task SetFailureAsync(Exception error) {
+            return this.SetActivityResponseAsync(new FailureActivityResponse(error));
         }
 
-        public Task SetResponse(TResponse response) {
-            return this.SetActivityResponse(new OkResultActivityResponse<TResponse>(response));
+        public Task SetResponseAsync(TResponse response) {
+            return this.SetActivityResponseAsync(new OkResultActivityResponse<TResponse>(response));
         }
 
         public Task<IActivityResponse> GetActivityResponseAsync() {
             return this._ActivityCompletion.Task;
         }
 
-        public async Task<IMediatorClientConnected<TRequestInner>> ConnectAsync<TRequestInner>(
+        public async Task<IMediatorClientConnected<TRequestInner>> ConnectAndSendAsync<TRequestInner>(
                 ActivityId activityId,
                 TRequestInner request,
                 ActivityExecutionConfiguration activityExecutionConfiguration,
@@ -189,6 +192,7 @@ namespace Brimborium.Latrans.Mediator {
             ) {
             var result = await this._MediatorScopeService.ConnectAsync(activityId, request, activityExecutionConfiguration, cancellationToken);
             this._LocalDisposables.Add(result);
+            await result.SendAsync(cancellationToken);
             return result;
         }
 
@@ -215,6 +219,19 @@ namespace Brimborium.Latrans.Mediator {
                 this._ActivityCompletion.Dispose();
                 this._LocalDisposables.Dispose();
             }
+        }
+
+        public Task<IMediatorClientConnected<TRequest1>> ConnectAsync<TRequest1>(ActivityId activityId, CancellationToken cancellationToken) {
+            throw new NotImplementedException();
+        }
+
+        public Task<MediatorActivityStatus> GetStatusAsync() {
+            var result = new MediatorActivityStatus() { 
+                Status = this.Status,
+                ActivityId = this.ActivityId,
+                ActivityEvents = this._ActivityEvents.Value.ToArray()
+            };
+            return Task<MediatorActivityStatus>.FromResult(result);
         }
     }
 }

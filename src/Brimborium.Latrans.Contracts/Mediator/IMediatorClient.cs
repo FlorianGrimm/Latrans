@@ -9,27 +9,19 @@ namespace Brimborium.Latrans.Mediator {
     public interface IMediatorClient : IDisposable {
         bool IsDisposed { get; }
 
+        Task<IMediatorClientConnected<TRequest>> ConnectAndSendAsync<TRequest>(
+                ActivityId activityId,
+                TRequest request,
+                ActivityExecutionConfiguration activityExecutionConfiguration,
+                CancellationToken cancellationToken
+            );
+
         Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
-            ActivityId activityId,
-            TRequest request,
-            ActivityExecutionConfiguration activityExecutionConfiguration,
-            CancellationToken cancellationToken
-            );
-#if false
-        IActivityContext<TRequest> CreateContextByRequest<TRequest>(
-            TRequest request
+                ActivityId activityId,
+                CancellationToken cancellationToken
             );
 
-        Task SendAsync(
-            IActivityContext activityContext,
-            CancellationToken cancellationToken
-            );
+        Task<MediatorActivityStatus> GetStatusAsync();
 
-        Task WaitForAsync(
-            IActivityContext activityContext,
-            ActivityWaitForSpecification waitForSpecification,
-            CancellationToken cancellationToken
-            );
-#endif
     }
 }

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 namespace Brimborium.Latrans.Mediator {
     public class MediatorClientConnected<TRequest, TResponse>
         : IMediatorClientConnected<TRequest, TResponse>
-        , IMediatorClientConnectedInternal<TRequest>
         , IMediatorClientConnected<TRequest>
         , IMediatorClientConnected
         , IDisposable {
@@ -55,7 +54,10 @@ namespace Brimborium.Latrans.Mediator {
             this._ClientConnected = true;
         }
 
-        public async Task<IMediatorClientConnected<TRequest>> SendAsync(
+        public IActivityContext? GetActivityContext()
+            => this._ActivityContext;
+
+        public async Task SendAsync(
                 CancellationToken cancellationToken
             ) {
             //
@@ -71,30 +73,22 @@ namespace Brimborium.Latrans.Mediator {
             if (medaitorService is null) {
                 throw new InvalidOperationException("MedaitorService is null");
             }
-            //var activityContext = this._ActivityContext ??= medaitorService.CreateContext<TRequest, TResponse>(
-            //    this._RequestRelatedType,
-            //    this._Request);
-            ////
-            //var mediatorScopeService = (IMediatorScopeServiceInternalUse)activityContext.MediatorScopeService;
-            //mediatorScopeService.AddClientConnected<TRequest>(this);
-
+            
             var mediatorScopeService = (IMediatorScopeServiceInternalUse)activityContext.MediatorScopeService;
 
             var activityHandler = mediatorScopeService.CreateHandler<TRequest, TResponse > (
                   this._RequestRelatedType,
                   activityContext);
-            //var activityHandler = (IActivityHandler<TRequest, TResponse>)medaitorService.CreateHandler<TRequest, TResponse>(
-            //    this._RequestRelatedType,
-            //    activityContext);
             await activityContext.AddActivityEventAsync(new ActivityEventStateChange(
                 activityContext.ActivityId,
                 0,
                 System.DateTime.UtcNow,
                 ActivityStatus.Running
                 ));
+            
             await activityHandler.ExecuteAsync(activityContext, cancellationToken);
 
-            return this;
+            return;
         }
 
         public async Task<IActivityResponse> WaitForAsync(
@@ -105,6 +99,11 @@ namespace Brimborium.Latrans.Mediator {
             var activityContext = this._ActivityContext;
             if (activityContext is null) {
                 throw new InvalidOperationException("ActivityContext is null");
+            }
+            //
+            var taskResult = activityContext.GetActivityResponseAsync();
+            if (taskResult.IsCompletedSuccessfully) {
+                return await taskResult;
             }
             //
             if (waitForSpecification.RespectRequestAborted) {
@@ -121,7 +120,6 @@ namespace Brimborium.Latrans.Mediator {
                 var result = await activityContext.GetActivityResponseAsync();
                 return result;
             } else {
-                var taskResult = activityContext.GetActivityResponseAsync();
                 var cts = (waitForSpecification.RespectRequestAborted)
                     ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
                     : new CancellationTokenSource();
