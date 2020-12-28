@@ -1,10 +1,12 @@
 ﻿using Brimborium.Latrans.Activity;
+using Brimborium.Latrans.Collections;
 using Brimborium.Latrans.Utility;
 
 using Microsoft.Extensions.DependencyInjection;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,18 +21,28 @@ namespace Brimborium.Latrans.Mediator {
         private IServiceProvider _ServiceProvider;
         private int _IsDisposed;
         private readonly List<IMediatorClientConnected> _MediatorClientConnecteds;
+        private AtomicReference<ImList<Action<MediatorScopeService>>> _ActionDisposing;
 
         public MediatorScopeService(
-            MediatorService mediatorService) {
-            this._MediatorService = mediatorService;
+                MediatorService mediatorService
+            ) {
+            this._ActionDisposing = new AtomicReference<ImList<Action<MediatorScopeService>>>(ImList<Action<MediatorScopeService>>.Empty);
             this._Scope = mediatorService.ServicesMediator.CreateScope();
             this._ServiceProvider = this._Scope.ServiceProvider;
             this._MediatorClientConnecteds = new List<IMediatorClientConnected>();
+            this._MediatorService = mediatorService;
         }
 
         protected virtual void Dispose(bool disposing) {
             if (0 == System.Threading.Interlocked.Exchange(ref this._IsDisposed, 1)) {
                 using (var scope = this._Scope) {
+                    var arrayActionDisposing = this._ActionDisposing.SetValue(ImList<Action<MediatorScopeService>>.Empty).ToArray();
+                    foreach (var actionDisposing in arrayActionDisposing) {
+                        if (actionDisposing is null) {
+                        } else {
+                            actionDisposing(this);
+                        }
+                    }
                     if (disposing) {
                         this._ServiceProvider = DisposedServiceProvider.Instance;
                         this._Scope = DisposedServiceScope.Instance;
@@ -117,7 +129,7 @@ namespace Brimborium.Latrans.Mediator {
             }
         }
 
-
+        
         public Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
             ActivityId activityId,
             TRequest request,
@@ -147,6 +159,27 @@ namespace Brimborium.Latrans.Mediator {
             }
         }
 
+        internal void AddDisposing(Action<MediatorScopeService> removeMediatorScopeService) {
+            this._ActionDisposing.Mutate1(removeMediatorScopeService, (a, l) => l.Add(a));
+        }
+
+        internal bool TryGetMediatorClientConnected(ActivityId activityId, [MaybeNullWhen(false)] out IMediatorClientConnected result) {
+            lock (this._MediatorClientConnecteds) {
+                for (int idx = 0; idx < this._MediatorClientConnecteds.Count; idx++) {
+                    var item = this._MediatorClientConnecteds[idx];
+                    var activityContext = item.GetActivityContext();
+                    if (activityContext is object && activityContext.ActivityId.Equals(activityId)) {
+                        result = item;
+#warning todo
+                        return true;
+                    }
+                }
+            }
+            {
+                result = null;
+                return false;
+            }
+        }
 
 
         //public Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(IMediatorClient medaitorClient, TRequest request, CancellationToken cancellationToken) {

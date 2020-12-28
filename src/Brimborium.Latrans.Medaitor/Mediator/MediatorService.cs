@@ -11,7 +11,6 @@ using Brimborium.Latrans.Utility;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Brimborium.Latrans.Mediator {
-
     public class MediatorService
         : IMediatorService
         , IMediatorServiceInternalUse
@@ -98,14 +97,22 @@ namespace Brimborium.Latrans.Mediator {
                 } else {
                     throw new NotSupportedException($"Unknown RequestType: {typeof(TRequest).FullName}");
                 }
-            } catch (System.Exception error){
+            } catch (System.Exception error) {
                 return Task.FromException<IMediatorClientConnected<TRequest>>(error);
             }
         }
 
         public Task<IMediatorClientConnected?> ConnectAsync(ActivityId activityId, CancellationToken cancellationToken) {
 #warning ConnectAsync
-            throw new NotImplementedException();
+            lock (this._MediatorScopeServices) {
+                for (int idx = 0; idx < this._MediatorScopeServices.Count; idx++) {
+                    var item = this._MediatorScopeServices[idx];
+                    if (item.TryGetMediatorClientConnected(activityId, out var mediatorClientConnected)){
+                        return Task.FromResult<IMediatorClientConnected?>(mediatorClientConnected);
+                    }
+                }
+            }
+            return Task.FromResult<IMediatorClientConnected?>(null);
         }
 
         public IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(
@@ -140,9 +147,15 @@ namespace Brimborium.Latrans.Mediator {
             var mediatorScopeService = new MediatorScopeService(this);
             lock (this._MediatorScopeServices) {
                 this._MediatorScopeServices.Add(mediatorScopeService);
-                
+                mediatorScopeService.AddDisposing(this.RemoveMediatorScopeService);
             }
             return mediatorScopeService;
+        }
+
+        private void RemoveMediatorScopeService(MediatorScopeService mediatorScopeService) {
+            lock (this._MediatorScopeServices) {
+                this._MediatorScopeServices.Remove(mediatorScopeService);
+            }
         }
 
 #if false
@@ -183,7 +196,7 @@ namespace Brimborium.Latrans.Mediator {
         }
 #endif
 
-        public void HandleRequestForAccepted202Redirect<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
+            public void HandleRequestForAccepted202Redirect<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
             //activityContext.OperationId
             //activityContext.ExecutionId
             throw new NotImplementedException();
@@ -265,4 +278,12 @@ namespace Brimborium.Latrans.Mediator {
         }
     }
 #endif
+
+    public class MediatorServiceControl {
+        private readonly MediatorService _MediatorService;
+
+        public MediatorServiceControl(MediatorService mediatorService) {
+            this._MediatorService = mediatorService;
+        }
+    }
 }

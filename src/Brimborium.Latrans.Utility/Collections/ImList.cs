@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Brimborium.Latrans.Collections {
     public sealed class ImList<T>
@@ -10,75 +11,69 @@ namespace Brimborium.Latrans.Collections {
         private static ImList<T>? _Empty;
         public static ImList<T> Empty => (_Empty ??= new ImList<T>());
 
-        private static ImList<T>.Node[] getEmptyNodes() {
-            var e = Node.Empty;
-            ImList<T>.Node[] result = new Node[] { e, e, e, e, e, e, e, e };
-            return result;
-        }
-
-        private static ImList<T>.Node[] getEmptyNodes(T[] items) {
-            var e = Node.Empty;
-            ImList<T>.Node[] result = new Node[] { new Node(items), e, e, e, e, e, e, e };
-            return result;
-        }
-
-        private static ImList<T>.Node[] getEmptyNodes(T[] items , T item) {
-            var e = Node.Empty;
-            ImList<T>.Node[] result = new Node[] { new Node(items), new Node(item), e, e, e, e, e, e };
-            return result;
-        }
-
         private int _Count;
         private readonly Node[] _NodeItems;
-        private readonly int _CountUsed;
 
-        private ImList(Node[] nodeItems, int countUsed) {
-            if (nodeItems.Length < 8) {
-                var correctedNodeItems = getEmptyNodes();
-                Array.Copy(nodeItems, 0, correctedNodeItems, 0, nodeItems.Length);
-                this._NodeItems = correctedNodeItems;
-            } else { 
-                this._NodeItems = nodeItems;
-            }
-            this._CountUsed = countUsed;
+        private ImList(Node[] nodeItems) {
+            this._NodeItems = nodeItems;
+            this._Count = -1;
         }
 
         public ImList() {
-            this._NodeItems = getEmptyNodes();
-            this._CountUsed = 0;
+            this._NodeItems = Array.Empty<Node>();
+            this._Count = 0;
         }
 
         public ImList(IEnumerable<T>? source) {
-            var e = Node.Empty;
             if (source is null) {
-                this._NodeItems = new Node[8] { e, e, e, e, e, e, e, e };
-                this._CountUsed = 0;
+                this._NodeItems = Array.Empty<Node>();
+                this._Count = 0;
             } else if (source is ICollection<T> collection) {
                 var items = new T[collection.Count];
                 collection.CopyTo(items, 0);
-                this._NodeItems = new Node[8] { new Node(items), e, e, e, e, e, e, e };
-                this._CountUsed = 1;
+                this._NodeItems = new Node[1] { new Node(items) };
+                this._Count = this._NodeItems[0].Length;
                 //this._Nodes = new ImList2(items);
             } else if (source is T[] array) {
                 var items = new T[array.Length];
                 Array.Copy(array, 0, items, 0, array.Length);
-                this._NodeItems = new Node[8] { new Node(items), e, e, e, e, e, e, e };
-                this._CountUsed = 1;
+                this._NodeItems = new Node[1] { new Node(items) };
+                this._Count = this._NodeItems[0].Length;
             } else {
                 var items = source.ToArray();
-                this._NodeItems = new Node[8] { new Node(items), e, e, e, e, e, e, e };
-                this._CountUsed = 1;
+                this._NodeItems = new Node[1] { new Node(items) };
+                this._Count = this._NodeItems[0].Length;
             }
         }
 
-        public ImList(T[] items) {
-            this._NodeItems = getEmptyNodes(items);
-            this._CountUsed = 1;
+        public ImList(T[] array) {
+            var items = new T[array.Length];
+            Array.Copy(array, 0, items, 0, array.Length);
+            this._NodeItems = new Node[1] { new Node(items) };
+            this._Count = this._NodeItems[0].Length;
         }
 
         public ImList<T> Add(T item) {
+            var nodesLength = this._NodeItems.Length;
+            if (nodesLength == 0) {
+                return new ImList<T>(new Node[1] { new Node(item) });
+            } else if (nodesLength<256) {
+                var nodeLast = this._NodeItems[nodesLength - 1];
+                if (nodeLast.Length < 8) {
+                    return new ImList<T>(
+                        ArrayCopySetLast(
+                            this._NodeItems,
+                            nodeLast.Add(item)));
+                } else {
+                    return new ImList<T>(
+                        ArrayCopyAdd(
+                            this._NodeItems,
+                            new Node(item)));
+                }
+            }
+#if false
             {
-                var idxLow = (this._CountUsed == 0) ? 0 : (this._CountUsed - 1);
+                
                 var itemsLength = this._NodeItems.Length;
                 for (int idx = idxLow; idx < itemsLength; idx++) {
                     if (this._NodeItems[idx].CanAdd()) {
@@ -94,11 +89,44 @@ namespace Brimborium.Latrans.Collections {
                     }
                 }
             }
+#endif
             {
-                var count = this.GetCount(0);
-                var items0 = new T[count];
-                this.ToArray(0, items0);
-                return new ImList<T>(getEmptyNodes(items0, item), 2);
+                var count = this.Count;
+                var itemsOld = new T[count];
+                this.ToArray(0, itemsOld);
+                return new ImList<T>(new Node[2] { new Node(itemsOld), new Node(item) });
+            }
+        }
+
+        public T this[int index] {
+            get {
+                var (node, idxItem) = this.FindNodeIndex(index);
+                if (node is null) {
+                    throw new IndexOutOfRangeException($"0<={index}<{this.Count}");
+                } else {
+                    return node.Items[idxItem];
+                }
+            }
+        }
+
+        private (Node? node, int idxItem) FindNodeIndex(int index) {
+            if (index < 0) {
+                return (null, -1);
+            } else {
+                var sumCount = 0;
+                for (int idxNode = 0; idxNode < this._NodeItems.Length; idxNode++) {
+                    //
+                    var node = this._NodeItems[idxNode];
+                    var length = node.Items.Length;
+                    var idxItem = index - sumCount;
+                    //
+                    if (0 <= index && idxItem < length) {
+                        return (node, idxItem);
+                    } else {
+                        sumCount += length;
+                    }
+                }
+                return (null, 0);
             }
         }
 
@@ -109,16 +137,16 @@ namespace Brimborium.Latrans.Collections {
             return dst;
         }
 
-        internal void ToArray(int fromIdx,  T[] dst) {
+        internal void ToArray(int fromIdx, T[] dst) {
             int idxNext = 0;
-            for (int idx = fromIdx; idx < this._CountUsed; idx++) {
+            for (int idx = fromIdx; idx < this._NodeItems.Length; idx++) {
                 this._NodeItems[idx].ToArray(ref idxNext, dst);
             }
         }
 
         public bool IsEmpty() {
-            for (int idx = 0; idx < this._CountUsed; idx++) {
-                if (this._NodeItems[idx].CountUsed > 0) {
+            for (int idx = 0; idx < this._NodeItems.Length; idx++) {
+                if (this._NodeItems[idx].Length > 0) {
                     return false;
                 }
             }
@@ -128,12 +156,12 @@ namespace Brimborium.Latrans.Collections {
         public int Count => this.GetCount(0);
 
         internal int GetCount(int idxFrom) {
-            if ((this._Count > 0) && (idxFrom == 0)) {
+            if ((this._Count < 0) && (idxFrom == 0)) {
                 return this._Count;
-            } else { 
+            } else {
                 int result = 0;
-                for (int i = idxFrom; i < this._CountUsed; i++) {
-                    result += this._NodeItems[i].CountUsed;
+                for (int i = idxFrom; i < this._NodeItems.Length; i++) {
+                    result += this._NodeItems[i].Length;
                 }
 
                 if (idxFrom == 0) {
@@ -146,9 +174,9 @@ namespace Brimborium.Latrans.Collections {
         }
 
         public IEnumerator<T> GetEnumerator() {
-            for (int i1 = 0; i1 < this._CountUsed; i1++) {
+            for (int i1 = 0; i1 < this._NodeItems.Length; i1++) {
                 var items1 = this._NodeItems[i1];
-                for (int i2 = 0; i2 < items1.CountUsed; i2++) {
+                for (int i2 = 0; i2 < items1.Length; i2++) {
                     yield return items1.Items[i2];
                 }
             }
@@ -161,52 +189,65 @@ namespace Brimborium.Latrans.Collections {
             public static Node Empty => (_Empty ??= new Node());
 
             public readonly T[] Items;
-            public readonly int CountUsed;
+            public int Length => this.Items.Length;
 
             public Node() {
                 this.Items = Array.Empty<T>();
-                this.CountUsed = 0;
             }
 
             public Node(T item) {
-                var items = new T[8];
-                items[0] = item;
-                this.Items = items;
-                this.CountUsed = 1;
+                this.Items = new T[1] { item };
             }
 
             public Node(T[] items) {
                 this.Items = items;
-                this.CountUsed = items.Length;
             }
 
-            public Node(T[] items, int count) {
-                this.Items = items;
-                this.CountUsed = count;
+            public Node(T[] items, T item) {
+                this.Items = ArrayCopyAdd(items, item);
             }
 
             public Node Add(T item) {
-                var itemsLength = this.Items.Length;
-                if (this.CountUsed < this.Items.Length) {
-                    var items = new T[itemsLength];
-                    Array.Copy(this.Items, 0, items, 0, itemsLength);
-                    items[this.CountUsed] = item;
-                    return new Node(items, this.CountUsed + 1);
-                } else {
-                    var items = new T[itemsLength + 8];
-                    Array.Copy(this.Items, 0, items, 0, itemsLength);
-                    items[this.CountUsed] = item;
-                    return new Node(items, this.CountUsed + 1);
-                }
+                return new Node(ArrayCopyAdd(this.Items, item));
             }
 
             public bool CanAdd() => (
-                (this.CountUsed < this.Items.Length)
+                (this.Length < this.Items.Length)
                 || (this.Items.Length == 0));
 
             internal void ToArray(ref int idxNext, T[] dst) {
-                Array.Copy(this.Items, 0, dst, idxNext, this.CountUsed);
-                idxNext += this.CountUsed;
+                var itemsLength = this.Items.Length;
+                Array.Copy(this.Items, 0, dst, idxNext, itemsLength);
+                idxNext += itemsLength;
+            }
+        }
+
+        private static S[] ArrayCopySetLast<S>(S[] items, S item)
+            where S : class {
+            var length = items.Length;
+            if (length == 0) {
+                return new S[1] { item };
+            } else {
+                var result = new S[length];
+                if ((length - 1) > 0) { 
+                    Array.Copy(items, 0, result, 0, length-1);
+                }
+                result[length - 1] = item;
+
+                return result;
+            }
+        }
+
+        private static S[] ArrayCopyAdd<S>(S[] items, S item)
+            where S : class {
+            var length = items.Length;
+            if (length == 0) {
+                return new S[] { item };
+            } else {
+                var result = new S[length + 1];
+                Array.Copy(items, 0, result, 0, length);
+                result[length] = item;
+                return result;
             }
         }
     }
