@@ -221,7 +221,7 @@ namespace Brimborium.Latrans.Mediator {
             }
         }
 
-        public Task<IMediatorClientConnected<TRequest1>> ConnectAsync<TRequest1>(ActivityId activityId, CancellationToken cancellationToken) {
+        public Task<IMediatorClientConnected> ConnectAsync(ActivityId activityId, CancellationToken cancellationToken) {
             throw new NotImplementedException();
         }
 
@@ -233,5 +233,6 @@ namespace Brimborium.Latrans.Mediator {
             };
             return Task<MediatorActivityStatus>.FromResult(result);
         }
+
     }
 }

@@ -94,38 +94,6 @@ namespace Brimborium.Latrans.Collections {
                     }
                 }
             }
-#if false
-            {
-                /*
-                 8  8 8 8 8 8 8 8
-                 64 0 0 0 0 0 0 0
-                 64 8 8 8 8 8 8 8
-                 */
-                var itemsLength = this._NodeItems.Length;
-                var countUsedLast = this._NodeItems[itemsLength - 1].CountUsed;
-
-                var idxLow = 0;
-                for (var idx = idxLow+1; idx<itemsLength; idx++) {
-                    if ((countUsedLast == this._NodeItems[idx].CountUsed)
-                        && (this._NodeItems[idxLow].CountUsed > this._NodeItems[idx].CountUsed)) {
-                        idxLow++;
-                    }                
-                }
-                if ((0 < idxLow) && (idxLow < 5)) {
-                    var itemNodes = getEmptyNodes();
-                    Array.Copy(this._NodeItems, 0, itemNodes, 0, idxLow);
-                    
-                    var count = this.GetCount(idxLow);
-                    var dst = new T[count];
-                    this.ToArray(idxLow, dst);
-                    // dst[count] = item;
-                    itemNodes[idxLow] = new Node(dst);
-                    itemNodes[idxLow+1] = new Node(item);
-
-                    return new ImList<T>(itemNodes, idxLow + 2);
-                }
-            }
-#endif
             {
                 var count = this.GetCount(0);
                 var items0 = new T[count];

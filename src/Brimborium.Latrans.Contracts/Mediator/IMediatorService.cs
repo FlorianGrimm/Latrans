@@ -16,6 +16,8 @@ namespace Brimborium.Latrans.Mediator {
                 CancellationToken cancellationToken
             );
 
+        Task<IMediatorClientConnected?> ConnectAsync(ActivityId activityId, CancellationToken cancellationToken);
+
         Task<MediatorActivityStatus[]> GetStatusAsync();
     }
     public struct GetStatusFilter { 

@@ -10,6 +10,7 @@ namespace Brimborium.Latrans.Mediator {
         IActivityContext? GetActivityContext();
         void Initialize();
         Task SendAsync(CancellationToken cancellationToken);
+        Task<MediatorActivityStatus> GetStatusAsync();
     }
 
     public interface IMediatorClientConnected<TRequest> : IMediatorClientConnected {

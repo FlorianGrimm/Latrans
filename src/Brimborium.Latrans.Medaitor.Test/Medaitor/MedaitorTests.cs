@@ -91,7 +91,7 @@ namespace Brimborium.Latrans.Mediator {
                             activityExecutionConfiguration,
                             CancellationToken.None);
                         var activityResponse = await connectedClient.WaitForAsync(activityExecutionConfiguration, CancellationToken.None);
-                        var status = await medaitorClient.GetStatusAsync();
+                        var status = await connectedClient.GetStatusAsync();
                         Assert.Equal(ActivityStatus.Completed, status.Status);
                         Assert.NotNull(activityResponse);
                         Assert.NotNull(activityResponse as OkResultActivityResponse<TestResponse1>);
@@ -117,30 +117,40 @@ namespace Brimborium.Latrans.Mediator {
                         var scopedProviderWebApp1 = scopeWebApp1.ServiceProvider;
                         var medaitorClient1 = scopedProviderWebApp1.GetRequiredService<IMediatorClientFactory>().GetMedaitorClient();
 
-                        var activityExecutionConfiguration1 = scopedProviderWebApp1.GetRequiredService<ActivityExecutionConfigurationDefaults>().ForQueryCancelable;
-                        var request5 = new TestRequest5() { A = 6, B = 7 };
-                        var cts = new CancellationTokenSource();
-                        var taskConnectedClient = medaitorClient1.ConnectAndSendAsync(
-                            activityId,
-                            request5,
-                            activityExecutionConfiguration1,
-                            cts.Token);
-                        //
-                        cts.Cancel();
-                        IMediatorClientConnected<TestRequest5> connectedClient;
-                        try {
-                            connectedClient = await taskConnectedClient;
-                        } catch {
-                            connectedClient = null;
-                        }
-                        //
-                        if (connectedClient is null) {
+                        using (var scopeWebApp2 = serviceProviderWebApp.CreateScope()) {
+                            var scopedProviderWebApp2 = scopeWebApp2.ServiceProvider;
+                            var medaitorClient2 = scopedProviderWebApp2.GetRequiredService<IMediatorClientFactory>().GetMedaitorClient();
+
+                            var activityExecutionConfiguration1 = scopedProviderWebApp2.GetRequiredService<ActivityExecutionConfigurationDefaults>().ForQueryCancelable;
+                            var request5 = new TestRequest5() { A = 6, B = 7 };
+                            var cts = new CancellationTokenSource();
+                            var taskConnectedClient1 = medaitorClient1.ConnectAndSendAsync(
+                                activityId,
+                                request5,
+                                activityExecutionConfiguration1,
+                                cts.Token);
                             //
-                        } else {
-                            var activityResponse = await connectedClient.WaitForAsync(activityExecutionConfiguration1, CancellationToken.None);
-                            Assert.NotNull(activityResponse);
-                            Assert.NotNull(activityResponse as OkResultActivityResponse<TestResponse5>);
-                            Assert.Equal(6 * 7 + 1, ((OkResultActivityResponse<TestResponse5>)activityResponse).Result.R);
+
+                            var connectedClient2 = await medaitorClient2.ConnectAsync(activityId, CancellationToken.None);
+
+                            var status = await connectedClient2.GetStatusAsync();
+                            Assert.Equal(ActivityStatus.Running, status.Status);
+                            cts.Cancel();
+                            IMediatorClientConnected<TestRequest5> connectedClient1;
+                            try {
+                                connectedClient1 = await taskConnectedClient1;
+                            } catch {
+                                connectedClient1 = null;
+                            }
+                            //
+                            if (connectedClient1 is null) {
+                                //
+                            } else {
+                                var activityResponse = await connectedClient1.WaitForAsync(activityExecutionConfiguration1, CancellationToken.None);
+                                Assert.NotNull(activityResponse);
+                                Assert.NotNull(activityResponse as OkResultActivityResponse<TestResponse5>);
+                                Assert.Equal(6 * 7 + 1, ((OkResultActivityResponse<TestResponse5>)activityResponse).Result.R);
+                            }
                         }
                     }
                 }

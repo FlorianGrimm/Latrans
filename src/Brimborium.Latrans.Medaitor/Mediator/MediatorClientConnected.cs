@@ -9,7 +9,9 @@ namespace Brimborium.Latrans.Mediator {
         : IMediatorClientConnected<TRequest, TResponse>
         , IMediatorClientConnected<TRequest>
         , IMediatorClientConnected
-        , IDisposable {
+        , IDisposable
+        where TRequest : IRequest<TResponse>, IRequestBase
+        where TResponse : IResponseBase {
         private IActivityContext<TRequest, TResponse>? _ActivityContext;
         private readonly IMediatorServiceInternalUse _MedaitorService;
         private readonly IMediatorClient? _MedaitorClient;
@@ -141,6 +143,17 @@ namespace Brimborium.Latrans.Mediator {
                         return new CanceledActivityResponse();
                     }
                 }
+            }
+        }
+
+        public async Task<MediatorActivityStatus> GetStatusAsync() {
+            var activityContext = this._ActivityContext;            
+            if (activityContext is object) {
+                return await activityContext.GetStatusAsync();
+            } else {
+                return new MediatorActivityStatus() {
+                    Status = ActivityStatus.Unknown
+                };
             }
         }
 

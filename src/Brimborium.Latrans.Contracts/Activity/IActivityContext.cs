@@ -27,6 +27,8 @@ namespace Brimborium.Latrans.Activity {
         Task<IActivityResponse> GetActivityResponseAsync();
 
         IMediatorScopeService MediatorScopeService { get; }
+
+        Task<MediatorActivityStatus> GetStatusAsync();
     }
 
     public interface IActivityContext<TRequest> : IActivityContext {

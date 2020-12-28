@@ -30,7 +30,10 @@ namespace Brimborium.Latrans.Activity {
     public interface IActivityHandler<TRequest> : IActivityHandler {
     }
 
-    public interface IActivityHandler<TRequest, TResponse> : IActivityHandler<TRequest> {
+    public interface IActivityHandler<TRequest, TResponse> 
+        : IActivityHandler<TRequest>
+        where TRequest : IRequest<TResponse>, IRequestBase
+        where TResponse : IResponseBase {
         Task ExecuteAsync(
             IActivityContext<TRequest, TResponse> activityContext,
             CancellationToken cancellationToken
@@ -45,11 +48,15 @@ namespace Brimborium.Latrans.Activity {
     }
 
     public interface IDispatchActivityHandler<TRequest, TResponse>
-        : IDispatchActivityHandler<TRequest> {
+        : IDispatchActivityHandler<TRequest>
+        where TRequest : IRequest<TResponse>, IRequestBase
+        where TResponse : IResponseBase {
         IActivityHandler<TRequest, TResponse> GetActivityHandler(
             Type[] handlerTypes,
             IActivityContext<TRequest, TResponse> activityContext,
-            Func<Type, IActivityHandler<TRequest, TResponse>> createActivityHandlerType
-            );
+            Func<Type, IActivityHandler<TRequest, TResponse>> createActivityHandlerType                
+            )
+        
+            ;
     }
 }

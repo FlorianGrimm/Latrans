@@ -77,38 +77,8 @@ namespace Brimborium.Latrans.Mediator {
             return result;
         }
 
-        public Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(ActivityId activityId, CancellationToken cancellationToken) {
-            throw new NotImplementedException();
+        public async Task<IMediatorClientConnected?> ConnectAsync(ActivityId activityId, CancellationToken cancellationToken) {
+            return await this._MedaitorService.ConnectAsync(activityId, cancellationToken);
         }
-
-        public async Task<MediatorActivityStatus> GetStatusAsync() {
-            var activityContext = this._MediatorClientConnected?.GetActivityContext();
-            if (activityContext is object) {
-                return await activityContext.GetStatusAsync();
-            } else {
-                return new MediatorActivityStatus() {
-                    Status = ActivityStatus.Unknown
-                };
-            }
-        }
-
-#if false
-        public IActivityContext<TRequest> CreateContextByRequest<TRequest>(TRequest request) {
-            return this._MedaitorService.CreateContextByRequest<TRequest>(this, request);
-        }
-
-        public Task SendAsync(
-            IActivityContext activityContext,
-            CancellationToken cancellationToken) {
-            return this._MedaitorService.SendAsync(this, activityContext, cancellationToken);
-        }
-
-        public Task WaitForAsync(
-            IActivityContext activityContext,
-            ActivityWaitForSpecification waitForSpecification,
-            CancellationToken cancellationToken) {
-            return this._MedaitorService.WaitForAsync(this, activityContext, waitForSpecification, cancellationToken);
-        }
-#endif
     }
 }

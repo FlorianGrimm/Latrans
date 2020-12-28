@@ -19,7 +19,8 @@ namespace Benchmark {
                 l.Add(new D(idx));
             }
             for (int idx = 1; idx <= cntRead; idx++) {
-                if (l.ToArray().Length != cntAdd) { throw new Exception(); }
+                var a = l.ToArray();
+                if (a.Length != cntAdd) { throw new Exception($"{a.Length} != {cntAdd}"); }
             }
         }
 
@@ -31,7 +32,8 @@ namespace Benchmark {
                 l.Add(new D(idx));
             }
             for (int idx = 1; idx <= cntRead; idx++) {
-                if (l.ToArray().Length != cntAdd) { throw new Exception($"{l.ToArray().Length} != {cntAdd}"); }
+                var a = l.ToArray();
+                if (a.Length != cntAdd) { throw new Exception($"{a.Length} != {cntAdd}"); }
             }
         }
 
@@ -42,7 +44,8 @@ namespace Benchmark {
                 l = l.Add(new D(idx));
             }
             for (int idx = 1; idx <= cntRead; idx++) {
-                if (l.ToArray().Length != cntAdd) { throw new Exception($"{l.ToArray().Length} != {cntAdd}"); }
+                var a = l.ToArray();
+                if (a.Length != cntAdd) { throw new Exception($"{a.Length} != {cntAdd}"); }
             }
         }
 
@@ -53,7 +56,8 @@ namespace Benchmark {
                 l = l.Add(new D(idx));
             }
             for (int idx = 1; idx <= cntRead; idx++) {
-                if (l.ToArray().Length != cntAdd) { throw new Exception($"{l.ToArray().Length} != {cntAdd}"); }
+                var a = l.ToArray();
+                if (a.Length != cntAdd) { throw new Exception($"{a.Length} != {cntAdd}"); }
             }
         }
 

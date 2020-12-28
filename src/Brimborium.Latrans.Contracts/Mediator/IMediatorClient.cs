@@ -16,12 +16,12 @@ namespace Brimborium.Latrans.Mediator {
                 CancellationToken cancellationToken
             );
 
-        Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(
+        Task<IMediatorClientConnected?> ConnectAsync(
                 ActivityId activityId,
                 CancellationToken cancellationToken
             );
 
-        Task<MediatorActivityStatus> GetStatusAsync();
+        // Task<MediatorActivityStatus> GetStatusAsync();
 
     }
 }

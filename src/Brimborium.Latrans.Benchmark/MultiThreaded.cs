@@ -40,7 +40,7 @@ namespace Benchmark {
             //sha256.ComputeHash(data);
             unchecked {
                 int sum = 0;
-                foreach(var b in data) {
+                foreach (var b in data) {
                     sum += b;
                 }
                 return sum;
@@ -279,10 +279,9 @@ namespace Benchmark {
 
             for (int idx = 1; idx <= cntRead; idx++) {
                 var a = lst.Value.ToArray();
-                if (a.Length != 2*cntAdd) { throw new Exception($"{a.Length} != 2*{cntAdd}"); }
+                if (a.Length != 2 * cntAdd) { throw new Exception($"{a.Length} != 2*{cntAdd}"); }
             }
         }
-
 
         class D {
             public D(int data1) {

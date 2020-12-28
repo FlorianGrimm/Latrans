@@ -3,7 +3,9 @@ using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Activity {
     public class ActivityHandlerBase<TRequest, TResponse>
-        : IActivityHandler<TRequest, TResponse> {
+        : IActivityHandler<TRequest, TResponse>
+        where TRequest : IRequest<TResponse>, IRequestBase
+        where TResponse : IResponseBase {
         protected ActivityHandlerBase() {
         }
 

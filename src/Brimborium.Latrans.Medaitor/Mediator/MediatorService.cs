@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ namespace Brimborium.Latrans.Mediator {
         private int _IsDisposed;
         private readonly IMediatorServiceStorage _Storage;
         private readonly List<MediatorScopeService> _MediatorScopeServices;
+#warning TODO        //private readonly ConcurrentDictionary<ActivityId, WeakReference<>>
 
         public RequestRelatedTypes RequestRelatedTypes { get; }
         public IServiceProvider ServicesMediator { get => this._ServicesMediator; }
@@ -101,6 +103,11 @@ namespace Brimborium.Latrans.Mediator {
             }
         }
 
+        public Task<IMediatorClientConnected?> ConnectAsync(ActivityId activityId, CancellationToken cancellationToken) {
+#warning ConnectAsync
+            throw new NotImplementedException();
+        }
+
         public IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(
                 ActivityId activityId,
                 TRequest request,
@@ -133,6 +140,7 @@ namespace Brimborium.Latrans.Mediator {
             var mediatorScopeService = new MediatorScopeService(this);
             lock (this._MediatorScopeServices) {
                 this._MediatorScopeServices.Add(mediatorScopeService);
+                
             }
             return mediatorScopeService;
         }
