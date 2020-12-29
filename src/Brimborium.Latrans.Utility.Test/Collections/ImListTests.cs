@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 using Xunit;
 using System.Collections.Generic;
-// Brimborium.Latrans.Benchmark
+
 namespace Brimborium.Latrans.Collections {
     public class ImListTests {
         [Fact]

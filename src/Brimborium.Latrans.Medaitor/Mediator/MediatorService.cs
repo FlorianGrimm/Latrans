@@ -104,12 +104,13 @@ namespace Brimborium.Latrans.Mediator {
 
         public Task<IMediatorClientConnected?> ConnectAsync(ActivityId activityId, CancellationToken cancellationToken) {
 #warning ConnectAsync
+            MediatorScopeService[]? mediatorScopeServices;
             lock (this._MediatorScopeServices) {
-                for (int idx = 0; idx < this._MediatorScopeServices.Count; idx++) {
-                    var item = this._MediatorScopeServices[idx];
-                    if (item.TryGetMediatorClientConnected(activityId, out var mediatorClientConnected)){
-                        return Task.FromResult<IMediatorClientConnected?>(mediatorClientConnected);
-                    }
+                mediatorScopeServices = this._MediatorScopeServices.ToArray();
+            }
+            foreach (var item in mediatorScopeServices) {
+                if (item.TryGetMediatorClientConnected(activityId, out var mediatorClientConnected)) {
+                    return Task.FromResult<IMediatorClientConnected?>(mediatorClientConnected);
                 }
             }
             return Task.FromResult<IMediatorClientConnected?>(null);
@@ -196,7 +197,7 @@ namespace Brimborium.Latrans.Mediator {
         }
 #endif
 
-            public void HandleRequestForAccepted202Redirect<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
+        public void HandleRequestForAccepted202Redirect<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
             //activityContext.OperationId
             //activityContext.ExecutionId
             throw new NotImplementedException();

@@ -1,0 +1,118 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
+
+using BenchmarkDotNet.Attributes;
+
+using Brimborium.Latrans.Collections;
+
+namespace Benchmark {
+    public class MemoryResizableStreamTest {
+        private List<D> lstWriteD;
+        private List<ReadableLog> lstWriteRL;
+        private List<D> lstReadD;
+        private List<ReadableLog> lstReadRL;
+        private DateTime dt;
+
+        public MemoryResizableStreamTest() {
+            lstWriteD = new List<D>(cnt);
+            lstWriteRL = new List<ReadableLog>(cnt);
+            lstReadD = new List<D>(cnt);
+            lstReadRL = new List<ReadableLog>(cnt);
+            dt = new DateTime(2000, 1, 1);
+        }
+
+        [Params(6, 2000)]
+        public int cnt;
+        private string txtWriteNewtonsoftStream;
+
+        [GlobalSetup]
+        public void GlobalSetup() {
+            lstWriteD = new List<D>(cnt);
+            lstWriteRL = new List<ReadableLog>(cnt);
+            lstReadD = new List<D>(cnt);
+            lstReadRL = new List<ReadableLog>(cnt);
+
+            for (int idx = 1; idx < cnt; idx++) {
+                var d = new D() {
+                    Id = idx,
+                    A = idx.ToString(),
+                    B = new Guid(idx, 1, 1, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }),
+                    C = dt.AddHours(idx)
+                };
+                lstWriteD.Add(d);
+            }
+        }
+
+        [Benchmark]
+        public void WriteNewtonsoftStream() {
+            var sb = new StringBuilder(4096);
+            using (var sw = new StringWriter(sb)) {
+                for (int idx = 1; idx < cnt; idx++) {
+                    var d = lstWriteD[idx - 1];
+                    var json = Newtonsoft.Json.JsonConvert.SerializeObject(d);
+                    var r = new ReadableLog() {
+                        LgId = (ulong)idx,
+                        DT = dt.AddHours(idx),
+                        Key = idx.ToString(),
+                        TypeName = "D",
+                        Data = json
+                    };
+                    lstWriteRL.Add(r);
+                    ReadableLogUtil.Write(r, sw);
+                }
+                sw.Close();
+            }
+            txtWriteNewtonsoftStream = sb.ToString();
+
+
+            var log1 = sb.ToString();
+#if output
+            System.Console.Out.WriteLine(log1.Length);
+#endif
+
+            using (var sr = new StringReader(log1)) {
+                ReadableLogUtil.Read(sr, (lstReadRL, lstReadD), (state, r) => {
+                    state.lstReadRL.Add(r);
+                    var d = Newtonsoft.Json.JsonConvert.DeserializeObject<D>(r.Data);
+                    state.lstReadD.Add(d);
+                });
+            }
+        }
+#if false
+        [Benchmark]
+        public void WriteNewtonsoftStream2() {
+            var sb = new StringBuilder(4096);
+            using (var sw = new StringWriter(sb)) {
+                for (int idx = 1; idx < cnt; idx++) {
+                    var d = lstWriteD[idx - 1];
+                    SimdJsonSharp.SimdJson
+                    var json = Newtonsoft.Json.JsonConvert.SerializeObject(d);
+                    var r = new ReadableLog() {
+                        LgId = (ulong)idx,
+                        DT = dt.AddHours(idx),
+                        Key = idx.ToString(),
+                        TypeName = "D",
+                        Data = json
+                    };
+                    lstWriteRL.Add(r);
+                    ReadableLogUtil.Write(r, sw);
+                }
+                sw.Close();
+            }
+            txtWriteNewtonsoftStream = sb.ToString();
+        }
+#endif
+
+        public class D {
+            public int Id { get; set; }
+            public string A { get; set; }
+            public Guid B { get; set; }
+            public DateTime C { get; set; }
+        }
+    }
+}
