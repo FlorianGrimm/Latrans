@@ -1,5 +1,4 @@
-﻿
-using Brimborium.Latrans.Activity;
+﻿using Brimborium.Latrans.Activity;
 
 using System;
 using System.Threading;
@@ -11,14 +10,15 @@ namespace Brimborium.Latrans.Mediator {
         void Initialize();
         Task SendAsync(CancellationToken cancellationToken);
         Task<MediatorActivityStatus> GetStatusAsync();
-    }
-
-    public interface IMediatorClientConnected<TRequest> : IMediatorClientConnected {
         Task<IActivityResponse> WaitForAsync(
            ActivityExecutionConfiguration waitForSpecification,
            CancellationToken cancellationToken
            );
     }
+
+    public interface IMediatorClientConnected<TRequest> : IMediatorClientConnected {
+    }
+
     public interface IMediatorClientConnected<TRequest, TResponse> : IMediatorClientConnected<TRequest> {
     }
 }

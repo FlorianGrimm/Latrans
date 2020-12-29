@@ -31,11 +31,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Latrans.Storeage
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Latrans.StoreageFASTERAzure.Test", "src\Brimborium.Latrans.StoreageFASTERAzure.Test\Brimborium.Latrans.StoreageFASTERAzure.Test.csproj", "{83B22D81-C457-493F-A1FC-76D869D736ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.Latrans.Utility", "src\Brimborium.Latrans.Utility\Brimborium.Latrans.Utility.csproj", "{673EF429-3785-41E8-9052-DE54CC4429DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Latrans.Utility", "src\Brimborium.Latrans.Utility\Brimborium.Latrans.Utility.csproj", "{673EF429-3785-41E8-9052-DE54CC4429DF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.Latrans.Utility.Test", "src\Brimborium.Latrans.Utility.Test\Brimborium.Latrans.Utility.Test.csproj", "{3A7737FA-D3E3-4D58-9FED-8FCCF14A9E73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Latrans.Utility.Test", "src\Brimborium.Latrans.Utility.Test\Brimborium.Latrans.Utility.Test.csproj", "{3A7737FA-D3E3-4D58-9FED-8FCCF14A9E73}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.Latrans.Benchmark", "src\Brimborium.Latrans.Benchmark\Brimborium.Latrans.Benchmark.csproj", "{7E299104-F044-47B8-82EA-C43298056B30}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Latrans.Benchmark", "src\Brimborium.Latrans.Benchmark\Brimborium.Latrans.Benchmark.csproj", "{7E299104-F044-47B8-82EA-C43298056B30}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{007F26CD-DBC3-498A-A6FE-7322F5ECF30F}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

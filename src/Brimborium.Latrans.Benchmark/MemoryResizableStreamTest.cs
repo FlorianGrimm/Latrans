@@ -9,36 +9,38 @@ using System.Text;
 using BenchmarkDotNet.Attributes;
 
 using Brimborium.Latrans.Collections;
+using Brimborium.Latrans.IO;
 
 namespace Benchmark {
     public class MemoryResizableStreamTest {
-        private List<D> lstWriteD;
-        private List<ReadableLog> lstWriteRL;
-        private List<D> lstReadD;
-        private List<ReadableLog> lstReadRL;
+        private List<Dummy> lstWriteD;
+        private List<EventLogRecord> lstWriteRL;
+        private List<Dummy> lstReadD;
+        private List<EventLogRecord> lstReadRL;
         private DateTime dt;
+        private string txtWriteNewtonsoftStream;
 
         public MemoryResizableStreamTest() {
-            lstWriteD = new List<D>(cnt);
-            lstWriteRL = new List<ReadableLog>(cnt);
-            lstReadD = new List<D>(cnt);
-            lstReadRL = new List<ReadableLog>(cnt);
+            lstWriteD = new List<Dummy>(cnt);
+            lstWriteRL = new List<EventLogRecord>(cnt);
+            lstReadD = new List<Dummy>(cnt);
+            lstReadRL = new List<EventLogRecord>(cnt);
             dt = new DateTime(2000, 1, 1);
+            txtWriteNewtonsoftStream = "";
         }
 
         [Params(6, 2000)]
         public int cnt;
-        private string txtWriteNewtonsoftStream;
 
         [GlobalSetup]
         public void GlobalSetup() {
-            lstWriteD = new List<D>(cnt);
-            lstWriteRL = new List<ReadableLog>(cnt);
-            lstReadD = new List<D>(cnt);
-            lstReadRL = new List<ReadableLog>(cnt);
+            lstWriteD = new List<Dummy>(cnt);
+            lstWriteRL = new List<EventLogRecord>(cnt);
+            lstReadD = new List<Dummy>(cnt);
+            lstReadRL = new List<EventLogRecord>(cnt);
 
             for (int idx = 1; idx < cnt; idx++) {
-                var d = new D() {
+                var d = new Dummy() {
                     Id = idx,
                     A = idx.ToString(),
                     B = new Guid(idx, 1, 1, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }),
@@ -55,12 +57,12 @@ namespace Benchmark {
                 for (int idx = 1; idx < cnt; idx++) {
                     var d = lstWriteD[idx - 1];
                     var json = Newtonsoft.Json.JsonConvert.SerializeObject(d);
-                    var r = new ReadableLog() {
+                    var r = new EventLogRecord() {
                         LgId = (ulong)idx,
                         DT = dt.AddHours(idx),
                         Key = idx.ToString(),
                         TypeName = "D",
-                        Data = json
+                        DataText = json
                     };
                     lstWriteRL.Add(r);
                     ReadableLogUtil.Write(r, sw);
@@ -78,7 +80,7 @@ namespace Benchmark {
             using (var sr = new StringReader(log1)) {
                 ReadableLogUtil.Read(sr, (lstReadRL, lstReadD), (state, r) => {
                     state.lstReadRL.Add(r);
-                    var d = Newtonsoft.Json.JsonConvert.DeserializeObject<D>(r.Data);
+                    var d = Newtonsoft.Json.JsonConvert.DeserializeObject<Dummy>(r.DataText);
                     state.lstReadD.Add(d);
                 });
             }
@@ -108,7 +110,7 @@ namespace Benchmark {
         }
 #endif
 
-        public class D {
+        public class Dummy {
             public int Id { get; set; }
             public string A { get; set; }
             public Guid B { get; set; }

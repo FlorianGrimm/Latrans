@@ -27,17 +27,18 @@ namespace Brimborium.Latrans.Activity {
          */
     }
 
-    public interface IActivityHandler<TRequest> : IActivityHandler {
+    public interface IActivityHandler<TRequest> : IActivityHandler
+        where TRequest : IRequestBase {
+        Task ExecuteAsync(
+            IActivityContext<TRequest> activityContext,
+            CancellationToken cancellationToken
+            );
     }
 
     public interface IActivityHandler<TRequest, TResponse> 
         : IActivityHandler<TRequest>
         where TRequest : IRequest<TResponse>, IRequestBase
         where TResponse : IResponseBase {
-        Task ExecuteAsync(
-            IActivityContext<TRequest, TResponse> activityContext,
-            CancellationToken cancellationToken
-            );
     }
 
     public interface IDispatchActivityHandler {
@@ -53,7 +54,7 @@ namespace Brimborium.Latrans.Activity {
         where TResponse : IResponseBase {
         IActivityHandler<TRequest, TResponse> GetActivityHandler(
             Type[] handlerTypes,
-            IActivityContext<TRequest, TResponse> activityContext,
+            IActivityContext<TRequest> activityContext,
             Func<Type, IActivityHandler<TRequest, TResponse>> createActivityHandlerType                
             )
         

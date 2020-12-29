@@ -12,7 +12,7 @@ namespace Brimborium.Latrans.Mediator {
         , IDisposable
         where TRequest : IRequest<TResponse>, IRequestBase
         where TResponse : IResponseBase {
-        private IActivityContext<TRequest, TResponse>? _ActivityContext;
+        private IActivityContext<TRequest>? _ActivityContext;
         private readonly IMediatorServiceInternalUse _MedaitorService;
         private readonly IMediatorClient? _MedaitorClient;
         private readonly IMediatorScopeServiceInternalUse? _MediatorScopeService;
@@ -35,7 +35,7 @@ namespace Brimborium.Latrans.Mediator {
         [Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor()]
         public MediatorClientConnected(CreateClientConnectedArguments arguments, TRequest request) {
             this._MedaitorService = arguments.MedaitorService;
-            this._MedaitorClient= arguments.MedaitorClient;
+            this._MedaitorClient = arguments.MedaitorClient;
             this._MediatorScopeService = arguments.MediatorScopeService;
             this._ActivityId = arguments.ActivityId;
             this._Request = request;
@@ -75,10 +75,10 @@ namespace Brimborium.Latrans.Mediator {
             if (medaitorService is null) {
                 throw new InvalidOperationException("MedaitorService is null");
             }
-            
+
             var mediatorScopeService = (IMediatorScopeServiceInternalUse)activityContext.MediatorScopeService;
 
-            var activityHandler = mediatorScopeService.CreateHandler<TRequest, TResponse > (
+            var activityHandler = mediatorScopeService.CreateHandler<TRequest, TResponse>(
                   this._RequestRelatedType,
                   activityContext);
             await activityContext.AddActivityEventAsync(new ActivityEventStateChange(
@@ -87,7 +87,7 @@ namespace Brimborium.Latrans.Mediator {
                 System.DateTime.UtcNow,
                 ActivityStatus.Running
                 ));
-            
+
             await activityHandler.ExecuteAsync(activityContext, cancellationToken);
 
             return;
@@ -147,7 +147,7 @@ namespace Brimborium.Latrans.Mediator {
         }
 
         public async Task<MediatorActivityStatus> GetStatusAsync() {
-            var activityContext = this._ActivityContext;            
+            var activityContext = this._ActivityContext;
             if (activityContext is object) {
                 return await activityContext.GetStatusAsync();
             } else {
@@ -176,7 +176,7 @@ namespace Brimborium.Latrans.Mediator {
                     var activityContext = this._ActivityContext;
                     if (activityContext is null) {
                         //
-                    } else { 
+                    } else {
                         var mediatorScopeService = (IMediatorScopeServiceInternalUse)activityContext.MediatorScopeService;
                         mediatorScopeService.RemoveClientConnected<TRequest>(this);
                     }

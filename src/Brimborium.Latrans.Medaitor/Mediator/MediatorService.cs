@@ -116,7 +116,7 @@ namespace Brimborium.Latrans.Mediator {
             return Task.FromResult<IMediatorClientConnected?>(null);
         }
 
-        public IActivityContext<TRequest, TResponse> CreateContext<TRequest, TResponse>(
+        public IActivityContext<TRequest> CreateContext<TRequest, TResponse>(
                 ActivityId activityId,
                 TRequest request,
                 RequestRelatedType? requestRelatedType
@@ -139,7 +139,7 @@ namespace Brimborium.Latrans.Mediator {
             if (resultObj is null) {
                 throw new InvalidOperationException("FactoryActivityContext returns null.");
             }
-            var result = (IActivityContext<TRequest, TResponse>)resultObj;
+            var result = (IActivityContext<TRequest>)resultObj;
 #warning TODO var x = result.MediatorScopeService;
             return result;
         }
@@ -197,13 +197,18 @@ namespace Brimborium.Latrans.Mediator {
         }
 #endif
 
-        public void HandleRequestForAccepted202Redirect<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
+        public void HandleRequestForAccepted202Redirect<TRequest>(
+                IActivityContext<TRequest> activityContext
+            ) {
             //activityContext.OperationId
             //activityContext.ExecutionId
+#warning TODO HandleRequestForAccepted202Redirect
             throw new NotImplementedException();
         }
 
-        public void HandleRequestAfterTimeout<TRequest, TResponse>(IActivityContext<TRequest, TResponse> activityContext) {
+        public void HandleRequestAfterTimeout<TRequest>(
+                IActivityContext<TRequest> activityContext
+            ) {
             lock (this) {
                 var taskRequest = activityContext.GetActivityResponseAsync();
                 this._TimeoutTasks = this._TimeoutTasks.ContinueWith((previousTask) => {

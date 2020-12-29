@@ -1,8 +1,10 @@
-﻿using System.Threading;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Activity {
-    public class ActivityHandlerBase<TRequest, TResponse>
+    public abstract class ActivityHandlerBase<TRequest, TResponse>
         : IActivityHandler<TRequest, TResponse>
         where TRequest : IRequest<TResponse>, IRequestBase
         where TResponse : IResponseBase {
@@ -18,11 +20,21 @@ namespace Brimborium.Latrans.Activity {
         }
         */
 
-        public virtual Task ExecuteAsync(
-            IActivityContext<TRequest, TResponse> activityContext,
-            CancellationToken cancellationToken) {
-            return Task.CompletedTask;
-        }
+        public abstract Task ExecuteAsync(
+            IActivityContext<TRequest> activityContext,
+            CancellationToken cancellationToken);
 
+    }
+    public static class IActivityHandlerExtension {
+        public static Task SetResponseAsync<TRequest, TResponse>(
+            this IActivityHandler<TRequest, TResponse> that,
+            IActivityContext<TRequest> activityContext,
+            TResponse response)
+            where TRequest : IRequest<TResponse>, IRequestBase
+            where TResponse : IResponseBase
+            {
+            var okResponse = new OkResultActivityResponse<TResponse>(response);
+            return activityContext.SetActivityResponseAsync(okResponse);
+        }
     }
 }

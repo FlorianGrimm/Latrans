@@ -34,10 +34,12 @@ namespace Brimborium.Latrans.StoreageFASTER.Test {
                     var logSettings = new FASTER.core.FasterLogSettings() {
                         LogDevice = device,
                         LogChecksum = LogChecksumType.PerEntry,
-                        LogCommitManager = logCommitManager
+                        LogCommitManager = logCommitManager,
+                        
 
                     };
-                    using (var log = new FASTER.core.FasterLog(logSettings)) {
+                    
+                    using (var log = await FASTER.core.FasterLog.CreateAsync(logSettings)) {
                         //log.TruncateUntilPageStart(0);
                         //await log.CommitAsync();
                         for (int i = 0; i < 1000; i++) {

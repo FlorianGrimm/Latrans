@@ -91,7 +91,7 @@ namespace Brimborium.Latrans.Mediator {
 
         public IActivityHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(
                 RequestRelatedType? requestRelatedType,
-                IActivityContext<TRequest, TResponse> activityContext
+                IActivityContext<TRequest> activityContext
             )
             where TRequest : IRequest<TResponse>, IRequestBase
             where TResponse : IResponseBase {

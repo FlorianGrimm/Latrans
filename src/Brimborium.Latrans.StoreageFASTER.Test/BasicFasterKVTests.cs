@@ -94,7 +94,7 @@ namespace Brimborium.Latrans.StoreageFASTER.Test {
         }
 
         [Fact]
-        public async Task Faster_Test2() {
+        public void Faster_Test2() {
 
             CheckpointType checkpointType = CheckpointType.FoldOver;
             //var test_path = System.IO.Path.GetTempPath();

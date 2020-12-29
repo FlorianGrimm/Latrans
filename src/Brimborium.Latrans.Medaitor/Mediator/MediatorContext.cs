@@ -9,8 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Mediator {
-    public class MediatorContext<TRequest, TResponse>
-        : IActivityContext<TRequest, TResponse>
+    public class MediatorContext<TRequest>
+        : IActivityContext<TRequest>
         , IDisposable {
         private IMediatorService _MedaitorService;
         private MediatorScopeService _MediatorScopeService;
@@ -108,6 +108,7 @@ namespace Brimborium.Latrans.Mediator {
             }
         }
 
+#if weichei
         public IMediatorService MedaitorService {
             get { return this._MedaitorService; }
             set {
@@ -121,6 +122,7 @@ namespace Brimborium.Latrans.Mediator {
                 this._MedaitorService = value;
             }
         }
+#endif
 
         public IMediatorScopeService MediatorScopeService {
             get { return this._MediatorScopeService; }
@@ -176,9 +178,11 @@ namespace Brimborium.Latrans.Mediator {
             return this.SetActivityResponseAsync(new FailureActivityResponse(error));
         }
 
+#if weichei
         public Task SetResponseAsync(TResponse response) {
             return this.SetActivityResponseAsync(new OkResultActivityResponse<TResponse>(response));
         }
+#endif
 
         public Task<IActivityResponse> GetActivityResponseAsync() {
             return this._ActivityCompletion.Task;
@@ -221,7 +225,7 @@ namespace Brimborium.Latrans.Mediator {
             }
         }
 
-        public Task<IMediatorClientConnected> ConnectAsync(ActivityId activityId, CancellationToken cancellationToken) {
+        public Task<IMediatorClientConnected?> ConnectAsync(ActivityId activityId, CancellationToken cancellationToken) {
             throw new NotImplementedException();
         }
 

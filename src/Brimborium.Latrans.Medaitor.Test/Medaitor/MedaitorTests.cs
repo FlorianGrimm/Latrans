@@ -211,20 +211,22 @@ namespace Brimborium.Latrans.Mediator {
 
         public class TestActivityHandler1 : ActivityHandlerBase<TestRequest1, TestResponse1> {
             public override async Task ExecuteAsync(
-                IActivityContext<TestRequest1, TestResponse1> activityContext,
+                IActivityContext<TestRequest1> activityContext,
                 CancellationToken cancellationToken) {
                 var request = activityContext.Request;
                 var request2 = new TestRequest2() { A = request.A, B = request.B };
                 ActivityId activityId = ActivityId.NewId();
+                
                 using var connectedClient = await activityContext.ConnectAndSendAsync(
                             activityId,
                             request2,
                             null, // activityExecutionConfiguration,
                             cancellationToken);
+                
                 var response2 = await connectedClient.WaitForAsync(null, cancellationToken);
                 if (response2.TryGetResult<TestResponse2>(out var result2)) {
                     var response = new TestResponse1() { R = result2.R + 1 };
-                    await activityContext.SetResponseAsync(response);
+                    await this.SetResponseAsync(activityContext, response);
                     return;
                 } else {
                     await activityContext.SetActivityResponseAsync(response2);
@@ -241,13 +243,13 @@ namespace Brimborium.Latrans.Mediator {
 
         public class TestActivityHandler2 : ActivityHandlerBase<TestRequest2, TestResponse2> {
             public override Task ExecuteAsync(
-                IActivityContext<TestRequest2, TestResponse2> activityContext,
+                IActivityContext<TestRequest2> activityContext,
                 CancellationToken cancellationToken) {
                 var request = activityContext.Request;
                 //activityContext.
                 var response = new TestResponse2() { R = request.A * request.B };
-                activityContext.SetResponseAsync(response);
-                return Task.CompletedTask;
+                //activityContext.SetResponseAsync(response);
+                return this.SetResponseAsync(activityContext, response);
             }
         }
 
@@ -261,12 +263,12 @@ namespace Brimborium.Latrans.Mediator {
 
         public class TestActivityHandler5 : ActivityHandlerBase<TestRequest5, TestResponse5> {
             public override async Task ExecuteAsync(
-                IActivityContext<TestRequest5, TestResponse5> activityContext,
+                IActivityContext<TestRequest5> activityContext,
                 CancellationToken cancellationToken) {
                 var request = activityContext.Request;
                 await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
                 var response = new TestResponse5() { R = request.A * request.B };
-                await activityContext.SetResponseAsync(response);
+                await this.SetResponseAsync(activityContext, response);
                 return;
             }
         }

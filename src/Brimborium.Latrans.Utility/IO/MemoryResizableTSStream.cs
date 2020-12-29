@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -6,10 +6,11 @@ using System.Threading;
 
 namespace Brimborium.Latrans.IO {
     /// <summary>
-    /// MemoryResizableStream is a resizable and not threadsafe variant of MemoryStream 
+    /// MemoryResizableTSStream is a resizable and threadsafe variant of MemoryStream 
     /// that uses a dynamic list of byte arrays as a backing store, instead of a single byte array, the allocation
     /// of which will fail for relatively small streams as it requires contiguous memory.
-    public class MemoryResizableStream : System.IO.Stream {
+    /// </summary>
+    public class MemoryResizableTSStream : System.IO.Stream {
         /* http://msdn.microsoft.com/en-us/library/system.io.stream.aspx */
         private long _Length;
         private long _BlockSize;
@@ -17,14 +18,14 @@ namespace Brimborium.Latrans.IO {
         private long _Position;
 
 
-        public MemoryResizableStream(long blockSize = 0) {
+        public MemoryResizableTSStream(long blockSize = 0) {
             this._Blocks = new List<byte[]>();
             this._Length = 0;
             this._BlockSize = (blockSize < 65536) ? 65536 : blockSize;
             this._Position = 0;
         }
 
-        public MemoryResizableStream(byte[] source, long blockSize = 0) {
+        public MemoryResizableTSStream(byte[] source, long blockSize = 0) {
             this._Blocks = new List<byte[]>();
             this._Length = 0;
             this._BlockSize = (blockSize < 65536) ? 65536 : blockSize;
@@ -34,7 +35,7 @@ namespace Brimborium.Latrans.IO {
         }
 
         /* length is ignored because capacity has no meaning unless we implement an artifical limit */
-        public MemoryResizableStream(long length, long blockSize = 0) {
+        public MemoryResizableTSStream(long length, long blockSize = 0) {
             this._Blocks = new List<byte[]>();
             this._Length = length;
             this._BlockSize = (blockSize < 65536) ? 65536 : blockSize;
@@ -58,8 +59,7 @@ namespace Brimborium.Latrans.IO {
             }
 
             set {
-                //System.Threading.Interlocked.Exchange(ref this._Position, value);
-                this._Position = value;
+                System.Threading.Interlocked.Exchange(ref this._Position, value);
             }
         }
 
@@ -71,12 +71,12 @@ namespace Brimborium.Latrans.IO {
         /// </summary>
         private byte[] getBlock(int blockId) {
             if (this._Blocks.Count <= blockId) {
-                /* lock (this) */ {
+                lock (this) {
                     if (this._Blocks.Count <= blockId) {
                         while (this._Blocks.Count <= blockId) {
                             this._Blocks.Add(new byte[this._BlockSize]);
                         }
-                        // System.Threading.Interlocked.MemoryBarrier();
+                        System.Threading.Interlocked.MemoryBarrier();
                     }
                 }
             }
@@ -108,7 +108,7 @@ namespace Brimborium.Latrans.IO {
             if (offset < 0) {
                 throw new ArgumentOutOfRangeException("offset", offset, "Destination offset cannot be negative.");
             }
-            /* lock (this) */ {
+            lock (this) {
                 long lcount = (long)count;
 
                 if (lcount < 0) {
@@ -132,8 +132,7 @@ namespace Brimborium.Latrans.IO {
                     read += (int)copysize;
                     position += copysize;
                 } while (lcount > 0);
-                // System.Threading.Interlocked.Exchange(ref this._Position, position);
-                this._Position = position;
+                System.Threading.Interlocked.Exchange(ref this._Position, position);
 
                 return read;
             }
@@ -142,29 +141,26 @@ namespace Brimborium.Latrans.IO {
         public override long Seek(long offset, SeekOrigin origin) {
             switch (origin) {
                 case SeekOrigin.Begin:
-                    //System.Threading.Interlocked.Exchange(ref this._Position, offset);
-                    this._Position = offset;
+                    System.Threading.Interlocked.Exchange(ref this._Position, offset);
                     break;
                 case SeekOrigin.Current:
-                    //System.Threading.Interlocked.Add(ref this._Position, offset);
-                    this._Position += offset;
+                    System.Threading.Interlocked.Add(ref this._Position, offset);
                     break;
                 case SeekOrigin.End:
-                    //System.Threading.Interlocked.Exchange(ref this._Position, this.Length - offset);
-                    this._Position += this.Length - offset;
+                    System.Threading.Interlocked.Exchange(ref this._Position, this.Length - offset);
                     break;
             }
             return this._Position;
         }
 
         public override void SetLength(long value) {
-            /* lock (this) */ {
+            lock (this) {
                 this._Length = value;
             }
         }
 
         public override void Write(byte[] buffer, int offset, int count) {
-            /* lock (this) */ {
+            lock (this) {
                 long lCount = (long)count;
                 long lOffset = (long)offset;
                 try {
@@ -180,8 +176,7 @@ namespace Brimborium.Latrans.IO {
                         lOffset += copysize;
                         position += copysize;
                     } while (lCount > 0);
-                    //System.Threading.Interlocked.Exchange(ref this._Position, position);
-                    this._Position = position;
+                    System.Threading.Interlocked.Exchange(ref this._Position, position);
                 } catch {
                     throw;
                 }
@@ -190,27 +185,25 @@ namespace Brimborium.Latrans.IO {
 
         public override int ReadByte() {
             byte b;
-            /* lock (this) */ {
+            lock (this) {
                 if (this._Position >= this._Length) {
                     return -1;
                 }
                 var (blockId, blockOffset) = getBlockIdOffset(this._Position);
                 var lclBlock = this.getBlock(blockId);
                 b = lclBlock[blockOffset];
-                //System.Threading.Interlocked.Increment(ref this._Position);
-                this._Position++;
+                System.Threading.Interlocked.Increment(ref this._Position);
             }
             return b;
         }
 
         public override void WriteByte(byte value) {
-            /* lock (this) */ {
+            lock (this) {
                 this.EnsureCapacity(this._Position + 1);
                 var (blockId, blockOffset) = getBlockIdOffset(this._Position);
                 var lclBlock = this.getBlock(blockId);
                 lclBlock[blockOffset] = value;
-                //System.Threading.Interlocked.Increment(ref this._Position);
-                this._Position++;
+                System.Threading.Interlocked.Increment(ref this._Position);
             }
         }
 
@@ -233,7 +226,7 @@ namespace Brimborium.Latrans.IO {
         /// </summary>
         /// <returns>A byte[] containing the current data in the stream</returns>
         public byte[] ToArray() {
-            /* lock (this) */ {
+            lock (this) {
                 long length = this._Length;
                 byte[] destination = new byte[length];
                 long offset = 0;
@@ -269,7 +262,7 @@ namespace Brimborium.Latrans.IO {
         /// </summary>
         /// <param name="destination">The stream to write the content of this stream to</param>
         public void WriteTo(Stream destination) {
-            /* lock (this) */ {
+            lock (this) {
                 long initialpos = this.Position;
                 this.Position = 0;
                 this.CopyTo(destination);

@@ -3,25 +3,25 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Brimborium.Latrans.Collections {
+namespace Brimborium.Latrans.IO {
     public static class ReadableLogUtil {
         private static System.Globalization.CultureInfo? _InvariantCulture;
 
         public static void Read<TState>(
                 TextReader textReader, 
                 TState state, 
-                Action<TState, ReadableLog> read
+                Action<TState, EventLogRecord> read
             ) {
             var invariantCulture = (_InvariantCulture ??= System.Globalization.CultureInfo.InvariantCulture);
             StringBuilder sbValue = new StringBuilder(4096);
             var stringComparer = StringComparer.Ordinal;
             int ch;
-            ReadableLog result = new ReadableLog() {
+            EventLogRecord result = new EventLogRecord() {
                 LgId = 0,
                 DT = DateTime.MinValue,
                 Key = null,
                 TypeName = null,
-                Data = null,
+                DataText = null,
             };
             long ln = -1;
             ch = textReader.Read();
@@ -144,28 +144,28 @@ namespace Brimborium.Latrans.Collections {
                                             //
                                             if (ln > 0) {
                                                 if (data.Length == ln) {
-                                                    result.Data = data;
+                                                    result.DataText = data;
                                                     read(state, result);
-                                                    result = new ReadableLog() {
+                                                    result = new EventLogRecord() {
                                                         LgId = 0,
                                                         DT = DateTime.MinValue,
                                                         Key = null,
                                                         TypeName = null,
-                                                        Data = null,
+                                                        DataText = null,
                                                     };
                                                 } else {
                                                     valid = false;
                                                 }
                                                 ln = -1;
                                             } else {
-                                                result.Data = data;
+                                                result.DataText = data;
                                                 read(state, result);
-                                                result = new ReadableLog() {
+                                                result = new EventLogRecord() {
                                                     LgId = 0,
                                                     DT = DateTime.MinValue,
                                                     Key = null,
                                                     TypeName = null,
-                                                    Data = null,
+                                                    DataText = null,
                                                 };
                                             }
                                             continue;
@@ -263,7 +263,7 @@ namespace Brimborium.Latrans.Collections {
             }
         }
 
-        public static void Write(ReadableLog readableLog, TextWriter textWriter) {
+        public static void Write(EventLogRecord readableLog, TextWriter textWriter) {
             //var hashMD5 = _HashMD5 ??= MD5.Create();
             textWriter.Write("-"); textWriter.Write('\n');
             textWriter.Write(" lg: "); textWriter.Write(readableLog.LgId); textWriter.Write('\n');
@@ -276,7 +276,7 @@ namespace Brimborium.Latrans.Collections {
             if (!string.IsNullOrEmpty(readableLog.TypeName)) {
                 textWriter.Write(" ty: "); textWriter.Write(readableLog.TypeName); textWriter.Write('\n');
             }
-            var data = readableLog.Data;
+            var data = readableLog.DataText;
             textWriter.Write(" ln: "); textWriter.Write(data.Length); textWriter.Write('\n');
             bool newLineFound = false;
             for (int idx = 0; idx < data.Length; idx++) {

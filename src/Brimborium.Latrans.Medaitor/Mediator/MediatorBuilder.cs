@@ -194,7 +194,7 @@ namespace Brimborium.Latrans.Mediator {
             ObjectFactory factoryActivityContext,
             ObjectFactory factoryClientConnected
             ) AddServiceActivityContextType(ReqResHandler rt) {
-            var activityContextType = typeof(Brimborium.Latrans.Mediator.MediatorContext<,>).MakeGenericType(rt.RequestType, rt.ResponseType);
+            var activityContextType = typeof(Brimborium.Latrans.Mediator.MediatorContext<>).MakeGenericType(rt.RequestType);
 
             var factoryActivityContext = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateFactory(
                 activityContextType,

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Brimborium.Latrans.Activity {
@@ -22,6 +23,16 @@ namespace Brimborium.Latrans.Activity {
                 -1,
                 System.DateTime.UtcNow,
                 ActivityStatus.Completed);
+        }
+
+        public bool TryGetResult([MaybeNullWhen(false)] out object value) {
+            if (this.Result is object) {
+                value = this.Result;
+                return true;
+            } else {
+                value = default;
+                return false;
+            }
         }
     }
 
@@ -62,6 +73,6 @@ namespace Brimborium.Latrans.Activity {
             throw new NotImplementedException();
         }
 
-        Exception? IFailureActivityResponse.GetError() => this.Error;
+        public Exception? GetError() => this.Error;
     }
 }
