@@ -8,7 +8,10 @@ using System.Reflection;
 
 namespace Microsoft.Extensions.DependencyInjection {
     public static class MediatorDependencyInjectionExtensions {
-        public static MediatorBuilder AddLatransMedaitor(this IServiceCollection services, Action<IMediatorBuilder>? configure = null) {
+        public static MediatorBuilder AddLatransMedaitor(
+            this IServiceCollection services,
+            Action<IMediatorBuilder>? configure = null
+            ) {
             var builder = new MediatorBuilder();
             services.AddOptions<ActivityExecutionConfigurationOptions>();
             services.AddTransient<ActivityExecutionConfigurationDefaults>();

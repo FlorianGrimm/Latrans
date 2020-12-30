@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Brimborium.Latrans.IO {
+namespace Brimborium.Latrans.EventLog {
     public struct EventLogRecord {
         public ulong LgId { get; set; }
         public string? Key { get; set; }

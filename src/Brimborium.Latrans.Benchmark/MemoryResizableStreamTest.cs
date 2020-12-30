@@ -9,7 +9,9 @@ using System.Text;
 using BenchmarkDotNet.Attributes;
 
 using Brimborium.Latrans.Collections;
-using Brimborium.Latrans.IO;
+using Brimborium.Latrans.EventLog;
+using Brimborium.Latrans.Storeage;
+using Brimborium.Latrans.Storeage.Readable;
 
 namespace Benchmark {
     public class MemoryResizableStreamTest {

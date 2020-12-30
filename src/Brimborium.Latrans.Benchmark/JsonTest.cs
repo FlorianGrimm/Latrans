@@ -5,11 +5,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Runtime.Serialization;
 
 using BenchmarkDotNet.Attributes;
 
 using Brimborium.Latrans.Collections;
-using Brimborium.Latrans.IO;
+using Brimborium.Latrans.EventLog;
 
 using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftWindowsTCPIP;
 
@@ -98,12 +99,105 @@ namespace Benchmark {
             }
             //    sw.Close();
             //}
-
         }
+        [Benchmark]
+        public void SystemTextJsonReadWrite() {
+            //MemoryResizableStream memoryResizableStream = new MemoryResizableStream();
+            //using (var sw = new StreamWriter(memoryResizableStream)) {
+            for (int idx = 1; idx < cnt; idx++) {
+                var d = lstWriteDummy[idx - 1];
+
+                var json = System.Text.Json.JsonSerializer.Serialize<Dummy>(d);
+                if (json.Length < 10) { throw new Exception(); }
+                //var r = new EventLogRecord() {
+                //    LgId = (ulong)idx,
+                //    DT = dt.AddHours(idx),
+                //    Key = idx.ToString(),
+                //    TypeName = "D",
+                //    DataText = json
+                //};
+                ////lstWriteRL.Add(r);
+                //ReadableLogUtil.Write(r, sw);
+                var d2 = System.Text.Json.JsonSerializer.Deserialize<Dummy>(json);
+                if (d2 is null || d.Id != d2.Id) { throw new Exception(); }
+            }
+            //    sw.Close();
+            //}
+        }
+
+        [Benchmark]
+        public void MessagePackReadWrite() {
+            var resolver = MessagePack.Resolvers.CompositeResolver.Create(
+                new[] { MessagePack.Formatters.TypelessFormatter.Instance },
+                new[] { MessagePack.Resolvers.StandardResolver.Instance });
+            var options = MessagePack.MessagePackSerializerOptions.Standard;
+
+
+            //MemoryResizableStream memoryResizableStream = new MemoryResizableStream();
+            //using (var sw = new StreamWriter(memoryResizableStream)) {
+            for (int idx = 1; idx < cnt; idx++) {
+                var d = lstWriteDummy[idx - 1];
+                var json = MessagePack.MessagePackSerializer.Serialize<Dummy>(d, options);
+                if (json.Length < 10) { throw new Exception(); }
+                //var r = new EventLogRecord() {
+                //    LgId = (ulong)idx,
+                //    DT = dt.AddHours(idx),
+                //    Key = idx.ToString(),
+                //    TypeName = "D",
+                //    DataText = json
+                //};
+                ////lstWriteRL.Add(r);
+                //ReadableLogUtil.Write(r, sw);
+                var d2 = MessagePack.MessagePackSerializer.Deserialize<Dummy>(json, options);
+                if (d2 is null || d.Id != d2.Id) { throw new Exception(); }
+            }
+            //    sw.Close();
+            //}
+        }
+
+
+        [Benchmark]
+        public void MessagePackLZ4ReadWrite() {
+            var resolver = MessagePack.Resolvers.CompositeResolver.Create(
+                new[] { MessagePack.Formatters.TypelessFormatter.Instance },
+                new[] { MessagePack.Resolvers.StandardResolver.Instance });
+            var options = MessagePack.MessagePackSerializerOptions.Standard
+                .WithOmitAssemblyVersion(true)
+                .WithCompression(MessagePack.MessagePackCompression.Lz4Block)
+                .WithResolver(resolver)
+                ;
+
+
+            //MemoryResizableStream memoryResizableStream = new MemoryResizableStream();
+            //using (var sw = new StreamWriter(memoryResizableStream)) {
+            for (int idx = 1; idx < cnt; idx++) {
+                var d = lstWriteDummy[idx - 1];
+                var json = MessagePack.MessagePackSerializer.Serialize<Dummy>(d, options);
+                if (json.Length < 10) { throw new Exception(); }
+                //var r = new EventLogRecord() {
+                //    LgId = (ulong)idx,
+                //    DT = dt.AddHours(idx),
+                //    Key = idx.ToString(),
+                //    TypeName = "D",
+                //    DataText = json
+                //};
+                ////lstWriteRL.Add(r);
+                //ReadableLogUtil.Write(r, sw);
+                var d2 = MessagePack.MessagePackSerializer.Deserialize<Dummy>(json, options);
+                if (d2 is null || d.Id != d2.Id) { throw new Exception(); }
+            }
+            //    sw.Close();
+            //}
+        }
+        [DataContract]
         public class Dummy {
+            [DataMember(Order = 1)]
             public int Id { get; set; }
+            [DataMember(Order = 2)]
             public string A { get; set; }
+            [DataMember(Order = 3)]
             public Guid B { get; set; }
+            [DataMember(Order = 4)]
             public DateTime C { get; set; }
         }
     }

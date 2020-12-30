@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
-namespace Brimborium.Latrans.IO {
+namespace Brimborium.Latrans.EventLog {
     /// <summary>
     /// MemoryResizableTSStream is a resizable and threadsafe variant of MemoryStream 
     /// that uses a dynamic list of byte arrays as a backing store, instead of a single byte array, the allocation

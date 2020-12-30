@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using Xunit;
 using System.Collections.Generic;
 
-namespace Brimborium.Latrans.IO {
+namespace Brimborium.Latrans.EventLog {
     public class MemoryResizableStreamTests {
         
         //const int Cnt = 100_000;

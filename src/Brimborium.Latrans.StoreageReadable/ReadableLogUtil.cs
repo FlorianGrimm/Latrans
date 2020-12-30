@@ -3,18 +3,21 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Brimborium.Latrans.IO {
+using Brimborium.Latrans.EventLog;
+
+namespace Brimborium.Latrans.Storeage.Readable {
     public static class ReadableLogUtil {
         private static System.Globalization.CultureInfo? _InvariantCulture;
 
         public static void Read<TState>(
-                TextReader textReader, 
-                TState state, 
+                TextReader textReader,
+                TState state,
                 Action<TState, EventLogRecord> read
             ) {
             var invariantCulture = (_InvariantCulture ??= System.Globalization.CultureInfo.InvariantCulture);
             StringBuilder sbValue = new StringBuilder(4096);
-            var stringComparer = StringComparer.Ordinal;
+            // var stringComparer = StringComparer.Ordinal;
+
             int ch;
             EventLogRecord result = new EventLogRecord() {
                 LgId = 0,
@@ -277,23 +280,24 @@ namespace Brimborium.Latrans.IO {
                 textWriter.Write(" ty: "); textWriter.Write(readableLog.TypeName); textWriter.Write('\n');
             }
             var data = readableLog.DataText;
-            textWriter.Write(" ln: "); textWriter.Write(data.Length); textWriter.Write('\n');
-            bool newLineFound = false;
-            for (int idx = 0; idx < data.Length; idx++) {
-                char ch = data[idx];
-                if ((ch == '\r') || (ch == '\n')) {
-                    newLineFound = true;
-                    break;
+            if (data is object) {
+                textWriter.Write(" ln: "); textWriter.Write(data.Length); textWriter.Write('\n');
+                bool newLineFound = false;
+                for (int idx = 0; idx < data.Length; idx++) {
+                    char ch = data[idx];
+                    if ((ch == '\r') || (ch == '\n')) {
+                        newLineFound = true;
+                        break;
+                    }
+                }
+                if (newLineFound) {
+                    textWriter.Write(" da: |"); textWriter.Write('\n');
+                    var dataLines = data.Replace("\n", "\n  ");
+                    textWriter.Write("  "); textWriter.Write(dataLines); textWriter.Write('\n');
+                } else {
+                    textWriter.Write(" da: "); textWriter.Write(data); textWriter.Write('\n');
                 }
             }
-            if (newLineFound) {
-                textWriter.Write(" da: |"); textWriter.Write('\n');
-                var dataLines = data.Replace("\n", "\n  ");
-                textWriter.Write("  "); textWriter.Write(dataLines); textWriter.Write('\n');
-            } else {
-                textWriter.Write(" da: "); textWriter.Write(data); textWriter.Write('\n');
-            }
-
         }
     }
 }

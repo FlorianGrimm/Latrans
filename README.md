@@ -9,6 +9,7 @@ Experimental WebApp
 benchmark
 
 #setup
+
 ```
 dotnet new "Benchmark Project" -n Brimborium.Latrans.Benchmark  -o src\Brimborium.Latrans.Benchmark 
 dotnet sln add src\Brimborium.Latrans.Benchmark 
@@ -30,6 +31,12 @@ dotnet sln add src\Brimborium.Latrans.Medaitor.AspNetCore
 
 dotnet new xunit -n Brimborium.Latrans.Medaitor.AspNetCore.Test -o src\Brimborium.Latrans.Medaitor.AspNetCore.Test
 dotnet sln add src\Brimborium.Latrans.Medaitor.AspNetCore.Test
+
+dotnet new classlib -n Brimborium.Latrans.StoreageReadable -o src\Brimborium.Latrans.StoreageReadable
+dotnet sln add src\Brimborium.Latrans.StoreageReadable
+
+dotnet new xunit -n Brimborium.Latrans.StoreageReadable.Test -o src\Brimborium.Latrans.StoreageReadable.Test
+dotnet sln add src\Brimborium.Latrans.StoreageReadable.Test
 
 dotnet new classlib -n Brimborium.Latrans.StoreageFASTER -o src\Brimborium.Latrans.StoreageFASTER
 dotnet sln add src\Brimborium.Latrans.StoreageFASTER
