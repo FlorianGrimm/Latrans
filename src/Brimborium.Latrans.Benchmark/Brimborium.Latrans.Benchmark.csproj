@@ -23,7 +23,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Brimborium.Latrans.Contracts\Brimborium.Latrans.Contracts.csproj" />
     <ProjectReference Include="..\Brimborium.Latrans.StoreageFASTER\Brimborium.Latrans.StoreageFASTER.csproj" />
-    <ProjectReference Include="..\Brimborium.Latrans.StoreageReadable\Brimborium.Latrans.StoreageReadable.csproj" />
-    <ProjectReference Include="..\Brimborium.Latrans.Utility\Brimborium.Latrans.Utility.csproj" />
   </ItemGroup>
 </Project>

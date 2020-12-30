@@ -1,4 +1,6 @@
-﻿using Brimborium.Latrans.Contracts;
+﻿#nullable enable
+
+using Brimborium.Latrans.Contracts;
 using Brimborium.Latrans.EventLog;
 using Brimborium.Latrans.Utility;
 

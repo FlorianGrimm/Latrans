@@ -114,7 +114,7 @@ namespace Benchmark {
 
         public class Dummy {
             public int Id { get; set; }
-            public string A { get; set; }
+            public string? A { get; set; }
             public Guid B { get; set; }
             public DateTime C { get; set; }
         }

@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Brimborium.Latrans.Contracts\Brimborium.Latrans.Contracts.csproj" />
-    <ProjectReference Include="..\Brimborium.Latrans.Utility\Brimborium.Latrans.Utility.csproj" />
+    <ProjectReference Include="..\Brimborium.Latrans.Medaitor\Brimborium.Latrans.Medaitor.csproj" />
   </ItemGroup>
 
 </Project>

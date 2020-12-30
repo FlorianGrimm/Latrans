@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
+    <Nullable>disable</Nullable>
     <LangVersion>Latest</LangVersion>
-    <Nullable>enable</Nullable>
     <AssemblyName>Brimborium.Latrans.StoreageFASTER</AssemblyName>
   </PropertyGroup>
 
@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Brimborium.Latrans.Contracts\Brimborium.Latrans.Contracts.csproj" />
-    <ProjectReference Include="..\Brimborium.Latrans.Utility\Brimborium.Latrans.Utility.csproj" />
+    <ProjectReference Include="..\Brimborium.Latrans.Medaitor\Brimborium.Latrans.Medaitor.csproj" />
   </ItemGroup>
 
 </Project>

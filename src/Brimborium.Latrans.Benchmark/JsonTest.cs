@@ -194,7 +194,7 @@ namespace Benchmark {
             [DataMember(Order = 1)]
             public int Id { get; set; }
             [DataMember(Order = 2)]
-            public string A { get; set; }
+            public string? A { get; set; }
             [DataMember(Order = 3)]
             public Guid B { get; set; }
             [DataMember(Order = 4)]
