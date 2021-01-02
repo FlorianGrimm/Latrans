@@ -335,7 +335,6 @@ namespace Brimborium.Latrans.Storeage.Readable {
                     w.WriteRaw(10);
                 }
             }
-            //stream.Write(w.Buffer.AsSpan());
             stream.Write(w.AsSpan());
         }
     }
