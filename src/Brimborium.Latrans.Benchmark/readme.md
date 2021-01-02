@@ -12,6 +12,9 @@ dotnet run -c Release --project src\Brimborium.Latrans.Benchmark --runtimes netc
 
 dotnet run -c Release --project src\Brimborium.Latrans.Benchmark --runtimes netcoreapp31 --memory --filter *JsonTest* --warmupCount 1 --iterationCount 1 --invocationCount 16
 
+dotnet run -c Release --project src\Brimborium.Latrans.Benchmark --runtimes netcoreapp31 --memory --filter *EventLogReadable* --warmupCount 1 --iterationCount 1 --invocationCount 16
+
+
 ```
 
 

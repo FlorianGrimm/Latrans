@@ -1,18 +1,8 @@
-﻿using System;
+﻿using BenchmarkDotNet.Attributes;
+
+using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Runtime.Serialization;
-
-using BenchmarkDotNet.Attributes;
-
-using Brimborium.Latrans.Collections;
-using Brimborium.Latrans.EventLog;
-
-using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftWindowsTCPIP;
 
 namespace Benchmark {
     public class JsonTest {
@@ -31,6 +21,7 @@ namespace Benchmark {
             dt = new DateTime(2000, 1, 1);
             //txtWriteNewtonsoftStream = "";
         }
+
         [GlobalSetup]
         public void GlobalSetup() {
             lstWriteDummy = new List<Dummy>(cnt);
@@ -76,6 +67,7 @@ namespace Benchmark {
             //    sw.Close();
             //}
         }
+
         [Benchmark]
         public void Utf8JsonReadWrite() {
             //MemoryResizableStream memoryResizableStream = new MemoryResizableStream();
@@ -189,6 +181,7 @@ namespace Benchmark {
             //    sw.Close();
             //}
         }
+
         [DataContract]
         public class Dummy {
             [DataMember(Order = 1)]
