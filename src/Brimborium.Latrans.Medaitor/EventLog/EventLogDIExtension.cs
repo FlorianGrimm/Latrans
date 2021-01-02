@@ -16,6 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection {
             this IServiceCollection services
             ) {
             services.AddTransient<IEventLogStorageDispatcher, EventLogStorageDispatcher>();
+            services.AddLatransUtility();
         }
     }
 }

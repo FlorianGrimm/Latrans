@@ -2,5 +2,4 @@
     public interface ISystemClock {
         System.DateTime UtcNow { get; }
     }
-   
 }

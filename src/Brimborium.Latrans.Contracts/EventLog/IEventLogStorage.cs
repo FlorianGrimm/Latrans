@@ -1,11 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.EventLog {
     public class EventLogStorageOptions {
+        public EventLogStorageOptions() {
+            this.Implementation = "";
+            this.BaseFolder = "";
+        }
+
         public string Implementation { get; set; }
+
         public string BaseFolder { get; set; }
     }
 
@@ -18,8 +22,9 @@ namespace Brimborium.Latrans.EventLog {
         Task<IEventLogStorage?> CreateAsync(EventLogStorageOptions options);
     }
 
-    public interface IEventLogStorage {
-        Task WriteAsync(EventLogRecord eventLogRecord);
+    public interface IEventLogStorage : IDisposable {
+        void Write(EventLogRecord eventLogRecord);
+        //Task WriteAsync(EventLogRecord eventLogRecord);
         Task ReadAsync(Action<EventLogRecord> callback);
     }
 }

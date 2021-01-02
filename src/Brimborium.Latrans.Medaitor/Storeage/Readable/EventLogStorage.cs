@@ -1,143 +1,218 @@
 ﻿using Brimborium.Latrans.Contracts;
 using Brimborium.Latrans.EventLog;
-using Brimborium.Latrans.Utility;
 using Brimborium.Latrans.IO;
+using Brimborium.Latrans.Utility;
 
 using System;
-using System.IO;
-using System.Threading.Tasks;
-using System.Linq;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Principal;
-
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+// EventLogRecordReadable
 namespace Brimborium.Latrans.Storeage.Readable {
-    public class EventLogStorage
-        : IEventLogStorage {
-        public static async Task<IEventLogStorage?> CreateAsync(
+    public sealed class EventLogStorage
+        : IEventLogStorage
+        , IDisposable {
+        public const string FileNamePattern = "log-{dtPart}{version}.log";
+
+        public static Task<IEventLogStorage?> CreateAsync(
             EventLogStorageOptions options,
             ILocalFileSystem? localFileSystem = default,
             ISystemClock? systemClock = default) {
             var result = new EventLogStorage(options, localFileSystem, systemClock);
-            await result.InitializeAsync();
-            return result;
+            result.Initialize();
+            //await result.InitializeAsync();
+            return Task.FromResult<IEventLogStorage?>(result);
         }
 
         private readonly string _BaseFolder;
         private readonly ILocalFileSystem _LocalFileSystem;
         private readonly ISystemClock _SystemClock;
-        private string? _DtName;
-        private string? _FilePath;
-        private Stream? _File;
-        private ReaderWriterLock _Lock;
+        private AsyncQueue _LastWrite;
+        private EventLogStorageFileBase? _StorageFile;
+
+        //private string? _DtPart;
+        private int _IsDisposed;
 
         public EventLogStorage(
             EventLogStorageOptions options,
             ILocalFileSystem? localFileSystem = default,
-            ISystemClock? systemClock = default) {
+            ISystemClock? systemClock = default
+            ) {
             this._BaseFolder = options.BaseFolder;
             this._LocalFileSystem = localFileSystem ?? new LocalFileSystem();
             this._SystemClock = systemClock ?? new SystemClock();
-            this._Lock = new ReaderWriterLock();
+            this._LastWrite = AsyncQueue.Create();
         }
 
-        public Task InitializeAsync() {
-            if (System.IO.Directory.Exists(this._BaseFolder)) {
-                return Task.CompletedTask;
-            } else {
+        public void Initialize() {
+            if (!System.IO.Directory.Exists(this._BaseFolder)) {
                 System.IO.Directory.CreateDirectory(this._BaseFolder);
-                return Task.CompletedTask;
+            }
+
+            var utcNow = this._SystemClock.UtcNow;
+            //var dtPart = utcNow.ToString("dd-HH");
+            var storageFile = this.EnsureStorageFile(utcNow, null);
+            if (storageFile is object) {
+                storageFile.Initialize();
+                this._StorageFile = storageFile;
             }
         }
 
         public Task ReadAsync(Action<EventLogRecord> callback) {
             throw new NotImplementedException();
         }
-
-        public Task WriteAsync(EventLogRecord eventLogRecord) {
+        public void Write(EventLogRecord eventLogRecord) {
+            if (eventLogRecord.DT == System.DateTime.MinValue) {
+                eventLogRecord.DT = this._SystemClock.UtcNow;
+            }
+            var utcNow = eventLogRecord.DT;
             if ((eventLogRecord.DataObject is object)
                 && (eventLogRecord.DataByte == null)
                 && string.IsNullOrEmpty(eventLogRecord.DataText)) {
                 eventLogRecord.DataByte = Utf8Json.JsonSerializer.Serialize(eventLogRecord.DataObject);
             }
-            var utcNow = this._SystemClock.UtcNow;
-            
-            try {
-                this._Lock.AcquireReaderLock(TimeSpan.FromMinutes(5));
-                try {
-                    var file = this.EnsureFile(utcNow, this.sideEffectEnsureFile);
-                    if (file is object) {
-                        ReadableLogUtil.WriteUtf8(eventLogRecord, file);
-                    }
-                } finally {
-                    this._Lock.ReleaseReaderLock();
+            var storageFile = this._StorageFile;
+            var nextStorageFile = this.EnsureStorageFile(utcNow, storageFile);
+            if (nextStorageFile is object) {
+                nextStorageFile.Initialize();
+                
+                var oldStorageFile = System.Threading.Interlocked.CompareExchange(
+                    ref this._StorageFile,
+                        nextStorageFile,
+                        storageFile);
+                nextStorageFile.Write(eventLogRecord);
+                if (ReferenceEquals(oldStorageFile, storageFile)) {
+                    this._LastWrite.Next((innerState) => {
+                        innerState?.Dispose();
+                        return Task.CompletedTask;
+                    }, storageFile);
                 }
-            } catch (ApplicationException) {
+                    
+            } else if (storageFile is object) {
+                storageFile.Write(eventLogRecord);
             }
-            return Task.CompletedTask;
         }
 
-        public Stream? EnsureFile(DateTime utcNow, Func<string, FileMode, List<string>?, Stream?> sideEffect) {
-            var dtName = utcNow.ToString("dd-HH");
-
-            if (!string.IsNullOrEmpty(this._FilePath)
-                && string.Equals(this._DtName, dtName, StringComparison.Ordinal)
-                && (this._File is object)) {
-                return this._File;
-            } else {
-                lock (this) {
-                    if (!string.IsNullOrEmpty(this._FilePath)
-                        && string.Equals(this._DtName, dtName, StringComparison.Ordinal)
-                        && (this._File is object)) {
-                        return this._File;
-                    } else {
-                        System.Threading.Volatile.Write(ref this._DtName, dtName);
-                        var (filePath, fileMode, filesToDelete) = GetNextFileName(utcNow, dtName);
-                        this._FilePath = filePath;
-                        var file = sideEffect(filePath, fileMode, filesToDelete);
-                        var oldFile = System.Threading.Interlocked.Exchange(ref this._File, file);
-                        if (oldFile is object) {
-                            try {
-                                oldFile.Flush();
-                                oldFile.Dispose();
-                            } catch { }
+#if false
+        public async Task WriteAsync(EventLogRecord eventLogRecord) {
+            if (eventLogRecord.DT == System.DateTime.MinValue) {
+                eventLogRecord.DT = this._SystemClock.UtcNow;
+            }
+            var utcNow = eventLogRecord.DT;
+            if ((eventLogRecord.DataObject is object)
+                && (eventLogRecord.DataByte == null)
+                && string.IsNullOrEmpty(eventLogRecord.DataText)) {
+                eventLogRecord.DataByte = Utf8Json.JsonSerializer.Serialize(eventLogRecord.DataObject);
+            }
+            var storageFile = this._StorageFile;
+            var nextStorageFile = this.EnsureStorageFile(utcNow, storageFile);
+            if (nextStorageFile is object) {
+                this._LastWrite.Next(
+                    async (state) => {
+                        await nextStorageFile.InitializeAsync();
+                        var oldStorageFile = System.Threading.Interlocked.CompareExchange(
+                            ref this._StorageFile,
+                                state.nextStorageFile,
+                                state.storageFile);
+                        await nextStorageFile.WriteAsync(eventLogRecord);
+                        if (ReferenceEquals(oldStorageFile, state.storageFile)) {
+                            this._LastWrite.Next((innerState) => {
+                                innerState?.Dispose();
+                                return Task.CompletedTask;
+                            }, storageFile);
                         }
-                        return file;
-                    }
-                }
+                    },
+                    (storageFile, nextStorageFile, eventLogRecord)
+                    );
+            } else if (storageFile is object) {
+                this._LastWrite.Next(
+                    async (state) => {
+                        await state.storageFile.WriteAsync(state.eventLogRecord);
+                    },
+                    (storageFile, eventLogRecord)
+                    );
             }
         }
-        private Stream? sideEffectEnsureFile(string filePath, FileMode fileMode, List<string>? filesToDelete) {
-            var file = System.IO.File.Open(filePath, fileMode, FileAccess.Read);
-            if (filesToDelete is object) {
-                foreach (var fileToDelete in filesToDelete) {
-                    try {
-                        this._LocalFileSystem.FileDelete(fileToDelete);
-                    } catch {
+#endif
+
+        public EventLogStorageFileBase? EnsureStorageFile(
+                DateTime utcNow,
+                EventLogStorageFileBase? storageFile
+            ) {
+            var dtPart = utcNow.ToString("dd-HH");
+            if ((storageFile is object)
+                && (string.Equals(dtPart, storageFile.DtPart, StringComparison.Ordinal))
+                ) {
+                return null;
+            } else {
+                string filePath;
+                FileMode fileMode;
+                int nbrVersion = 0;
+                while (true) {
+                    string txtVersion = (nbrVersion == 0) ? string.Empty : $"-{nbrVersion}";
+                    var fileName = FileNamePattern
+                        .Replace("{dtPart}", dtPart)
+                        .Replace("{version}", txtVersion)
+                        ;
+
+                    filePath = System.IO.Path.Combine(this._BaseFolder, fileName);
+
+                    if (this._LocalFileSystem.FileExists(filePath)) {
+                        var lastWriteTimeUtc = this._LocalFileSystem.FileGetLastWriteTimeUtc(filePath);
+                        if (utcNow.Subtract(lastWriteTimeUtc).TotalMinutes > 60) {
+                            fileMode = FileMode.OpenOrCreate;
+                            break;
+                        } else {
+                            nbrVersion++;
+                            continue;
+                        }
+                    } else {
+                        fileMode = FileMode.Create;
+                        break;
                     }
                 }
+                List<string>? filesToDelete = null;
+                if (nbrVersion == 0) {
+                    var pattern = FileNamePattern
+                        .Replace("{dtPart}", dtPart)
+                        .Replace("{version}", "-")
+                        ;
+                    filesToDelete = new List<string>(
+                            this._LocalFileSystem.EnumerateFiles(this._BaseFolder, pattern, new EnumerationOptions() { })
+                        );
+                }
+                return new EventLogStorageFile(
+                        dtPart,
+                        nbrVersion,
+                        filePath,
+                        fileMode,
+                        filesToDelete,
+                        this._LocalFileSystem,
+                        this._SystemClock
+                    );
             }
-            return file;
         }
 
+#if false
         public (
-                string filePath,
-                FileMode fileMode,
-                List<string>? filesToDelete
-            ) GetNextFileName(
-                DateTime utcNow,
-                string dtName
-            ) {
+            string filePath,
+            int nbrVersion,
+            FileMode fileMode,
+            List<string>? filesToDelete
+        ) GetNextFileName(
+            DateTime utcNow,
+            string dtPart
+        ) {
             string filePath;
-            this._DtName = dtName;
+            this._DtPart = dtPart;
             FileMode fileMode = FileMode.Create;
             int nbrVersion = 0;
             while (true) {
                 string txtVersion = (nbrVersion == 0) ? string.Empty : $"-{nbrVersion}";
-                var fileName = "log-{dtName}{version}.log"
-                    .Replace("{dtName}", dtName)
+                var fileName = "log-{dtPart}{version}.log"
+                    .Replace("{dtPart}", dtPart)
                     .Replace("{version}", txtVersion)
                     ;
 
@@ -161,70 +236,36 @@ namespace Brimborium.Latrans.Storeage.Readable {
             }
             List<string>? filesToDelete = null;
             if (nbrVersion == 0) {
-                var pattern = "log-{dtName}{version}.log"
-                    .Replace("{dtName}", dtName)
+                var pattern = "log-{dtPart}{version}.log"
+                    .Replace("{dtPart}", dtPart)
                     .Replace("{version}", "-")
                     ;
                 filesToDelete = new List<string>(
                         this._LocalFileSystem.EnumerateFiles(this._BaseFolder, pattern, new EnumerationOptions() { })
                     );
             }
-            return (filePath, fileMode, filesToDelete);
+            return (filePath, nbrVersion, fileMode, filesToDelete);
         }
-    }
-
-    public class ReferenceCount<T>
-        :IDisposable
-        where T:class, IDisposable
-        {
-        private int _Shared;
-        private T? _Instance;
-        private ReferenceCount<T>? _Parent;
-
-        public ReferenceCount(T instance) {
-            this._Instance = instance;
-        }
-
-        private ReferenceCount(ReferenceCount<T> parent) {
-            this._Parent = parent;
-            this._Instance = parent._Instance;
-        }
-
-        public bool TryGetInstance([MaybeNullWhen(false)]out T instance) {
-            if (this._Instance is object) {
-                instance = this._Instance;
-                return true;
-            } else {
-                instance = default;
-                return false;
-            }
-        }
-
-        public ReferenceCount<T> Share() {
-            System.Threading.Interlocked.Increment(this._Shared);
-            return new ReferenceCount<T>(this);
-        }
+#endif
 
         private void Dispose(bool disposing) {
-            if (this._Parent is null) {
-                var oldInstance = System.Threading.Interlocked.Exchange(ref this._Instance, null);
-                if (oldInstance is object) {
-                    if (disposing) {
-                    } else {
+            if (0 == System.Threading.Interlocked.Exchange(ref this._IsDisposed, 1)) {
+                if (disposing) {
+                    using (var storageFile = this._StorageFile) {
+                        this._StorageFile = null;
                     }
-                }
-            } else {
-                var oldInstance = System.Threading.Interlocked.Exchange(ref this._Instance, null);
-                if (oldInstance is object) {
-                    if (disposing) {
-                    } else {
+                } else {
+                    try {
+                        using (var storageFile = this._StorageFile) {
+                            this._StorageFile = null;
+                        }
+                    } catch { 
                     }
                 }
             }
-            
         }
 
-        ~ReferenceCount() {
+        ~EventLogStorage() {
             this.Dispose(disposing: false);
         }
 
@@ -232,5 +273,152 @@ namespace Brimborium.Latrans.Storeage.Readable {
             this.Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+    }
+
+    public class EventLogStorageFileBase
+        : IDisposable {
+        protected int _IsDisposed;
+        protected readonly string _DtPart;
+        protected readonly int _NbrVersion;
+        protected readonly string _FilePath;
+        protected readonly FileMode _FileMode;
+        protected List<string>? _FilesToDelete;
+        protected FileStream? _Stream;
+        protected readonly ILocalFileSystem _LocalFileSystem;
+        protected readonly ISystemClock _SystemClock;
+
+        public EventLogStorageFileBase(
+                string dtPart,
+                int nbrVersion,
+                string filePath,
+                FileMode fileMode,
+                List<string>? filesToDelete,
+                ILocalFileSystem localFileSystem,
+                ISystemClock systemClock
+            ) {
+            this._DtPart = dtPart;
+            this._NbrVersion = nbrVersion;
+            this._FilePath = filePath;
+            this._FileMode = fileMode;
+            this._FilesToDelete = filesToDelete;
+            this._LocalFileSystem = localFileSystem;
+            this._SystemClock = systemClock;
+        }
+
+        public string DtPart => this._DtPart;
+        public int NbrVersion => this._NbrVersion;
+        public string FilePath => this._FilePath;
+        public FileMode FileMode => this._FileMode;
+        public List<string>? FilesToDelete => this._FilesToDelete;
+
+
+        public virtual void Initialize() { }
+        public virtual Task ReadAsync(Action<EventLogRecord> callback) { return Task.CompletedTask; }
+        public virtual void Write(EventLogRecord eventLogRecord) { }
+
+        private void Dispose(bool disposing) {
+            if (0 == System.Threading.Interlocked.Exchange(ref this._IsDisposed, 1)) {
+                if (disposing) {
+                    using (var stream = this._Stream) {
+                        stream?.Flush();
+                        this._Stream = null;
+                    }
+                } else {
+                    try {
+                        using (var stream = this._Stream) {
+                            stream?.Flush();
+                            this._Stream = null;
+                        }
+                    } catch {
+                    }
+                }
+            }
+        }
+
+        ~EventLogStorageFileBase() {
+            this.Dispose(disposing: false);
+        }
+
+        public void Dispose() {
+            this.Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+    }
+    public sealed class EventLogStorageFile
+    : EventLogStorageFileBase {
+
+        public EventLogStorageFile(
+                string dtPart,
+                int nbrVersion,
+                string filePath,
+                FileMode fileMode,
+                List<string>? filesToDelete,
+                ILocalFileSystem localFileSystem,
+                ISystemClock systemClock
+            ) : base(
+                dtPart,
+                nbrVersion,
+                filePath,
+                fileMode,
+                filesToDelete,
+                localFileSystem,
+                systemClock
+            ) {
+        }
+
+        public override void Initialize() {
+            if (this._FileMode == FileMode.Create) {
+                this._Stream = System.IO.File.Open(this._FilePath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read);
+            } else {
+                var stream = System.IO.File.Open(this._FilePath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read);
+                stream.SetLength(0);
+                this._Stream = stream;
+            }
+            var filesToDelete = System.Threading.Interlocked.Exchange(ref this._FilesToDelete, null);
+            if (filesToDelete is object) {
+                foreach (var fileToDelete in filesToDelete) {
+                    try {
+                        this._LocalFileSystem.FileDelete(fileToDelete);
+                    } catch {
+                    }
+                }
+            }
+        }
+
+        public override Task ReadAsync(Action<EventLogRecord> callback) {
+            throw new NotImplementedException();
+        }
+
+        public override void Write(EventLogRecord eventLogRecord) {
+            if ((eventLogRecord.DataObject is object)
+                && (eventLogRecord.DataByte == null)
+                && string.IsNullOrEmpty(eventLogRecord.DataText)) {
+                eventLogRecord.DataByte = Utf8Json.JsonSerializer.Serialize(eventLogRecord.DataObject);
+            }
+
+            var stream = this._Stream;
+            if (stream is object) {
+                ReadableLogUtil.WriteUtf8(eventLogRecord, stream);
+                //stream.Flush();
+            }
+        }
+
+#if false
+        public override Task WriteAsync(EventLogRecord eventLogRecord) {
+            if ((eventLogRecord.DataObject is object)
+                && (eventLogRecord.DataByte == null)
+                && string.IsNullOrEmpty(eventLogRecord.DataText)) {
+                eventLogRecord.DataByte = Utf8Json.JsonSerializer.Serialize(eventLogRecord.DataObject);
+            }
+
+            var stream = this._Stream;
+            if (stream is object) {
+                ReadableLogUtil.WriteUtf8(eventLogRecord, stream);
+            }
+
+            return Task.CompletedTask;
+        }
+#endif
     }
 }

@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-
-using Brimborium.Latrans.EventLog;
-
+﻿using Brimborium.Latrans.EventLog;
 using Brimborium.Latrans.Storeage.Readable;
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using System.Linq;
 
 namespace Microsoft.Extensions.DependencyInjection {
     public static class StoreageReadableDIExtension {
