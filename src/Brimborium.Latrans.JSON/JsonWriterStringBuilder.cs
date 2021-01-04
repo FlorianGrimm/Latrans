@@ -124,6 +124,10 @@ namespace Brimborium.Latrans.JSON {
             throw new NotImplementedException();
         }
 
+        public override void WriteStartProperty(JsonSerializationInfo jsonSerializationInfo, int key) {
+            throw new NotImplementedException();
+        }
+
         public override void WriteString(string value) {
             throw new NotImplementedException();
         }

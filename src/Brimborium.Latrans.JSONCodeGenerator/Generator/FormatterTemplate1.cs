@@ -1,9 +1,6 @@
 ﻿#nullable disable
 namespace Brimborium.Latrans.JSONCodeGenerator {
     using System.Linq;
-    using System.Text;
-    using System.Collections.Generic;
-    using System;
 
     /// <summary>
     /// Class to produce the template output
@@ -28,11 +25,9 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
             this.Write("\r\n");
             this.Write("{\r\n");
             this.Write("    using System;\r\n");
-            //this.Write("    using Utf8Json;\r\n");
             this.Write("\r\n");
 
             foreach (var objInfo in this.objectSerializationInfos) {
-
                 this.Write("\r\n");
                 this.Write("    public sealed class ");
 
@@ -46,6 +41,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
                 this.Write("    {\r\n");
                 this.Write("        readonly global::Brimborium.Latrans.JSON.Internal.AutomataDictionary ____keyMapping;\r\n");
                 this.Write("        readonly byte[][] ____stringByteKeys;\r\n");
+                this.Write("        private readonly global::Brimborium.Latrans.JSON.JsonSerializationInfo ____JsonSerializationInfo;\r\n");
                 this.Write("\r\n");
                 this.Write("        public ");
 
@@ -53,53 +49,19 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
 
                 this.Write("Formatter()\r\n");
                 this.Write("        {\r\n");
-                this.Write("            this.____keyMapping = new global::Brimborium.Latrans.JSON.Internal.AutomataDictionary()\r\n");
-                this.Write("            {\r\n");
-
-                var index = 0;
-                foreach (var x in objInfo.Members.Where(x=>!x.IsIgnored)) {
-
-                    this.Write("                { JsonWriter.GetEncodedPropertyNameWithoutQuotation(\"");
-
+                this.Write("            this.____JsonSerializationInfo = (new global::Brimborium.Latrans.JSON.JsonSerializationInfoBuilder())\r\n");
+                foreach (var x in objInfo.GetMembers()) {
+                    this.Write("                .Add(\"");
                     this.Write(this.ToStringHelper.ToStringWithCulture(x.Name));
-
-                    this.Write("\"), ");
-
-                    this.Write(this.ToStringHelper.ToStringWithCulture(index++));
-
-                    this.Write("},\r\n");
-
+                    this.Write("\", ");
+                    this.Write(this.ToStringHelper.ToStringWithCulture(x.Order));
+                    this.Write(", ");
+                    this.Write(x.IsReadable?"true":"false");
+                    this.Write(", ");
+                    this.Write(x.IsWritable?"true":"false");
+                    this.Write(")\r\n");
                 }
-
-                this.Write("            };\r\n");
-                this.Write("\r\n");
-                this.Write("            this.____stringByteKeys = new byte[][]\r\n");
-                this.Write("            {\r\n");
-
-                index = 0;
-                foreach (var x in objInfo.Members.Where(x => !x.IsIgnored && x.IsReadable)) {
-
-                    if (index++ == 0) {
-
-                        this.Write("                JsonWriter.GetEncodedPropertyNameWithBeginObject(\"");
-
-                        this.Write(this.ToStringHelper.ToStringWithCulture(x.Name));
-
-                        this.Write("\"),\r\n");
-
-                    } else {
-
-                        this.Write("                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator(\"");
-
-                        this.Write(this.ToStringHelper.ToStringWithCulture(x.Name));
-
-                        this.Write("\"),\r\n");
-
-                    }
-                }
-
-                this.Write("                \r\n");
-                this.Write("            };\r\n");
+                this.Write("                .Build();\r\n");
                 this.Write("        }\r\n");
                 this.Write("\r\n");
                 this.Write("        public void Serialize(global::Brimborium.Latrans.JSON.JsonWriter writer, ");
@@ -121,22 +83,27 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
 
                 this.Write("            \r\n");
                 this.Write("\r\n");
+                
+                this.Write("            writer.WriteBeginObject();\r\n");
 
-                index = 0;
-                foreach (var x in objInfo.Members.Where(x => x.IsReadable)) {
+                // index = 0;
+                foreach (var x in objInfo.GetMembers()) {
+                    if (x.IsReadable) {
+                        this.Write("            writer.WriteStartProperty(this.____JsonSerializationInfo,");
+                        this.Write(this.ToStringHelper.ToStringWithCulture(x.Order));
+                        this.Write(");\r\n");
 
-                    this.Write("            writer.WriteRaw(this.____stringByteKeys[");
-
-                    this.Write(this.ToStringHelper.ToStringWithCulture(index++));
-
-                    this.Write("]);");
-                    this.Write("\r\n            ");
-
-                    this.Write(this.ToStringHelper.ToStringWithCulture(x.GetSerializeMethodString()));
-
-                    this.Write(";\r\n");
-
+                        this.Write("            ");
+                        this.Write(this.ToStringHelper.ToStringWithCulture(x.GetSerializeMethodString()));
+                        this.Write(";\r\n");
+                    } else {
+                        this.Write("            // ");
+                        this.Write(this.ToStringHelper.ToStringWithCulture(x.Order));
+                        this.Write("\r\n");
+                    }
                 }
+
+                //writer.WritePropertyName(this.____JsonSerializationInfo, 0);
 
                 this.Write("            \r\n");
                 this.Write("            writer.WriteEndObject();\r\n");
@@ -158,7 +125,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
 
                 if (!objInfo.HasConstructor) {
                     this.Write("            \r\n");
-                    this.Write("            throw new InvalidOperationException(" + 
+                    this.Write("            throw new InvalidOperationException(" +
                             "\"generated serializer for IInterface does not support deserialize.\");\r\n");
                 } else {
                     this.Write("\r\n");
@@ -168,29 +135,42 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
                         this.Write("__ = default(");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.Type));
                         this.Write(");\r\n");
+
                         this.Write("            var __");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.MemberName));
                         this.Write("__b__ = false;\r\n");
                     }
-                    this.Write(@"
-            var ____count = 0;
-            reader.ReadIsBeginObjectWithVerify();
+                    this.Write("            var ____count = 0;\r\n");
+                    this.Write("            reader.ReadIsBeginObjectWithVerify();\r\n");
+                    this.Write(@"            //
             while (!reader.ReadIsEndObjectWithSkipValueSeparator(ref ____count))
-            {
+            {");
+
+#if false
+                    this.Write(@"
                 var stringKey = reader.ReadPropertyNameSegmentRaw();
                 int key;
                 if (!____keyMapping.TryGetValueSafe(stringKey, out key))
                 {
                     reader.ReadNextBlock();
                     goto NEXT_LOOP;
-                }
-
+                }");
+#else
+                    this.Write(@"
+                int key;
+                if (reader.TryGetParameterValue(this.____JsonSerializationInfo, out key))
+                {
+                    reader.ReadNextBlock();
+                    goto NEXT_LOOP;
+                }");
+#endif
+                    this.Write(@"
                 switch (key)
                 {
 ");
-                    index = 0; foreach (var x in objInfo.Members) {
+                    foreach (var x in objInfo.Members) {
                         this.Write("                    case ");
-                        this.Write(this.ToStringHelper.ToStringWithCulture(index++));
+                        this.Write(this.ToStringHelper.ToStringWithCulture(x.Order));
                         this.Write(":\r\n");
                         this.Write("                        __");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.MemberName));
@@ -213,14 +193,14 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
                     this.Write("            var ____result = new ");
                     this.Write(this.ToStringHelper.ToStringWithCulture(objInfo.GetConstructorString()));
                     this.Write(";\r\n");
-                    foreach (var x in objInfo.Members.Where(x => x.IsWritable)) {
+                    foreach (var x in objInfo.GetMembers().Where(x => x.IsWritable && !x.IsConstructorParameter)) {
                         this.Write("            if(__");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.MemberName));
-                        this.Write("__b__) ____result.");
+                        this.Write("__b__) { ____result.");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.MemberName));
                         this.Write(" = __");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.MemberName));
-                        this.Write("__;\r\n");
+                        this.Write("__; }\r\n");
                     }
                     this.Write("\r\n");
                     this.Write("            return ____result;\r\n");
@@ -240,21 +220,21 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
         }
     }
 
-    #region Base class
+#region Base class
     /// <summary>
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
     public class FormatterTemplateBase {
-        #region Fields
+#region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;
         private global::System.CodeDom.Compiler.CompilerErrorCollection errorsField;
         private global::System.Collections.Generic.List<int> indentLengthsField;
         private string currentIndentField = "";
         private bool endsWithNewline;
         private global::System.Collections.Generic.IDictionary<string, object> sessionField;
-        #endregion
-        #region Properties
+#endregion
+#region Properties
         /// <summary>
         /// The string builder that generation-time code is using to assemble generated output
         /// </summary>
@@ -310,8 +290,8 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
                 this.sessionField = value;
             }
         }
-        #endregion
-        #region Transform-time helpers
+#endregion
+#region Transform-time helpers
         /// <summary>
         /// Write text directly into the generated output
         /// </summary>
@@ -415,8 +395,8 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
             this.indentLengths.Clear();
             this.currentIndentField = "";
         }
-        #endregion
-        #region ToString Helpers
+#endregion
+#region ToString Helpers
         /// <summary>
         /// Utility class to produce culture-oriented representation of an object as a string.
         /// </summary>
@@ -462,7 +442,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
                 return this.toStringHelperField;
             }
         }
-        #endregion
+#endregion
     }
-    #endregion
+#endregion
 }

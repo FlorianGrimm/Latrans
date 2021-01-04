@@ -64,6 +64,7 @@ namespace Brimborium.Latrans.JSON {
         public abstract void WriteNameSeparator();
         public abstract void WriteNull();
         public abstract void WritePropertyName(string propertyName);
+        public abstract void WriteStartProperty(JsonSerializationInfo jsonSerializationInfo, int key);
         public abstract void WriteQuotation();
         public abstract void WriteRaw(byte rawValue);
         public abstract void WriteRaw(byte[] rawValue);

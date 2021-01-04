@@ -27,7 +27,11 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
         public MemberSerializationInfo[] ConstructorParameters { get; set; }
         
         public MemberSerializationInfo[] Members { get; set; }
-        
+
+        public MemberSerializationInfo[] GetMembers() {
+            return this.Members.Where(x => !x.IsIgnored).OrderBy(x => x.Order).ToArray();
+        }
+
         public string FormatterName => (this.Namespace == null ? this.Name : this.Namespace + "." + this.Name) + "Formatter";
         
         public bool HasConstructor { get; set; }
@@ -56,6 +60,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
         public bool IsField { get; set; }
         public bool IsWritable { get; set; }
         public bool IsReadable { get; set; }
+        public bool IsConstructorParameter { get; set; }
 
         public string Type { get; set; }
         public string Name { get; set; }
@@ -94,7 +99,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
             if (this.Type is object && getPrimitiveTypes().Contains(this.Type)) {
                 return $"writer.Write{this.ShortTypeName.Replace("[]", "s")}(value.{this.MemberName})";
             } else {
-                return $"formatterResolver.GetFormatterWithVerify<{this.Type}>().Serialize(ref writer, value.{this.MemberName}, formatterResolver)";
+                return $"formatterResolver.GetFormatterWithVerify<{this.Type}>().Serialize(writer, value.{this.MemberName}, formatterResolver)";
             }
         }
 
@@ -102,7 +107,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
             if (getPrimitiveTypes().Contains(this.Type)) {
                 return $"reader.Read{this.ShortTypeName.Replace("[]", "s")}()";
             } else {
-                return $"formatterResolver.GetFormatterWithVerify<{this.Type}>().Deserialize(ref reader, formatterResolver)";
+                return $"formatterResolver.GetFormatterWithVerify<{this.Type}>().Deserialize(reader, formatterResolver)";
             }
         }
     }

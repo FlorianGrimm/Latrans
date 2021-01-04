@@ -485,7 +485,9 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
             if (stringMembers.Count == 0) {
                 return;
             }
-
+            foreach (var x in constructorParameters) {
+                x.IsConstructorParameter = true;
+            }
             var info = new ObjectSerializationInfo {
                 IsClass = isClass,
                 ConstructorParameters = constructorParameters.ToArray(),

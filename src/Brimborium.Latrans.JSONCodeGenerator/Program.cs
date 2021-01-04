@@ -80,7 +80,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
             args = new string[] {
                 // @"--inputDirs=C:\github\FlorianGrimm\Latrans\src\Brimborium.Latrans.Contracts\",
                 @"--inputFiles=C:\github\FlorianGrimm\Latrans\src\Brimborium.Latrans.JSONCodeGenerator\CodeAnalysis\Definitions.cs",
-                @"--output=C:\temp\gen\gen.cs"
+                @"--output=C:\temp\gen\gen2.cs"
             };
 
 

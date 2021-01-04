@@ -392,5 +392,10 @@ namespace Brimborium.Latrans.JSON {
 
             buffer[offset++] = (byte)'\"';
         }
+
+        public override void WriteStartProperty(JsonSerializationInfo jsonSerializationInfo, int key) {
+#warning here WriteStartProperty
+            throw new NotImplementedException();
+        }
     }
 }

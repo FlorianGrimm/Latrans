@@ -180,5 +180,9 @@ namespace Brimborium.Latrans.JSON {
         public override void SkipWhiteSpace() {
             throw new NotImplementedException();
         }
+
+        public override bool TryGetParameterValue(JsonSerializationInfo jsonSerializationInfo, out int key) {
+            throw new NotImplementedException();
+        }
     }
 }

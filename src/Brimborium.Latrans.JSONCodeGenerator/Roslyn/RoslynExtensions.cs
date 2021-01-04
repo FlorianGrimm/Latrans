@@ -14,7 +14,11 @@ namespace Brimborium.Latrans.JSONCodeGenerator
     {
         public static Compilation GetCompilationFromProject(IEnumerable<string> inputFiles, IEnumerable<string> inputDirectories, string[] preprocessorSymbols)
         {
-            var parseOptions = new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Parse, SourceCodeKind.Regular, preprocessorSymbols ?? new string[0]);
+            var parseOptions = new CSharpParseOptions(
+                LanguageVersion.Latest, 
+                DocumentationMode.Parse, 
+                SourceCodeKind.Regular, 
+                preprocessorSymbols ?? new string[0]);
             var syntaxTrees = new List<SyntaxTree>();
             var references = new List<MetadataReference>
             {
@@ -84,21 +88,21 @@ namespace Brimborium.Latrans.JSONCodeGenerator
             }
         }
 
-        public static AttributeData FindAttribute(this IEnumerable<AttributeData> attributeDataList, string typeName)
+        public static AttributeData? FindAttribute(this IEnumerable<AttributeData> attributeDataList, string typeName)
         {
             return attributeDataList
                 .Where(x => x.AttributeClass.ToDisplayString() == typeName)
                 .FirstOrDefault();
         }
 
-        public static AttributeData FindAttributeShortName(this IEnumerable<AttributeData> attributeDataList, string typeName)
+        public static AttributeData? FindAttributeShortName(this IEnumerable<AttributeData> attributeDataList, string typeName)
         {
             return attributeDataList
                 .Where(x => x.AttributeClass.Name == typeName || x.AttributeClass.Name == typeName + "Attribute")
                 .FirstOrDefault();
         }
 
-        public static AttributeData FindAttributeIncludeBasePropertyShortName(this IPropertySymbol property, string typeName)
+        public static AttributeData? FindAttributeIncludeBasePropertyShortName(this IPropertySymbol property, string typeName)
         {
             do
             {
@@ -110,7 +114,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator
             return null;
         }
 
-        public static AttributeSyntax FindAttribute(this BaseTypeDeclarationSyntax typeDeclaration, SemanticModel model, string typeName)
+        public static AttributeSyntax? FindAttribute(this BaseTypeDeclarationSyntax typeDeclaration, SemanticModel model, string typeName)
         {
             return typeDeclaration.AttributeLists
                 .SelectMany(x => x.Attributes)

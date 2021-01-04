@@ -144,5 +144,9 @@ namespace Brimborium.Latrans.JSON {
         public override void WriteValueSeparator() {
             throw new NotImplementedException();
         }
+
+        public override void WriteStartProperty(JsonSerializationInfo jsonSerializationInfo, int key) {
+            throw new NotImplementedException();
+        }
     }
 }

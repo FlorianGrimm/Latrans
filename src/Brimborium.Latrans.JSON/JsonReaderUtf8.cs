@@ -1110,6 +1110,11 @@ namespace Brimborium.Latrans.JSON {
             return offset;
         }
 
+        public override bool TryGetParameterValue(JsonSerializationInfo jsonSerializationInfo, out int key) {
+#warning here TryGetParameterValue
+            throw new NotImplementedException();
+        }
+
         internal static class StringBuilderCache {
             [ThreadStatic]
             private static byte[] buffer;

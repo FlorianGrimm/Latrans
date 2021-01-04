@@ -20,6 +20,7 @@ namespace Brimborium.Latrans.JSON {
         public abstract ArraySegment<byte> ReadPropertyNameSegmentRaw();
         public abstract ArraySegment<byte> ReadStringSegmentRaw();
         public abstract ArraySegment<byte> ReadStringSegmentUnsafe();
+        public abstract bool TryGetParameterValue(JsonSerializationInfo jsonSerializationInfo, out int key);
         public abstract Double ReadDouble();
         public abstract JsonToken GetCurrentJsonToken();
         public abstract Single ReadSingle();
