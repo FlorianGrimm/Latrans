@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\dependencies.test.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\Brimborium.Latrans.Contracts\Brimborium.Latrans.Contracts.csproj" />
+    <ProjectReference Include="..\Brimborium.Latrans.JSON\Brimborium.Latrans.JSON.csproj" />
+    <ProjectReference Include="..\Brimborium.Latrans.Medaitor\Brimborium.Latrans.Medaitor.csproj" />
+  </ItemGroup>
+  
+</Project>

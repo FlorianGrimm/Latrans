@@ -114,51 +114,51 @@ namespace Brimborium.Latrans.Utility {
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteSingle(Single value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteSingle(ref Buffer, Offset, value);
+            Offset += Brimborium.Latrans.JSON.Internal.NumberConverter.WriteSingle(ref Buffer, Offset, value);
         }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteDouble(double value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteDouble(ref Buffer, Offset, value);
+            Offset += Brimborium.Latrans.JSON.Internal.NumberConverter.WriteDouble(ref Buffer, Offset, value);
         }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteByte(byte value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, (ulong)value);
+            Offset += Brimborium.Latrans.JSON.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, (ulong)value);
         }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteUInt16(ushort value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, (ulong)value);
+            Offset += Brimborium.Latrans.JSON.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, (ulong)value);
         }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteUInt32(uint value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, (ulong)value);
+            Offset += Brimborium.Latrans.JSON.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, (ulong)value);
         }
 
         public void WriteUInt64(ulong value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, value);
+            Offset += Brimborium.Latrans.JSON.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, value);
         }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteSByte(sbyte value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, (long)value);
+            Offset += Brimborium.Latrans.JSON.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, (long)value);
         }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteInt16(short value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, (long)value);
+            Offset += Brimborium.Latrans.JSON.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, (long)value);
         }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteInt32(int value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, (long)value);
+            Offset += Brimborium.Latrans.JSON.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, (long)value);
         }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteInt64(long value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, value);
+            Offset += Brimborium.Latrans.JSON.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, value);
         }
 
         public void WriteText(string value) {

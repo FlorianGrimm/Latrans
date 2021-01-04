@@ -20,9 +20,9 @@ namespace Brimborium.Latrans.Medaitor.Test.Storeage.Readable {
             var d = new Dummy() {
                 A = "1\n2"
             };
-            var json = Utf8Json.JsonSerializer.ToJsonString<Dummy>(d);
+            var json = Brimborium.Latrans.JSON.JsonSerializer.ToJsonString<Dummy>(d);
             Assert.False(json.Contains('\n'));
-            //Utf8Json.JsonSerializer.Serialize<Dummy>
+            //Brimborium.Latrans.JSON.JsonSerializer.Serialize<Dummy>
         }
 
         [Fact]

@@ -14,6 +14,15 @@ benchmark
 dotnet new "Benchmark Project" -n Brimborium.Latrans.Benchmark  -o src\Brimborium.Latrans.Benchmark 
 dotnet sln add src\Brimborium.Latrans.Benchmark 
 
+dotnet new classlib -n Brimborium.Latrans.JSON -o src\Brimborium.Latrans.JSON
+dotnet sln add src\Brimborium.Latrans.JSON
+
+dotnet new classlib -n Brimborium.Latrans.JSON.AspNetCoreMvcFormatter -o src\Brimborium.Latrans.JSON.AspNetCoreMvcFormatter
+dotnet sln add src\Brimborium.Latrans.JSON.AspNetCoreMvcFormatter
+
+dotnet new xunit -n Brimborium.Latrans.JSON.Test -o src\Brimborium.Latrans.JSON.Test
+dotnet sln add src\Brimborium.Latrans.JSON.Test,
+
 dotnet new classlib -n Brimborium.Latrans.Utility  -o src\Brimborium.Latrans.Utility 
 dotnet sln add src\Brimborium.Latrans.Utility 
 

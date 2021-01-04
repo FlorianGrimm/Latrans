@@ -71,7 +71,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
             if ((eventLogRecord.DataObject is object)
                 && (eventLogRecord.DataByte == null)
                 && string.IsNullOrEmpty(eventLogRecord.DataText)) {
-                eventLogRecord.DataByte = Utf8Json.JsonSerializer.Serialize(eventLogRecord.DataObject);
+                eventLogRecord.DataByte = Brimborium.Latrans.JSON.JsonSerializer.Serialize(eventLogRecord.DataObject);
             }
             var storageFile = this._StorageFile;
             var nextStorageFile = this.EnsureStorageFile(utcNow, storageFile);
@@ -104,7 +104,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
             if ((eventLogRecord.DataObject is object)
                 && (eventLogRecord.DataByte == null)
                 && string.IsNullOrEmpty(eventLogRecord.DataText)) {
-                eventLogRecord.DataByte = Utf8Json.JsonSerializer.Serialize(eventLogRecord.DataObject);
+                eventLogRecord.DataByte = Brimborium.Latrans.JSON.JsonSerializer.Serialize(eventLogRecord.DataObject);
             }
             var storageFile = this._StorageFile;
             var nextStorageFile = this.EnsureStorageFile(utcNow, storageFile);
@@ -394,7 +394,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
             if ((eventLogRecord.DataObject is object)
                 && (eventLogRecord.DataByte == null)
                 && string.IsNullOrEmpty(eventLogRecord.DataText)) {
-                eventLogRecord.DataByte = Utf8Json.JsonSerializer.Serialize(eventLogRecord.DataObject);
+                eventLogRecord.DataByte = Brimborium.Latrans.JSON.JsonSerializer.Serialize(eventLogRecord.DataObject);
             }
 
             var stream = this._Stream;
@@ -409,7 +409,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
             if ((eventLogRecord.DataObject is object)
                 && (eventLogRecord.DataByte == null)
                 && string.IsNullOrEmpty(eventLogRecord.DataText)) {
-                eventLogRecord.DataByte = Utf8Json.JsonSerializer.Serialize(eventLogRecord.DataObject);
+                eventLogRecord.DataByte = Brimborium.Latrans.JSON.JsonSerializer.Serialize(eventLogRecord.DataObject);
             }
 
             var stream = this._Stream;
