@@ -17,6 +17,10 @@ dotnet sln add src\Brimborium.Latrans.Benchmark
 dotnet new classlib -n Brimborium.Latrans.JSON -o src\Brimborium.Latrans.JSON
 dotnet sln add src\Brimborium.Latrans.JSON
 
+dotnet new classlib -n Brimborium.Latrans.JSONCodeGenerator -o src\Brimborium.Latrans.JSONCodeGenerator
+dotnet sln add src\Brimborium.Latrans.JSONCodeGenerator
+
+
 dotnet new classlib -n Brimborium.Latrans.JSON.AspNetCoreMvcFormatter -o src\Brimborium.Latrans.JSON.AspNetCoreMvcFormatter
 dotnet sln add src\Brimborium.Latrans.JSON.AspNetCoreMvcFormatter
 

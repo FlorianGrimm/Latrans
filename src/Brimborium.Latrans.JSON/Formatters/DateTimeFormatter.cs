@@ -649,13 +649,13 @@ namespace Brimborium.Latrans.JSON.Formatters {
 
     public sealed class TimeSpanFormatter : IJsonFormatter<TimeSpan> {
 #if NETSTANDARD
-        readonly string? formatString;
+        readonly string/*?*/ formatString;
 
         public TimeSpanFormatter() {
             this.formatString = null;
         }
 
-        public TimeSpanFormatter(string? formatString) {
+        public TimeSpanFormatter(string/*?*/ formatString) {
             this.formatString = formatString;
         }
 #endif

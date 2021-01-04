@@ -7,8 +7,9 @@ using System.Text;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Reflection;
-using Brimborium.Latrans.JSON.Internal.Emit;
 using System.Diagnostics.CodeAnalysis;
+using Brimborium.Latrans.JSON;
+using Brimborium.Latrans.JSON.Internal.Emit;
 
 namespace Brimborium.Latrans.JSON.Internal
 {
@@ -43,7 +44,7 @@ namespace Brimborium.Latrans.JSON.Internal
 
                     if (rest == 0)
                     {
-                        node = node.Add(key, value, Encoding.UTF8.GetString(bytes));
+                        node = node.Add(key, value, StringEncoding.UTF8.GetString(bytes));
                     }
                     else
                     {
@@ -51,6 +52,10 @@ namespace Brimborium.Latrans.JSON.Internal
                     }
                 }
             }
+        }
+
+        public bool TryGetValueSafe(JsonReader jsonReader, out int value) {
+            throw new NotImplementedException();
         }
 
         public unsafe bool TryGetValue(ArraySegment<byte> bytes, out int value)
@@ -182,8 +187,13 @@ namespace Brimborium.Latrans.JSON.Internal
         {
             foreach (var item in nexts)
             {
-                if (item.Value != -1) yield return new KeyValuePair<string, int>(item.originalKey, item.Value);
-                foreach (var x in YieldCore(item.YieldChildren())) yield return x;
+                if (item.Value != -1) {
+                    yield return new KeyValuePair<string, int>(item.originalKey, item.Value);
+                }
+
+                foreach (var x in YieldCore(item.YieldChildren())) {
+                    yield return x;
+                }
             }
         }
 
@@ -315,19 +325,12 @@ namespace Brimborium.Latrans.JSON.Internal
                     int i = lo + ((hi - lo) >> 1);
 
                     var arrayValue = array[i];
-                    int order;
-                    if (arrayValue < value) order = -1;
-                    else if (arrayValue > value) order = 1;
-                    else order = 0;
-
-                    if (order == 0) return i;
-                    if (order < 0)
-                    {
+                    if (arrayValue < value) {
                         lo = i + 1;
-                    }
-                    else
-                    {
+                    } else if (arrayValue > value) {
                         hi = i - 1;
+                    } else {
+                        return i;
                     }
                 }
 
@@ -336,7 +339,10 @@ namespace Brimborium.Latrans.JSON.Internal
 
             public int CompareTo([AllowNull] AutomataNode other)
             {
-                if (other is null) return 1;
+                if (other is null) {
+                    return 1;
+                }
+
                 return this.Key.CompareTo(other.Key);
             }
 

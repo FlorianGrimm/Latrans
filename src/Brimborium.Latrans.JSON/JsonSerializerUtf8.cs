@@ -1,12 +1,11 @@
 ﻿#nullable disable
 
+using Brimborium.Latrans.JSON.Internal;
+
 using System;
 using System.IO;
 using System.Linq;
 using System.Text;
-
-using Brimborium.Latrans.JSON.Internal;
-using Brimborium.Latrans.JSON.Resolvers;
 
 namespace Brimborium.Latrans.JSON {
     /// <summary>
@@ -14,50 +13,12 @@ namespace Brimborium.Latrans.JSON {
     /// </summary>
     public static partial class JsonSerializerUtf8
     {
-        static IJsonFormatterResolver defaultResolver;
-
-        /// <summary>
-        /// FormatterResolver that used resolver less overloads. If does not set it, used StandardResolver.Default.
-        /// </summary>
-        public static IJsonFormatterResolver DefaultResolver
-        {
-            get
-            {
-                if (defaultResolver == null)
-                {
-                    defaultResolver = StandardResolver.Default;
-                }
-
-                return defaultResolver;
-            }
-        }
-
-        /// <summary>
-        /// Is resolver decided?
-        /// </summary>
-        public static bool IsInitialized
-        {
-            get
-            {
-                return defaultResolver != null;
-            }
-        }
-
-        /// <summary>
-        /// Set default resolver of Utf8Json APIs.
-        /// </summary>
-        /// <param name="resolver"></param>
-        public static void SetDefaultResolver(IJsonFormatterResolver resolver)
-        {
-            defaultResolver = resolver;
-        }
-
         /// <summary>
         /// Serialize to binary with default resolver.
         /// </summary>
         public static byte[] Serialize<T>(T obj)
         {
-            return Serialize(obj, defaultResolver);
+            return Serialize(obj, JsonSerializer.DefaultResolver);
         }
 
         /// <summary>
@@ -65,7 +26,7 @@ namespace Brimborium.Latrans.JSON {
         /// </summary>
         public static byte[] Serialize<T>(T value, IJsonFormatterResolver resolver)
         {
-            if (resolver == null) resolver = DefaultResolver;
+            if (resolver == null) resolver = JsonSerializer.DefaultResolver;
 
             var writer = new JsonWriterUtf8(MemoryPool.GetBuffer());
             var formatter = resolver.GetFormatterWithVerify<T>();
@@ -75,12 +36,12 @@ namespace Brimborium.Latrans.JSON {
 
         public static void Serialize<T>(JsonWriter writer, T value)
         {
-            Serialize<T>(writer, value, defaultResolver);
+            Serialize<T>(writer, value, JsonSerializer.DefaultResolver);
         }
 
         public static void Serialize<T>(JsonWriter writer, T value, IJsonFormatterResolver resolver)
         {
-            if (resolver == null) resolver = DefaultResolver;
+            if (resolver == null) resolver = JsonSerializer.DefaultResolver;
 
             var formatter = resolver.GetFormatterWithVerify<T>();
             formatter.Serialize(writer, value, resolver);
@@ -91,7 +52,7 @@ namespace Brimborium.Latrans.JSON {
         /// </summary>
         public static void Serialize<T>(Stream stream, T value)
         {
-            Serialize(stream, value, defaultResolver);
+            Serialize(stream, value, JsonSerializer.DefaultResolver);
         }
 
         /// <summary>
@@ -99,7 +60,7 @@ namespace Brimborium.Latrans.JSON {
         /// </summary>
         public static void Serialize<T>(Stream stream, T value, IJsonFormatterResolver resolver)
         {
-            if (resolver == null) resolver = DefaultResolver;
+            if (resolver == null) resolver = JsonSerializer.DefaultResolver;
 
             var buffer = SerializeUnsafe(value, resolver);
             stream.Write(buffer.Array, buffer.Offset, buffer.Count);
@@ -112,7 +73,7 @@ namespace Brimborium.Latrans.JSON {
         /// </summary>
         public static System.Threading.Tasks.Task SerializeAsync<T>(Stream stream, T value)
         {
-            return SerializeAsync<T>(stream, value, defaultResolver);
+            return SerializeAsync<T>(stream, value, JsonSerializer.DefaultResolver);
         }
 
         /// <summary>
@@ -120,7 +81,7 @@ namespace Brimborium.Latrans.JSON {
         /// </summary>
         public static async System.Threading.Tasks.Task SerializeAsync<T>(Stream stream, T value, IJsonFormatterResolver resolver)
         {
-            if (resolver == null) resolver = DefaultResolver;
+            if (resolver == null) resolver = JsonSerializer.DefaultResolver;
 
             var buf = BufferPool.Default.Rent();
             try
@@ -144,7 +105,7 @@ namespace Brimborium.Latrans.JSON {
         /// </summary>
         public static ArraySegment<byte> SerializeUnsafe<T>(T obj)
         {
-            return SerializeUnsafe(obj, defaultResolver);
+            return SerializeUnsafe(obj, JsonSerializer.DefaultResolver);
         }
 
         /// <summary>
@@ -152,7 +113,7 @@ namespace Brimborium.Latrans.JSON {
         /// </summary>
         public static ArraySegment<byte> SerializeUnsafe<T>(T value, IJsonFormatterResolver resolver)
         {
-            if (resolver == null) resolver = DefaultResolver;
+            if (resolver == null) resolver = JsonSerializer.DefaultResolver;
 
             var writer = new JsonWriterUtf8(MemoryPool.GetBuffer());
             var formatter = resolver.GetFormatterWithVerify<T>();
@@ -165,7 +126,7 @@ namespace Brimborium.Latrans.JSON {
         /// </summary>
         public static string ToJsonString<T>(T value)
         {
-            return ToJsonString(value, defaultResolver);
+            return ToJsonString(value, JsonSerializer.DefaultResolver);
         }
 
         /// <summary>
@@ -173,7 +134,7 @@ namespace Brimborium.Latrans.JSON {
         /// </summary>
         public static string ToJsonString<T>(T value, IJsonFormatterResolver resolver)
         {
-            if (resolver == null) resolver = DefaultResolver;
+            if (resolver == null) resolver = JsonSerializer.DefaultResolver;
 
             var writer = new JsonWriterUtf8(MemoryPool.GetBuffer());
             var formatter = resolver.GetFormatterWithVerify<T>();
@@ -183,7 +144,7 @@ namespace Brimborium.Latrans.JSON {
 
         public static T Deserialize<T>(string json)
         {
-            return Deserialize<T>(json, defaultResolver);
+            return Deserialize<T>(json, JsonSerializer.DefaultResolver);
         }
 
         public static T Deserialize<T>(string json, IJsonFormatterResolver resolver)
@@ -193,7 +154,7 @@ namespace Brimborium.Latrans.JSON {
 
         public static T Deserialize<T>(byte[] bytes)
         {
-            return Deserialize<T>(bytes, defaultResolver);
+            return Deserialize<T>(bytes, JsonSerializer.DefaultResolver);
         }
 
         public static T Deserialize<T>(byte[] bytes, IJsonFormatterResolver resolver)
@@ -203,12 +164,12 @@ namespace Brimborium.Latrans.JSON {
 
         public static T Deserialize<T>(byte[] bytes, int offset)
         {
-            return Deserialize<T>(bytes, offset, defaultResolver);
+            return Deserialize<T>(bytes, offset, JsonSerializer.DefaultResolver);
         }
 
         public static T Deserialize<T>(byte[] bytes, int offset, IJsonFormatterResolver resolver)
         {
-            if (resolver == null) resolver = DefaultResolver;
+            if (resolver == null) resolver = JsonSerializer.DefaultResolver;
 
             var reader = new JsonReaderUtf8(bytes, offset);
             var formatter = resolver.GetFormatterWithVerify<T>();
@@ -217,12 +178,12 @@ namespace Brimborium.Latrans.JSON {
 
         public static T Deserialize<T>(JsonReader reader)
         {
-            return Deserialize<T>(reader, defaultResolver);
+            return Deserialize<T>(reader, JsonSerializer.DefaultResolver);
         }
 
         public static T Deserialize<T>(JsonReader reader, IJsonFormatterResolver resolver)
         {
-            if (resolver == null) resolver = DefaultResolver;
+            if (resolver == null) resolver = JsonSerializer.DefaultResolver;
 
             var formatter = resolver.GetFormatterWithVerify<T>();
             return formatter.Deserialize(reader, resolver);
@@ -230,12 +191,12 @@ namespace Brimborium.Latrans.JSON {
 
         public static T Deserialize<T>(Stream stream)
         {
-            return Deserialize<T>(stream, defaultResolver);
+            return Deserialize<T>(stream, JsonSerializer.DefaultResolver);
         }
 
         public static T Deserialize<T>(Stream stream, IJsonFormatterResolver resolver)
         {
-            if (resolver == null) resolver = DefaultResolver;
+            if (resolver == null) resolver = JsonSerializer.DefaultResolver;
 
 #if NETSTANDARD && !NET45
             var ms = stream as MemoryStream;
@@ -276,12 +237,12 @@ namespace Brimborium.Latrans.JSON {
 
         public static System.Threading.Tasks.Task<T> DeserializeAsync<T>(Stream stream)
         {
-            return DeserializeAsync<T>(stream, defaultResolver);
+            return DeserializeAsync<T>(stream, JsonSerializer.DefaultResolver);
         }
 
         public static async System.Threading.Tasks.Task<T> DeserializeAsync<T>(Stream stream, IJsonFormatterResolver resolver)
         {
-            if (resolver == null) resolver = DefaultResolver;
+            if (resolver == null) resolver = JsonSerializer.DefaultResolver;
 
             var buffer = BufferPool.Default.Rent();
             var buf = buffer;

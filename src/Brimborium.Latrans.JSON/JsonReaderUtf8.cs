@@ -8,8 +8,8 @@ using System.Runtime.CompilerServices;
 
 namespace Brimborium.Latrans.JSON {
     public class JsonReaderUtf8 : JsonReader {
-        static readonly ArraySegment<byte> nullTokenSegment = new ArraySegment<byte>(new byte[] { 110, 117, 108, 108 }, 0, 4);
-        static readonly byte[] bom = Encoding.UTF8.GetPreamble();
+        private static readonly ArraySegment<byte> nullTokenSegment = new ArraySegment<byte>(new byte[] { 110, 117, 108, 108 }, 0, 4);
+        private static readonly byte[] bom = Encoding.UTF8.GetPreamble();
 
         private readonly byte[] bytes;
         private int offset;
@@ -31,7 +31,7 @@ namespace Brimborium.Latrans.JSON {
             }
         }
 
-        JsonParsingException CreateParsingException(string expected) {
+        private JsonParsingException CreateParsingException(string expected) {
             var actual = ((char)this.bytes[this.offset]).ToString();
             var pos = this.offset;
 
@@ -62,14 +62,14 @@ namespace Brimborium.Latrans.JSON {
             return new JsonParsingException("expected:'" + expected + "', actual:'" + actual + "', at offset:" + pos, this.bytes, pos, this.offset, actual);
         }
 
-        JsonParsingException CreateParsingExceptionMessage(string message) {
+        private JsonParsingException CreateParsingExceptionMessage(string message) {
             var actual = ((char)this.bytes[this.offset]).ToString();
             var pos = this.offset;
 
             return new JsonParsingException(message, this.bytes, pos, pos, actual);
         }
 
-        bool IsInRange {
+        private bool IsInRange {
             get {
                 return this.offset < this.bytes.Length;
             }
@@ -294,9 +294,18 @@ namespace Brimborium.Latrans.JSON {
         public override bool ReadIsNull() {
             this.SkipWhiteSpace();
             if (this.IsInRange && this.bytes[this.offset] == 'n') {
-                if (this.bytes[this.offset + 1] != 'u') goto ERROR;
-                if (this.bytes[this.offset + 2] != 'l') goto ERROR;
-                if (this.bytes[this.offset + 3] != 'l') goto ERROR;
+                if (this.bytes[this.offset + 1] != 'u') {
+                    goto ERROR;
+                }
+
+                if (this.bytes[this.offset + 2] != 'l') {
+                    goto ERROR;
+                }
+
+                if (this.bytes[this.offset + 3] != 'l') {
+                    goto ERROR;
+                }
+
                 this.offset += 4;
                 return true;
             } else {
@@ -318,7 +327,9 @@ namespace Brimborium.Latrans.JSON {
         }
 
         public override void ReadIsBeginArrayWithVerify() {
-            if (!this.ReadIsBeginArray()) throw this.CreateParsingException("[");
+            if (!this.ReadIsBeginArray()) {
+                throw this.CreateParsingException("[");
+            }
         }
 
         public override bool ReadIsEndArray() {
@@ -332,7 +343,9 @@ namespace Brimborium.Latrans.JSON {
         }
 
         public override void ReadIsEndArrayWithVerify() {
-            if (!this.ReadIsEndArray()) throw this.CreateParsingException("]");
+            if (!this.ReadIsEndArray()) {
+                throw this.CreateParsingException("]");
+            }
         }
 
         public override bool ReadIsEndArrayWithSkipValueSeparator(ref int count) {
@@ -380,7 +393,9 @@ namespace Brimborium.Latrans.JSON {
         }
 
         public override void ReadIsBeginObjectWithVerify() {
-            if (!this.ReadIsBeginObject()) throw this.CreateParsingException("{");
+            if (!this.ReadIsBeginObject()) {
+                throw this.CreateParsingException("{");
+            }
         }
 
         public override bool ReadIsEndObject() {
@@ -394,7 +409,9 @@ namespace Brimborium.Latrans.JSON {
         }
 
         public override void ReadIsEndObjectWithVerify() {
-            if (!this.ReadIsEndObject()) throw this.CreateParsingException("}");
+            if (!this.ReadIsEndObject()) {
+                throw this.CreateParsingException("}");
+            }
         }
 
         public override bool ReadIsEndObjectWithSkipValueSeparator(ref int count) {
@@ -442,7 +459,9 @@ namespace Brimborium.Latrans.JSON {
         }
 
         public override void ReadIsValueSeparatorWithVerify() {
-            if (!this.ReadIsValueSeparator()) throw this.CreateParsingException(",");
+            if (!this.ReadIsValueSeparator()) {
+                throw this.CreateParsingException(",");
+            }
         }
 
         public override bool ReadIsNameSeparator() {
@@ -456,10 +475,12 @@ namespace Brimborium.Latrans.JSON {
         }
 
         public override void ReadIsNameSeparatorWithVerify() {
-            if (!this.ReadIsNameSeparator()) throw this.CreateParsingException(":");
+            if (!this.ReadIsNameSeparator()) {
+                throw this.CreateParsingException(":");
+            }
         }
 
-        void ReadStringSegmentCore(out byte[] resultBytes, out int resultOffset, out int resultLength) {
+        private void ReadStringSegmentCore(out byte[] resultBytes, out int resultOffset, out int resultLength) {
             // SkipWhiteSpace is already called from IsNull
 
             byte[] builder = null;
@@ -467,7 +488,10 @@ namespace Brimborium.Latrans.JSON {
             char[] codePointStringBuffer = null;
             var codePointStringOffet = 0;
 
-            if (this.bytes[this.offset] != '\"') throw this.CreateParsingException("String Begin Token");
+            if (this.bytes[this.offset] != '\"') {
+                throw this.CreateParsingException("String Begin Token");
+            }
+
             this.offset++;
 
             var from = this.offset;
@@ -499,10 +523,14 @@ namespace Brimborium.Latrans.JSON {
                                 escapeCharacter = (byte)'\t';
                                 goto COPY;
                             case 'u':
-                                if (codePointStringBuffer == null) codePointStringBuffer = StringBuilderCache.GetCodePointStringBuffer();
+                                if (codePointStringBuffer == null) {
+                                    codePointStringBuffer = StringBuilderCache.GetCodePointStringBuffer();
+                                }
 
                                 if (codePointStringOffet == 0) {
-                                    if (builder == null) builder = StringBuilderCache.GetBuffer();
+                                    if (builder == null) {
+                                        builder = StringBuilderCache.GetBuffer();
+                                    }
 
                                     var copyCount = i - from;
                                     ByteArrayUtil.EnsureCapacity(ref builder, builderOffset, copyCount + 1); // require + 1
@@ -532,7 +560,10 @@ namespace Brimborium.Latrans.JSON {
                         goto END;
                     default: // string
                         if (codePointStringOffet != 0) {
-                            if (builder == null) builder = StringBuilderCache.GetBuffer();
+                            if (builder == null) {
+                                builder = StringBuilderCache.GetBuffer();
+                            }
+
                             ByteArrayUtil.EnsureCapacity(ref builder, builderOffset, StringEncoding.UTF8.GetMaxByteCount(codePointStringOffet));
                             builderOffset += StringEncoding.UTF8.GetBytes(codePointStringBuffer, 0, codePointStringOffet, builder, builderOffset);
                             codePointStringOffet = 0;
@@ -543,7 +574,10 @@ namespace Brimborium.Latrans.JSON {
 
             COPY:
                 {
-                    if (builder == null) builder = StringBuilderCache.GetBuffer();
+                    if (builder == null) {
+                        builder = StringBuilderCache.GetBuffer();
+                    }
+
                     if (codePointStringOffet != 0) {
                         ByteArrayUtil.EnsureCapacity(ref builder, builderOffset, StringEncoding.UTF8.GetMaxByteCount(codePointStringOffet));
                         builderOffset += StringEncoding.UTF8.GetBytes(codePointStringBuffer, 0, codePointStringOffet, builder, builderOffset);
@@ -573,7 +607,10 @@ namespace Brimborium.Latrans.JSON {
                 resultOffset = from;
                 resultLength = this.offset - 1 - from; // skip last quote
             } else {
-                if (builder == null) builder = StringBuilderCache.GetBuffer();
+                if (builder == null) {
+                    builder = StringBuilderCache.GetBuffer();
+                }
+
                 if (codePointStringOffet != 0) {
                     ByteArrayUtil.EnsureCapacity(ref builder, builderOffset, StringEncoding.UTF8.GetMaxByteCount(codePointStringOffet));
                     builderOffset += StringEncoding.UTF8.GetBytes(codePointStringBuffer, 0, codePointStringOffet, builder, builderOffset);
@@ -592,12 +629,12 @@ namespace Brimborium.Latrans.JSON {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static int GetCodePoint(char a, char b, char c, char d) {
+        private static int GetCodePoint(char a, char b, char c, char d) {
             return (((((ToNumber(a) * 16) + ToNumber(b)) * 16) + ToNumber(c)) * 16) + ToNumber(d);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static int ToNumber(char x) {
+        private static int ToNumber(char x) {
             if ('0' <= x && x <= '9') {
                 return x - '0';
             } else if ('a' <= x && x <= 'f') {
@@ -609,7 +646,9 @@ namespace Brimborium.Latrans.JSON {
         }
 
         public override ArraySegment<byte> ReadStringSegmentUnsafe() {
-            if (this.ReadIsNull()) return nullTokenSegment;
+            if (this.ReadIsNull()) {
+                return nullTokenSegment;
+            }
 
             byte[] bytes;
             int offset;
@@ -619,7 +658,9 @@ namespace Brimborium.Latrans.JSON {
         }
 
         public override string ReadString() {
-            if (this.ReadIsNull()) return null;
+            if (this.ReadIsNull()) {
+                return null;
+            }
 
             byte[] bytes;
             int offset;
@@ -643,7 +684,9 @@ namespace Brimborium.Latrans.JSON {
                 key = nullTokenSegment;
             } else {
                 // SkipWhiteSpace is already called from IsNull
-                if (this.bytes[this.offset++] != '\"') throw this.CreateParsingException("\"");
+                if (this.bytes[this.offset++] != '\"') {
+                    throw this.CreateParsingException("\"");
+                }
 
                 var from = this.offset;
 
@@ -677,16 +720,37 @@ namespace Brimborium.Latrans.JSON {
         public override bool ReadBoolean() {
             this.SkipWhiteSpace();
             if (this.bytes[this.offset] == 't') {
-                if (this.bytes[this.offset + 1] != 'r') goto ERROR_TRUE;
-                if (this.bytes[this.offset + 2] != 'u') goto ERROR_TRUE;
-                if (this.bytes[this.offset + 3] != 'e') goto ERROR_TRUE;
+                if (this.bytes[this.offset + 1] != 'r') {
+                    goto ERROR_TRUE;
+                }
+
+                if (this.bytes[this.offset + 2] != 'u') {
+                    goto ERROR_TRUE;
+                }
+
+                if (this.bytes[this.offset + 3] != 'e') {
+                    goto ERROR_TRUE;
+                }
+
                 this.offset += 4;
                 return true;
             } else if (this.bytes[this.offset] == 'f') {
-                if (this.bytes[this.offset + 1] != 'a') goto ERROR_FALSE;
-                if (this.bytes[this.offset + 2] != 'l') goto ERROR_FALSE;
-                if (this.bytes[this.offset + 3] != 's') goto ERROR_FALSE;
-                if (this.bytes[this.offset + 4] != 'e') goto ERROR_FALSE;
+                if (this.bytes[this.offset + 1] != 'a') {
+                    goto ERROR_FALSE;
+                }
+
+                if (this.bytes[this.offset + 2] != 'l') {
+                    goto ERROR_FALSE;
+                }
+
+                if (this.bytes[this.offset + 3] != 's') {
+                    goto ERROR_FALSE;
+                }
+
+                if (this.bytes[this.offset + 4] != 'e') {
+                    goto ERROR_FALSE;
+                }
+
                 this.offset += 5;
                 return false;
             } else {
@@ -699,7 +763,7 @@ namespace Brimborium.Latrans.JSON {
             throw this.CreateParsingException("false");
         }
 
-        static bool IsWordBreak(byte c) {
+        private static bool IsWordBreak(byte c) {
             switch (c) {
                 case (byte)' ':
                 case (byte)'{':
@@ -838,7 +902,7 @@ namespace Brimborium.Latrans.JSON {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void ReadNextCore(JsonToken token) {
+        private void ReadNextCore(JsonToken token) {
             switch (token) {
                 case JsonToken.BeginObject:
                 case JsonToken.BeginArray:
@@ -925,11 +989,13 @@ namespace Brimborium.Latrans.JSON {
             }
         }
 
-        public override ArraySegment<byte> ReadNextBlockSegment() {
+#if weichei
+        public ArraySegment<byte> ReadNextBlockSegment() {
             var startOffset = this.offset;
             this.ReadNextBlock();
             return new ArraySegment<byte>(this.bytes, startOffset, this.offset - startOffset);
         }
+#endif
 
         public override sbyte ReadSByte() {
             return checked((sbyte)this.ReadInt64());
@@ -1002,7 +1068,7 @@ namespace Brimborium.Latrans.JSON {
             return v;
         }
 
-        public override ArraySegment<byte> ReadNumberSegment() {
+        public ArraySegment<byte> ReadNumberSegment() {
             this.SkipWhiteSpace();
             var initialOffset = this.offset;
             for (int i = this.offset; i < this.bytes.Length; i++) {
@@ -1018,7 +1084,7 @@ namespace Brimborium.Latrans.JSON {
         }
 
         // return last offset.
-        static int ReadComment(byte[] bytes, int offset) {
+        private static int ReadComment(byte[] bytes, int offset) {
             // current token is '/'
             if (bytes[offset + 1] == '/') {
                 // single line
@@ -1046,10 +1112,10 @@ namespace Brimborium.Latrans.JSON {
 
         internal static class StringBuilderCache {
             [ThreadStatic]
-            static byte[] buffer;
+            private static byte[] buffer;
 
             [ThreadStatic]
-            static char[] codePointStringBuffer;
+            private static char[] codePointStringBuffer;
 
             public static byte[] GetBuffer() {
                 if (buffer == null) {

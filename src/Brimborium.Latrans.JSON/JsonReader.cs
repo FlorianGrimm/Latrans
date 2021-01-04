@@ -15,8 +15,8 @@ namespace Brimborium.Latrans.JSON {
         }
 
 #warning here
-        public abstract ArraySegment<byte> ReadNextBlockSegment();
-        public abstract ArraySegment<byte> ReadNumberSegment();
+        //public abstract ArraySegment<byte> ReadNextBlockSegment();
+        // public abstract ArraySegment<byte> ReadNumberSegment();
         public abstract ArraySegment<byte> ReadPropertyNameSegmentRaw();
         public abstract ArraySegment<byte> ReadStringSegmentRaw();
         public abstract ArraySegment<byte> ReadStringSegmentUnsafe();

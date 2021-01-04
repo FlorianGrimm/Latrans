@@ -14,18 +14,19 @@ namespace Brimborium.Latrans.JSON
     public static partial class JsonSerializerUtf8 {
         public static class NonGeneric
         {
-            static readonly Func<Type, CompiledMethods> CreateCompiledMethods;
-            static readonly ThreadsafeTypeKeyHashTable<CompiledMethods> serializes = new ThreadsafeTypeKeyHashTable<CompiledMethods>(capacity: 64);
+            private static readonly Func<Type, CompiledMethods> CreateCompiledMethods;
+            private static readonly ThreadsafeTypeKeyHashTable<CompiledMethods> serializes = new ThreadsafeTypeKeyHashTable<CompiledMethods>(capacity: 64);
 
-            delegate void SerializeJsonWriter(JsonWriter writer, object value, IJsonFormatterResolver resolver);
-            delegate object DeserializeJsonReader(JsonReader reader, IJsonFormatterResolver resolver);
+            private delegate void SerializeJsonWriter(JsonWriter writer, object value, IJsonFormatterResolver resolver);
+
+            private delegate object DeserializeJsonReader(JsonReader reader, IJsonFormatterResolver resolver);
 
             static NonGeneric()
             {
                 CreateCompiledMethods = t => new CompiledMethods(t);
             }
 
-            static CompiledMethods GetOrAdd(Type type)
+            private static CompiledMethods GetOrAdd(Type type)
             {
                 return serializes.GetOrAdd(type, CreateCompiledMethods);
             }
@@ -36,7 +37,7 @@ namespace Brimborium.Latrans.JSON
             public static byte[] Serialize(object value)
             {
                 if (value == null) return Serialize<object>(value);
-                return Serialize(value.GetType(), value, defaultResolver);
+                return Serialize(value.GetType(), value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -44,7 +45,7 @@ namespace Brimborium.Latrans.JSON
             /// </summary>
             public static byte[] Serialize(Type type, object value)
             {
-                return Serialize(type, value, defaultResolver);
+                return Serialize(type, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -73,7 +74,7 @@ namespace Brimborium.Latrans.JSON
             public static void Serialize(Stream stream, object value)
             {
                 if (value == null) { Serialize<object>(stream, value); return; }
-                Serialize(value.GetType(), stream, value, defaultResolver);
+                Serialize(value.GetType(), stream, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -81,7 +82,7 @@ namespace Brimborium.Latrans.JSON
             /// </summary>
             public static void Serialize(Type type, Stream stream, object value)
             {
-                Serialize(type, stream, value, defaultResolver);
+                Serialize(type, stream, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -109,7 +110,7 @@ namespace Brimborium.Latrans.JSON
             public static System.Threading.Tasks.Task SerializeAsync(Stream stream, object value)
             {
                 if (value == null) { return SerializeAsync<object>(stream, value); }
-                return SerializeAsync(value.GetType(), stream, value, defaultResolver);
+                return SerializeAsync(value.GetType(), stream, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -117,7 +118,7 @@ namespace Brimborium.Latrans.JSON
             /// </summary>
             public static System.Threading.Tasks.Task SerializeAsync(Type type, Stream stream, object value)
             {
-                return SerializeAsync(type, stream, value, defaultResolver);
+                return SerializeAsync(type, stream, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -154,7 +155,7 @@ namespace Brimborium.Latrans.JSON
 
             public static void Serialize(Type type, JsonWriter writer, object value)
             {
-                Serialize(type, writer, value, defaultResolver);
+                Serialize(type, writer, value, JsonSerializer.DefaultResolver);
             }
 
             public static void Serialize(Type type, JsonWriter writer, object value, IJsonFormatterResolver resolver)
@@ -176,7 +177,7 @@ namespace Brimborium.Latrans.JSON
             /// </summary>
             public static ArraySegment<byte> SerializeUnsafe(Type type, object value)
             {
-                return SerializeUnsafe(type, value, defaultResolver);
+                return SerializeUnsafe(type, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -210,7 +211,7 @@ namespace Brimborium.Latrans.JSON
             /// </summary>
             public static string ToJsonString(Type type, object value)
             {
-                return ToJsonString(type, value, defaultResolver);
+                return ToJsonString(type, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -232,7 +233,7 @@ namespace Brimborium.Latrans.JSON
 
             public static object Deserialize(Type type, string json)
             {
-                return Deserialize(type, json, defaultResolver);
+                return Deserialize(type, json, JsonSerializer.DefaultResolver);
             }
 
             public static object Deserialize(Type type, string json, IJsonFormatterResolver resolver)
@@ -242,17 +243,17 @@ namespace Brimborium.Latrans.JSON
 
             public static object Deserialize(Type type, byte[] bytes)
             {
-                return Deserialize(type, bytes, defaultResolver);
+                return Deserialize(type, bytes, JsonSerializer.DefaultResolver);
             }
 
             public static object Deserialize(Type type, byte[] bytes, IJsonFormatterResolver resolver)
             {
-                return Deserialize(type, bytes, 0, defaultResolver);
+                return Deserialize(type, bytes, 0, JsonSerializer.DefaultResolver);
             }
 
             public static object Deserialize(Type type, byte[] bytes, int offset)
             {
-                return Deserialize(type, bytes, offset, defaultResolver);
+                return Deserialize(type, bytes, offset, JsonSerializer.DefaultResolver);
             }
 
             public static object Deserialize(Type type, byte[] bytes, int offset, IJsonFormatterResolver resolver)
@@ -262,7 +263,7 @@ namespace Brimborium.Latrans.JSON
 
             public static object Deserialize(Type type, Stream stream)
             {
-                return Deserialize(type, stream, defaultResolver);
+                return Deserialize(type, stream, JsonSerializer.DefaultResolver);
             }
 
             public static object Deserialize(Type type, Stream stream, IJsonFormatterResolver resolver)
@@ -272,7 +273,7 @@ namespace Brimborium.Latrans.JSON
 
             public static object Deserialize(Type type, JsonReader reader)
             {
-                return Deserialize(type, reader, defaultResolver);
+                return Deserialize(type, reader, JsonSerializer.DefaultResolver);
             }
 
             public static object Deserialize(Type type, JsonReader reader, IJsonFormatterResolver resolver)
@@ -284,7 +285,7 @@ namespace Brimborium.Latrans.JSON
 
             public static System.Threading.Tasks.Task<object> DeserializeAsync(Type type, Stream stream)
             {
-                return DeserializeAsync(type, stream, defaultResolver);
+                return DeserializeAsync(type, stream, JsonSerializer.DefaultResolver);
             }
 
             public static System.Threading.Tasks.Task<object> DeserializeAsync(Type type, Stream stream, IJsonFormatterResolver resolver)
@@ -294,7 +295,7 @@ namespace Brimborium.Latrans.JSON
 
 #endif
 
-            class CompiledMethods
+            private class CompiledMethods
             {
                 public readonly Func<object, IJsonFormatterResolver, byte[]> serialize1;
                 public readonly Action<Stream, object, IJsonFormatterResolver> serialize2;
@@ -458,7 +459,7 @@ namespace Brimborium.Latrans.JSON
 
 #if NETSTANDARD
 
-                static async System.Threading.Tasks.Task<object> TaskCast<T>(System.Threading.Tasks.Task<T> task)
+                private static async System.Threading.Tasks.Task<object> TaskCast<T>(System.Threading.Tasks.Task<T> task)
                 {
                     var t = await task.ConfigureAwait(false);
                     return (object)t;
@@ -466,12 +467,12 @@ namespace Brimborium.Latrans.JSON
 
 #endif
 
-                static T CreateDelegate<T>(DynamicMethod dm)
+                private static T CreateDelegate<T>(DynamicMethod dm)
                 {
                     return (T)(object)dm.CreateDelegate(typeof(T));
                 }
 
-                static MethodInfo GetMethod(Type type, string name, Type[] arguments)
+                private static MethodInfo GetMethod(Type type, string name, Type[] arguments)
                 {
                     return typeof(JsonSerializerUtf8).GetMethods(BindingFlags.Static | BindingFlags.Public)
                         .Where(x => x.Name == name)

@@ -7,11 +7,11 @@ namespace Brimborium.Latrans.JSON.Internal
     // Safe for multiple-read, single-write.
     internal class ThreadsafeTypeKeyHashTable<TValue>
     {
-        Entry[] buckets;
-        int size; // only use in writer lock
+        private Entry[] buckets;
+        private int size; // only use in writer lock
 
-        readonly object writerLock = new object();
-        readonly float loadFactor;
+        private readonly object writerLock = new object();
+        private readonly float loadFactor;
 
         // IEqualityComparer.Equals is overhead if key only Type, don't use it.
         // readonly IEqualityComparer<TKey> comparer;
@@ -34,7 +34,7 @@ namespace Brimborium.Latrans.JSON.Internal
             return TryAddInternal(key, valueFactory, out _);
         }
 
-        bool TryAddInternal(Type key, Func<Type, TValue> valueFactory, out TValue resultingValue)
+        private bool TryAddInternal(Type key, Func<Type, TValue> valueFactory, out TValue resultingValue)
         {
             lock (writerLock)
             {
@@ -74,7 +74,7 @@ namespace Brimborium.Latrans.JSON.Internal
             }
         }
 
-        bool AddToBuckets(Entry[] buckets, Type newKey, Entry newEntryOrNull, Func<Type, TValue> valueFactory, out TValue resultingValue)
+        private bool AddToBuckets(Entry[] buckets, Type newKey, Entry newEntryOrNull, Func<Type, TValue> valueFactory, out TValue resultingValue)
         {
             var h = (newEntryOrNull != null) ? newEntryOrNull.Hash : newKey.GetHashCode();
             if (buckets[h & (buckets.Length - 1)] == null)
@@ -164,7 +164,7 @@ namespace Brimborium.Latrans.JSON.Internal
             return v;
         }
 
-        static int CalculateCapacity(int collectionSize, float loadFactor)
+        private static int CalculateCapacity(int collectionSize, float loadFactor)
         {
             var initialCapacity = (int)(((float)collectionSize) / loadFactor);
             var capacity = 1;
@@ -181,7 +181,7 @@ namespace Brimborium.Latrans.JSON.Internal
             return capacity;
         }
 
-        static void VolatileWrite(ref Entry location, Entry value)
+        private static void VolatileWrite(ref Entry location, Entry value)
         {
 #if NETSTANDARD
             System.Threading.Volatile.Write(ref location, value);
@@ -193,7 +193,7 @@ namespace Brimborium.Latrans.JSON.Internal
 #endif
         }
 
-        static void VolatileWrite(ref Entry[] location, Entry[] value)
+        private static void VolatileWrite(ref Entry[] location, Entry[] value)
         {
 #if NETSTANDARD
             System.Threading.Volatile.Write(ref location, value);
@@ -205,7 +205,7 @@ namespace Brimborium.Latrans.JSON.Internal
 #endif
         }
 
-        class Entry
+        private class Entry
         {
             public Type Key;
             public TValue Value;
@@ -218,7 +218,7 @@ namespace Brimborium.Latrans.JSON.Internal
                 return Key + "(" + Count() + ")";
             }
 
-            int Count()
+            private int Count()
             {
                 var count = 1;
                 var n = this;

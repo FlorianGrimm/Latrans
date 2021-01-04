@@ -129,11 +129,11 @@ namespace Brimborium.Latrans.JSON {
             throw new NotImplementedException();
         }
 
-        public override ArraySegment<byte> ReadNextBlockSegment() {
+        public ArraySegment<byte> ReadNextBlockSegment() {
             throw new NotImplementedException();
         }
 
-        public override ArraySegment<byte> ReadNumberSegment() {
+        public ArraySegment<byte> ReadNumberSegment() {
             throw new NotImplementedException();
         }
 
