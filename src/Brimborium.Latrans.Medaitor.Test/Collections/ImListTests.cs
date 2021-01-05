@@ -11,11 +11,12 @@ namespace Brimborium.Latrans.Collections {
         [Fact]
         public void ImList_1_Add() {
             var l0 = new ImList<D>();
-            var l1 = l0.Add(new D(1));
-            var l2 = l1.Add(new D(2));
-            var l10 = l2.Add(new D(3)).Add(new D(4)).Add(new D(5)).Add(new D(6)).Add(new D(7)).Add(new D(8)).Add(new D(9)).Add(new D(10));
             Assert.Equal(0, l0.Count);
+            var l1 = l0.Add(new D(1));
             Assert.Equal(1, l1.Count);
+            var l2 = l1.Add(new D(2));
+            Assert.Equal(2, l2.Count);
+            var l10 = l2.Add(new D(3)).Add(new D(4)).Add(new D(5)).Add(new D(6)).Add(new D(7)).Add(new D(8)).Add(new D(9)).Add(new D(10));
             Assert.Equal(10, l10.Count);
 
             Assert.Equal(new D[] { }, l0.ToList(), new DEqualityComparer());

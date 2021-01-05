@@ -156,7 +156,7 @@ namespace Brimborium.Latrans.Collections {
         public int Count => this.GetCount(0);
 
         internal int GetCount(int idxFrom) {
-            if ((this._Count < 0) && (idxFrom == 0)) {
+            if ((this._Count >= 0) && (idxFrom == 0)) {
                 return this._Count;
             } else {
                 int result = 0;

@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
+using System.Runtime.Serialization;
 
 namespace Brimborium.Latrans.Activity {
+    [DataContract]
     public class OkResultActivityResponse<T>
         : IActivityResponse
-        , IOkResultActivityResponse
-        //, IActivityEventChangeStatus
-        {
-        
+        , IOkResultActivityResponse {
+        [DataMember]
         public T Result { get; set; }
-
 
         public OkResultActivityResponse(T result) {
             this.Result = result;
@@ -22,7 +19,8 @@ namespace Brimborium.Latrans.Activity {
                 activityContext.ActivityId,
                 -1,
                 System.DateTime.UtcNow,
-                ActivityStatus.Completed);
+                ActivityStatus.Completed,
+                null);
         }
 
         public bool TryGetResult([MaybeNullWhen(false)] out object value) {
@@ -36,6 +34,7 @@ namespace Brimborium.Latrans.Activity {
         }
     }
 
+    [DataContract]
     public class CanceledActivityResponse : IActivityResponse {
         public CanceledActivityResponse() {
         }
@@ -45,6 +44,7 @@ namespace Brimborium.Latrans.Activity {
         }
     }
 
+    [DataContract]
     public class AcceptedActivityResponse : IActivityResponse {
         public AcceptedActivityResponse() {
         }
@@ -52,6 +52,7 @@ namespace Brimborium.Latrans.Activity {
             this.RedirectUrl = redirectUrl;
         }
 
+        [DataMember]
         public string? RedirectUrl { get; set; }
 
         public IActivityEvent GetAsActivityEvent(IActivityContext activityContext) {
@@ -59,6 +60,7 @@ namespace Brimborium.Latrans.Activity {
         }
     }
 
+    [DataContract]
     public class FailureActivityResponse : IFailureActivityResponse {
         public FailureActivityResponse() {
         }
@@ -67,6 +69,7 @@ namespace Brimborium.Latrans.Activity {
             this.Error = error;
         }
 
+        [DataMember]
         public Exception? Error { get; set; }
 
         public IActivityEvent GetAsActivityEvent(IActivityContext activityContext) {

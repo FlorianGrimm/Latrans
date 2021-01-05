@@ -14,7 +14,6 @@ namespace Brimborium.Latrans.Mediator {
     public class MediatorScopeService
         : IMediatorScopeService
         , IMediatorScopeServiceInternalUse
-        //, IMediatorServiceInternal
         , IDisposable {
         private MediatorService _MediatorService;
         private IServiceScope _Scope;
@@ -180,7 +179,6 @@ namespace Brimborium.Latrans.Mediator {
                 return false;
             }
         }
-
 
         //public Task<IMediatorClientConnected<TRequest>> ConnectAsync<TRequest>(IMediatorClient medaitorClient, TRequest request, CancellationToken cancellationToken) {
         //    throw new System.NotImplementedException();

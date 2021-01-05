@@ -5,6 +5,8 @@
         Triggered,
         Running,
         ReRunning,
+        Waiting,
+        Canceled,
         Completed,
         Failed
     }

@@ -6,18 +6,20 @@ using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Activity {
 
-    public interface IActivityContext 
+    public interface IActivityContext
         : IMediatorClient {
 
-        ActivityStatus Status {get;set;}
+        ActivityStatus Status { get; set; }
 
         ActivityId ActivityId { get; set; }
-        
-        //Guid OperationId { get; set; }
-        //Guid ExecutionId { get; set; }
-        
+
         Type GetRequestType();
 
+        /// <summary>
+        /// Internal
+        /// </summary>
+        /// <param name="activityEvent"></param>
+        /// <returns></returns>
         Task AddActivityEventAsync(IActivityEvent activityEvent);
 
         Task SetFailureAsync(System.Exception error);
@@ -64,7 +66,7 @@ namespace Brimborium.Latrans.Activity {
                 var success = resultActivityResponse.TryGetResult(out var result);
                 if (result is TResponse resultTyped) {
                     return resultTyped;
-                } else { 
+                } else {
                 }
             }
             //response.GetAsActivityEvent

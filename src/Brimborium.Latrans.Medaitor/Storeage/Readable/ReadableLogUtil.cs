@@ -275,10 +275,10 @@ namespace Brimborium.Latrans.Storeage.Readable {
                 write(" at: "); write(readableLog.DT.ToString("u")); write("\n");
             }
             if (!string.IsNullOrEmpty(readableLog.Key)) {
-                write(" ky: "); write(readableLog.Key); write("\n");
+                write(" ky: "); write(readableLog.Key!); write("\n");
             }
             if (!string.IsNullOrEmpty(readableLog.TypeName)) {
-                write(" ty: "); write(readableLog.TypeName); write("\n");
+                write(" ty: "); write(readableLog.TypeName!); write("\n");
             }
             var data = readableLog.DataText;
             if (data is object) {
@@ -323,7 +323,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
                 w.EnsureCapacity(readableLog.DataText.Length+14);
                 w.WriteString(" da: |"); w.WriteRaw(10);
 
-                if (readableLog.DataText.Contains('\n')) {
+                if (readableLog.DataText.Contains("\n")) {
                     foreach (var line in readableLog.DataText.Split('\n')) {
                         w.WriteString("  ");
                         w.WriteString(line);
@@ -335,7 +335,8 @@ namespace Brimborium.Latrans.Storeage.Readable {
                     w.WriteRaw(10);
                 }
             }
-            stream.Write(w.AsSpan());
+            //stream.Write(w.AsSpan());
+            stream.Write(w.Buffer!, 0, w.Offset);
         }
     }
 }

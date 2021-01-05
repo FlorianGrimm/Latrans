@@ -71,7 +71,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
             if ((eventLogRecord.DataObject is object)
                 && (eventLogRecord.DataByte == null)
                 && string.IsNullOrEmpty(eventLogRecord.DataText)) {
-                eventLogRecord.DataByte = Brimborium.Latrans.JSON.JsonSerializer.Serialize(eventLogRecord.DataObject);
+                eventLogRecord.DataByte = Utf8Json.JsonSerializer.Serialize(eventLogRecord.DataObject);
             }
             var storageFile = this._StorageFile;
             var nextStorageFile = this.EnsureStorageFile(utcNow, storageFile);
@@ -180,7 +180,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
                         .Replace("{version}", "-")
                         ;
                     filesToDelete = new List<string>(
-                            this._LocalFileSystem.EnumerateFiles(this._BaseFolder, pattern, new EnumerationOptions() { })
+                            this._LocalFileSystem.EnumerateFiles(this._BaseFolder, pattern, SearchOption.TopDirectoryOnly)
                         );
                 }
                 return new EventLogStorageFile(
@@ -394,7 +394,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
             if ((eventLogRecord.DataObject is object)
                 && (eventLogRecord.DataByte == null)
                 && string.IsNullOrEmpty(eventLogRecord.DataText)) {
-                eventLogRecord.DataByte = Brimborium.Latrans.JSON.JsonSerializer.Serialize(eventLogRecord.DataObject);
+                eventLogRecord.DataByte = Utf8Json.JsonSerializer.Serialize(eventLogRecord.DataObject);
             }
 
             var stream = this._Stream;

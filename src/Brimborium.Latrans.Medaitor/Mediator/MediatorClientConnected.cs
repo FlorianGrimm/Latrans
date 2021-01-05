@@ -85,12 +85,82 @@ namespace Brimborium.Latrans.Mediator {
                 activityContext.ActivityId,
                 0,
                 System.DateTime.UtcNow,
-                ActivityStatus.Running
+                ActivityStatus.Running,
+                null
                 ));
-
-            await activityHandler.ExecuteAsync(activityContext, cancellationToken);
+            Task? task = null;
+            try {
+                task = activityHandler.ExecuteAsync(activityContext, cancellationToken);
+                if (task is object) {
+                    _ = task.ContinueWith(this.HandleErrors);
+                }
+            } catch (Exception error) {
+                if (activityContext.Status != ActivityStatus.Failed) {
+                    await activityContext.AddActivityEventAsync(new ActivityEventStateChange(
+                        activityContext.ActivityId,
+                        0,
+                        System.DateTime.UtcNow,
+                        ActivityStatus.Failed,
+                        error
+                        ));
+                }
+                throw;
+            }
 
             return;
+        }
+
+        private void HandleErrors(Task taskActivityHandler) {
+            try {
+                if (taskActivityHandler.IsCanceled) {
+                    var activityContext = this._ActivityContext;
+                    if (activityContext is null) {
+                        //error.Handle((e) => { return true; });
+                    } else {
+                        var status = activityContext.Status;
+                        if (
+                            (status == ActivityStatus.Completed)
+                            && (status == ActivityStatus.Failed)
+                            ) {
+                            // OK
+                        } else {
+                            activityContext.SetActivityResponseAsync(new CanceledActivityResponse()).Forget();
+                            /*
+                            var task = activityContext.AddActivityEventAsync(new ActivityEventStateChange(
+                                activityContext.ActivityId,
+                                0,
+                                System.DateTime.UtcNow,
+                                ActivityStatus.Canceled
+                                ));
+                            task.Forget();
+                            */
+                        }
+                    }
+                    return;
+                }
+                if (taskActivityHandler.IsFaulted) {
+                    var error = taskActivityHandler.Exception;
+                    var activityContext = this._ActivityContext;
+                    if (activityContext is null) {
+                        //error.Handle((e) => { return true; });
+                    } else {
+                        if (activityContext.Status != ActivityStatus.Failed) {
+                            activityContext.SetFailureAsync(error).Forget();
+                            activityContext.SetActivityResponseAsync(new FailureActivityResponse(error)).Forget();
+                            //var task = activityContext.AddActivityEventAsync(new ActivityEventStateChange(
+                            //    activityContext.ActivityId,
+                            //    0,
+                            //    System.DateTime.UtcNow,
+                            //    ActivityStatus.Failed,
+                            //    error
+                            //    ));
+                            //task.Forget();
+                        }
+                    }
+                    return;
+                }
+            } catch {
+            }
         }
 
         public async Task<IActivityResponse> WaitForAsync(
@@ -104,7 +174,7 @@ namespace Brimborium.Latrans.Mediator {
             }
             //
             var taskResult = activityContext.GetActivityResponseAsync();
-            if (taskResult.IsCompletedSuccessfully) {
+            if (taskResult.IsCompleted) {
                 return await taskResult;
             }
             //

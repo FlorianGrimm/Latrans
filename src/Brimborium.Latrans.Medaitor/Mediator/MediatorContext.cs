@@ -39,6 +39,7 @@ namespace Brimborium.Latrans.Mediator {
             this._Request = request;
             this._LocalDisposables = LocalDisposables.Create(this);
             //
+            this.ActivityId = arguments.ActivityId;
             this._MedaitorService = arguments.MedaitorService;
             this._MediatorScopeService = arguments.MediatorScopeService;
             this.Status = ActivityStatus.Unknown;
@@ -175,6 +176,7 @@ namespace Brimborium.Latrans.Mediator {
         }
 
         public Task SetFailureAsync(Exception error) {
+#warning here SetFailureAsync
             return this.SetActivityResponseAsync(new FailureActivityResponse(error));
         }
 

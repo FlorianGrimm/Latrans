@@ -2,6 +2,8 @@
 using Brimborium.Latrans.Activity;
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Mediator {
     /// <summary>
@@ -35,5 +37,12 @@ namespace Brimborium.Latrans.Mediator {
         where TRequest : IRequest<TResponse>, IRequestBase
         where TResponse : IResponseBase
             ;
+        //Task SendAsync<TRequest, TResponse>(
+        //    IActivityHandler<TRequest, TResponse> activityHandler,
+        //    IActivityContext<TRequest> activityContext,
+        //    CancellationToken cancellationToken
+        //    )
+        //    where TRequest : IRequest<TResponse>, IRequestBase
+        //    where TResponse : IResponseBase;
     }
 }

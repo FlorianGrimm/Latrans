@@ -25,13 +25,13 @@ namespace Brimborium.Latrans.IO {
         ///     or directory was last written to. This value is expressed in UTC time.
         /// </returns>
         DateTime FileGetLastWriteTimeUtc(string path);
-        IEnumerable<string> EnumerateFiles(string path, string searchPattern, EnumerationOptions enumerationOptions);
+        IEnumerable<string> EnumerateFiles(string path, string searchPattern, SearchOption searchOption);
         void FileDelete(string path);
     }
 
     public class LocalFileSystem : ILocalFileSystem {
-        public IEnumerable<string> EnumerateFiles(string path, string searchPattern, EnumerationOptions enumerationOptions) {
-            return System.IO.Directory.EnumerateFiles(path, searchPattern, enumerationOptions);
+        public IEnumerable<string> EnumerateFiles(string path, string searchPattern, SearchOption searchOption) {
+            return System.IO.Directory.EnumerateFiles(path, searchPattern, searchOption);
         }
 
         public void FileDelete(string path) {

@@ -75,7 +75,7 @@ namespace Benchmark {
             for (int idx = 1; idx < cnt; idx++) {
                 var d = lstWriteDummy[idx - 1];
 
-                var json = Brimborium.Latrans.JSON.JsonSerializer.Serialize<Dummy>(d);
+                var json = Utf8Json.JsonSerializer.Serialize<Dummy>(d);
                 if (json.Length < 10) { throw new Exception(); }
                 //var r = new EventLogRecord() {
                 //    LgId = (ulong)idx,
@@ -86,7 +86,7 @@ namespace Benchmark {
                 //};
                 ////lstWriteRL.Add(r);
                 //ReadableLogUtil.Write(r, sw);
-                var d2 = Brimborium.Latrans.JSON.JsonSerializer.Deserialize<Dummy>(json);
+                var d2 = Utf8Json.JsonSerializer.Deserialize<Dummy>(json);
                 if (d.Id != d2.Id) { throw new Exception(); }
             }
             //    sw.Close();

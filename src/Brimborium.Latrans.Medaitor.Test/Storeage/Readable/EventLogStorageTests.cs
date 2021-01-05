@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
@@ -20,7 +22,7 @@ namespace Brimborium.Latrans.Medaitor.Test.Storeage.Readable {
             var d = new Dummy() {
                 A = "1\n2"
             };
-            var json = Brimborium.Latrans.JSON.JsonSerializer.ToJsonString<Dummy>(d);
+            var json = Utf8Json.JsonSerializer.ToJsonString<Dummy>(d);
             Assert.False(json.Contains('\n'));
             //Brimborium.Latrans.JSON.JsonSerializer.Serialize<Dummy>
         }
@@ -60,6 +62,7 @@ namespace Brimborium.Latrans.Medaitor.Test.Storeage.Readable {
                     BaseFolder = latransWrite2Logs,
                     Implementation = "Readable"
                 });
+                if (eventLogStorage is null) { throw new Exception(); }
                 for (int idx = 0; idx < lstWriteDummy.Count; idx++) {
                     eventLogStorage.Write(new EventLogRecord() {
                         LgId = (ulong)idx,

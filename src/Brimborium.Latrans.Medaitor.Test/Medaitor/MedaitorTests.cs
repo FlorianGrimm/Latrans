@@ -101,6 +101,59 @@ namespace Brimborium.Latrans.Mediator {
             }
         }
 
+        public class TestRequest1 : IRequest<TestResponse1> {
+            public int A { get; set; }
+            public int B { get; set; }
+        }
+        public class TestResponse1 : IResponseBase {
+            public int R { get; set; }
+        }
+
+        public class TestActivityHandler1 : ActivityHandlerBase<TestRequest1, TestResponse1> {
+            public override async Task ExecuteAsync(
+                IActivityContext<TestRequest1> activityContext,
+                CancellationToken cancellationToken) {
+                var request = activityContext.Request;
+                var request2 = new TestRequest2() { A = request.A, B = request.B };
+                ActivityId activityId = ActivityId.NewId();
+
+                using var connectedClient = await activityContext.ConnectAndSendAsync(
+                            activityId,
+                            request2,
+                            null, // activityExecutionConfiguration,
+                            cancellationToken);
+
+                var response2 = await connectedClient.WaitForAsync(null, cancellationToken);
+                if (response2.TryGetResult<TestResponse2>(out var result2)) {
+                    var response = new TestResponse1() { R = result2.R + 1 };
+                    await this.SetResponseAsync(activityContext, response);
+                    return;
+                } else {
+                    await activityContext.SetActivityResponseAsync(response2);
+                    return;
+                }
+            }
+        }
+
+        public class TestRequest2 : IRequest<TestResponse2> {
+            public int A { get; set; }
+            public int B { get; set; }
+        }
+        public class TestResponse2 : IResponseBase {
+            public int R { get; set; }
+        }
+
+        public class TestActivityHandler2 : ActivityHandlerBase<TestRequest2, TestResponse2> {
+            public override Task ExecuteAsync(
+                IActivityContext<TestRequest2> activityContext,
+                CancellationToken cancellationToken) {
+                var request = activityContext.Request;
+                //activityContext.
+                var response = new TestResponse2() { R = request.A * request.B };
+                //activityContext.SetResponseAsync(response);
+                return this.SetResponseAsync(activityContext, response);
+            }
+        }
 
         [Fact]
         public async Task Medaitor_5Cancel() {
@@ -149,10 +202,117 @@ namespace Brimborium.Latrans.Mediator {
                                 var activityResponse = await connectedClient1.WaitForAsync(activityExecutionConfiguration1, CancellationToken.None);
                                 Assert.NotNull(activityResponse);
                                 Assert.NotNull(activityResponse as OkResultActivityResponse<TestResponse5>);
-                                Assert.Equal(6 * 7 + 1, ((OkResultActivityResponse<TestResponse5>)activityResponse).Result.R);
+                                Assert.Equal(6 * 7 - 2, ((OkResultActivityResponse<TestResponse5>)activityResponse).Result.R);
                             }
                         }
                     }
+                }
+            }
+        }
+
+        public class TestRequest5 : IRequest<TestResponse5> {
+            public int A { get; set; }
+            public int B { get; set; }
+        }
+        public class TestResponse5 : IResponseBase {
+            public int R { get; set; }
+        }
+
+        public class TestActivityHandler5 : ActivityHandlerBase<TestRequest5, TestResponse5> {
+            public override async Task ExecuteAsync(
+                IActivityContext<TestRequest5> activityContext,
+                CancellationToken cancellationToken) {
+                var request = activityContext.Request;
+                try {
+                    await Task.Delay(TimeSpan.FromSeconds(50), cancellationToken);
+                } catch {
+                    var response = new TestResponse5() { R = request.A * request.B - 2};
+                    await this.SetResponseAsync(activityContext, response);
+                    return;
+                }
+                { 
+                    var response = new TestResponse5() { R = request.A * request.B + 2};
+                    await this.SetResponseAsync(activityContext, response);
+                    return;
+                }
+            }
+        }
+
+
+
+        [Fact]
+        public async Task Medaitor_6Cancel() {
+            var servicesWebApp = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            var servicesMediator = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            servicesWebApp.AddLatransMedaitor()
+                .AddActivityHandler<TestActivityHandler6>()
+                .Build();
+
+            ActivityId activityId = ActivityId.NewId();
+            using (var serviceProviderMediator = servicesMediator.BuildServiceProvider()) {
+                using (var serviceProviderWebApp = servicesWebApp.BuildServiceProvider()) {
+                    using (var scopeWebApp1 = serviceProviderWebApp.CreateScope()) {
+                        var scopedProviderWebApp1 = scopeWebApp1.ServiceProvider;
+                        var medaitorClient1 = scopedProviderWebApp1.GetRequiredService<IMediatorClientFactory>().GetMedaitorClient();
+
+                        using (var scopeWebApp2 = serviceProviderWebApp.CreateScope()) {
+                            var scopedProviderWebApp2 = scopeWebApp2.ServiceProvider;
+                            var medaitorClient2 = scopedProviderWebApp2.GetRequiredService<IMediatorClientFactory>().GetMedaitorClient();
+
+                            var activityExecutionConfiguration1 = scopedProviderWebApp2.GetRequiredService<ActivityExecutionConfigurationDefaults>().ForQueryCancelable;
+                            var request6 = new TestRequest6() { A = 6, B = 7 };
+                            var cts = new CancellationTokenSource();
+                            var taskConnectedClient1 = medaitorClient1.ConnectAndSendAsync(
+                                activityId,
+                                request6,
+                                activityExecutionConfiguration1,
+                                cts.Token);
+                            //
+
+                            var connectedClient2 = await medaitorClient2.ConnectAsync(activityId, CancellationToken.None);
+
+                            var status = await connectedClient2.GetStatusAsync();
+                            Assert.Equal(ActivityStatus.Running, status.Status);
+                            cts.Cancel();
+                            IMediatorClientConnected<TestRequest6> connectedClient1;
+                            try {
+                                connectedClient1 = await taskConnectedClient1;
+                            } catch {
+                                connectedClient1 = null;
+                            }
+                            //
+                            if (connectedClient1 is null) {
+                                //
+                            } else {
+                                var activityResponse = await connectedClient1.WaitForAsync(activityExecutionConfiguration1, CancellationToken.None);
+                                Assert.NotNull(activityResponse);
+                                Assert.True(activityResponse is CanceledActivityResponse);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        public class TestRequest6 : IRequest<TestResponse6> {
+            public int A { get; set; }
+            public int B { get; set; }
+        }
+        public class TestResponse6 : IResponseBase {
+            public int R { get; set; }
+        }
+
+        public class TestActivityHandler6 : ActivityHandlerBase<TestRequest6, TestResponse6> {
+            public override async Task ExecuteAsync(
+                IActivityContext<TestRequest6> activityContext,
+                CancellationToken cancellationToken) {
+                var request = activityContext.Request;
+                await Task.Delay(TimeSpan.FromSeconds(60), cancellationToken);
+                {
+                    var response = new TestResponse6() { R = request.A * request.B };
+                    await this.SetResponseAsync(activityContext, response);
+                    return;
                 }
             }
         }
@@ -200,78 +360,6 @@ namespace Brimborium.Latrans.Mediator {
             }
         }
 #endif
-
-        public class TestRequest1 : IRequest<TestResponse1> {
-            public int A { get; set; }
-            public int B { get; set; }
-        }
-        public class TestResponse1 : IResponseBase {
-            public int R { get; set; }
-        }
-
-        public class TestActivityHandler1 : ActivityHandlerBase<TestRequest1, TestResponse1> {
-            public override async Task ExecuteAsync(
-                IActivityContext<TestRequest1> activityContext,
-                CancellationToken cancellationToken) {
-                var request = activityContext.Request;
-                var request2 = new TestRequest2() { A = request.A, B = request.B };
-                ActivityId activityId = ActivityId.NewId();
-                
-                using var connectedClient = await activityContext.ConnectAndSendAsync(
-                            activityId,
-                            request2,
-                            null, // activityExecutionConfiguration,
-                            cancellationToken);
-                
-                var response2 = await connectedClient.WaitForAsync(null, cancellationToken);
-                if (response2.TryGetResult<TestResponse2>(out var result2)) {
-                    var response = new TestResponse1() { R = result2.R + 1 };
-                    await this.SetResponseAsync(activityContext, response);
-                    return;
-                } else {
-                    await activityContext.SetActivityResponseAsync(response2);
-                }
-            }
-        }
-        public class TestRequest2 : IRequest<TestResponse2> {
-            public int A { get; set; }
-            public int B { get; set; }
-        }
-        public class TestResponse2 : IResponseBase {
-            public int R { get; set; }
-        }
-
-        public class TestActivityHandler2 : ActivityHandlerBase<TestRequest2, TestResponse2> {
-            public override Task ExecuteAsync(
-                IActivityContext<TestRequest2> activityContext,
-                CancellationToken cancellationToken) {
-                var request = activityContext.Request;
-                //activityContext.
-                var response = new TestResponse2() { R = request.A * request.B };
-                //activityContext.SetResponseAsync(response);
-                return this.SetResponseAsync(activityContext, response);
-            }
-        }
-
-        public class TestRequest5 : IRequest<TestResponse5> {
-            public int A { get; set; }
-            public int B { get; set; }
-        }
-        public class TestResponse5 : IResponseBase {
-            public int R { get; set; }
-        }
-
-        public class TestActivityHandler5 : ActivityHandlerBase<TestRequest5, TestResponse5> {
-            public override async Task ExecuteAsync(
-                IActivityContext<TestRequest5> activityContext,
-                CancellationToken cancellationToken) {
-                var request = activityContext.Request;
-                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
-                var response = new TestResponse5() { R = request.A * request.B };
-                await this.SetResponseAsync(activityContext, response);
-                return;
-            }
-        }
 
         /*
         public class TestRequest4 : IRequest<TestResponse4> {
