@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Brimborium.Latrans.JSON {
     public class JsonSerializationInfoBuilder {
@@ -51,6 +53,20 @@ namespace Brimborium.Latrans.JSON {
 
     public class JsonSerializationInfo {
         public JsonSerializationInfo(JsonSerializationInfoBuilder builder) {
+            this.Properties = builder.Properties.Select(
+                p => new JsonPropertySerializationInfo(
+                    p.Name,
+                    p.Order,
+                    p.IsReadable,
+                    p.IsWritable
+                    )).ToArray();
+            this.
+        }
+
+        public JsonPropertySerializationInfo[] Properties { get; }
+
+        internal void TryGetValue(ArraySegment<byte> keyString, out int key) {
+            throw new NotImplementedException();
         }
     }
     public class JsonPropertySerializationInfo {

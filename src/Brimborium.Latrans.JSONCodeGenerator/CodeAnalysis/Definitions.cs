@@ -32,8 +32,10 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
             return this.Members.Where(x => !x.IsIgnored).OrderBy(x => x.Order).ToArray();
         }
 
-        public string FormatterName => (this.Namespace == null ? this.Name : this.Namespace + "." + this.Name) + "Formatter";
-        
+#warning odd & buggy
+        public string FormatterName =>
+            $"{this.Name}Formatter";
+
         public bool HasConstructor { get; set; }
 
         public ObjectSerializationInfo() {

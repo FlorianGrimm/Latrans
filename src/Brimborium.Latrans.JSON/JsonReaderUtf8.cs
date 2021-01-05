@@ -1111,7 +1111,15 @@ namespace Brimborium.Latrans.JSON {
         }
 
         public override bool TryGetParameterValue(JsonSerializationInfo jsonSerializationInfo, out int key) {
-#warning here TryGetParameterValue
+            var keyString = this.ReadPropertyNameSegmentRaw();
+            int key;
+
+#if NETSTANDARD
+            jsonSerializationInfo.TryGetValue(keyString, out key);
+#else
+                dictionary.TryGetValueSafe(keyString, out key);
+#endif
+
             throw new NotImplementedException();
         }
 

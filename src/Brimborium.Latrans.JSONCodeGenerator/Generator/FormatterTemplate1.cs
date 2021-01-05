@@ -39,8 +39,6 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
 
                 this.Write(">\r\n");
                 this.Write("    {\r\n");
-                this.Write("        readonly global::Brimborium.Latrans.JSON.Internal.AutomataDictionary ____keyMapping;\r\n");
-                this.Write("        readonly byte[][] ____stringByteKeys;\r\n");
                 this.Write("        private readonly global::Brimborium.Latrans.JSON.JsonSerializationInfo ____JsonSerializationInfo;\r\n");
                 this.Write("\r\n");
                 this.Write("        public ");
@@ -113,7 +111,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
 
                 this.Write(this.ToStringHelper.ToStringWithCulture(objInfo.FullName));
 
-                this.Write(" Deserialize(global::Brimborium.Latrans.JSON.JsonReader reader, global::Utf8Json.IJsonFormatterResolver formatterResolver)\r\n        {\r\n            if (reader.ReadIsNull())\r\n            {\r\n");
+                this.Write(" Deserialize(global::Brimborium.Latrans.JSON.JsonReader reader, global::Brimborium.Latrans.JSON.IJsonFormatterResolver formatterResolver)\r\n        {\r\n            if (reader.ReadIsNull())\r\n            {\r\n");
 
                 if (objInfo.IsClass) {
                     this.Write("                return null;\r\n");
@@ -129,85 +127,68 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
                             "\"generated serializer for IInterface does not support deserialize.\");\r\n");
                 } else {
                     this.Write("\r\n");
-                    foreach (var x in objInfo.Members) {
-                        this.Write("            var __");
+                    foreach (var x in objInfo.GetMembers()) {
+                        this.Write("            var __v__");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.MemberName));
-                        this.Write("__ = default(");
+                        this.Write(" = default(");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.Type));
                         this.Write(");\r\n");
 
-                        this.Write("            var __");
+                        this.Write("            var __s__");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.MemberName));
-                        this.Write("__b__ = false;\r\n");
+                        this.Write(" = false;\r\n");
                     }
                     this.Write("            var ____count = 0;\r\n");
                     this.Write("            reader.ReadIsBeginObjectWithVerify();\r\n");
-                    this.Write(@"            //
-            while (!reader.ReadIsEndObjectWithSkipValueSeparator(ref ____count))
-            {");
-
-#if false
-                    this.Write(@"
-                var stringKey = reader.ReadPropertyNameSegmentRaw();
-                int key;
-                if (!____keyMapping.TryGetValueSafe(stringKey, out key))
-                {
-                    reader.ReadNextBlock();
-                    goto NEXT_LOOP;
-                }");
-#else
-                    this.Write(@"
-                int key;
-                if (reader.TryGetParameterValue(this.____JsonSerializationInfo, out key))
-                {
-                    reader.ReadNextBlock();
-                    goto NEXT_LOOP;
-                }");
-#endif
-                    this.Write(@"
-                switch (key)
-                {
-");
-                    foreach (var x in objInfo.Members) {
-                        this.Write("                    case ");
+                    this.Write("            //\r\n");
+                    this.Write("            while (!reader.ReadIsEndObjectWithSkipValueSeparator(ref ____count))\r\n");
+                    this.Write("            {\r\n");
+                    this.Write("                int key;\r\n");
+                    this.Write("                if (reader.TryGetParameterValue(this.____JsonSerializationInfo, out key))\r\n");
+                    this.Write("                {\r\n");
+                    this.Write("                    reader.ReadNextBlock();\r\n");
+                    this.Write("                    continue;\r\n");
+                    this.Write("                } else {\r\n");
+                    this.Write("                    switch (key)\r\n");
+                    this.Write("                    {\r\n");
+                    foreach (var x in objInfo.GetMembers()) {
+                        this.Write("                         case ");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.Order));
                         this.Write(":\r\n");
-                        this.Write("                        __");
+                        this.Write("                             __v__");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.MemberName));
-                        this.Write("__ = ");
+                        this.Write(" = ");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.GetDeserializeMethodString()));
                         this.Write(";\r\n");
-                        this.Write("                        __");
+                        this.Write("                             __s__");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.MemberName));
-                        this.Write("__b__ = true;\r\n                        break;\r\n");
+                        this.Write(" = true;\r\n");
+                        this.Write("                             break;\r\n");
                     }
                     this.Write("                    default:\r\n");
                     this.Write("                        reader.ReadNextBlock();\r\n");
                     this.Write("                        break;\r\n");
+                    this.Write("                    }\r\n");
                     this.Write("                }\r\n");
-                    this.Write("\r\n");
-                    this.Write("                NEXT_LOOP:\r\n");
-                    this.Write("                continue;\r\n");
                     this.Write("            }\r\n");
                     this.Write("\r\n");
                     this.Write("            var ____result = new ");
                     this.Write(this.ToStringHelper.ToStringWithCulture(objInfo.GetConstructorString()));
                     this.Write(";\r\n");
                     foreach (var x in objInfo.GetMembers().Where(x => x.IsWritable && !x.IsConstructorParameter)) {
-                        this.Write("            if(__");
+                        this.Write("            if(__s__");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.MemberName));
-                        this.Write("__b__) { ____result.");
+                        this.Write(") { ____result.");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.MemberName));
-                        this.Write(" = __");
+                        this.Write(" = __v__");
                         this.Write(this.ToStringHelper.ToStringWithCulture(x.MemberName));
-                        this.Write("__; }\r\n");
+                        this.Write("; }\r\n");
                     }
                     this.Write("\r\n");
                     this.Write("            return ____result;\r\n");
                 }
                 this.Write("        }\r\n");
                 this.Write("    }\r\n");
-                this.Write("\r\n");
             }
             this.Write("}\r\n");
             this.Write("\r\n");

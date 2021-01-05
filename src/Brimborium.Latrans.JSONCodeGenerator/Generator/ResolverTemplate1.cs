@@ -36,7 +36,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
 
             this.Write(" : global::Brimborium.Latrans.JSON.IJsonFormatterResolver\r\n");
             this.Write("    {\r\n");
-            this.Write("        public static readonly global::Utf8Json.IJsonFormatterResolver Instance = new ");
+            this.Write("        public static readonly global::Brimborium.Latrans.JSON.IJsonFormatterResolver Instance = new ");
 
             this.Write(this.ToStringHelper.ToStringWithCulture(ResolverName));
 
@@ -110,7 +110,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
                 this.Write("                case ");
                 this.Write(this.ToStringHelper.ToStringWithCulture(i));
                 this.Write(": return new ");
-                this.Write(this.ToStringHelper.ToStringWithCulture(x.FormatterName.StartsWith("global::") ? x.FormatterName : (!string.IsNullOrEmpty(FormatterNamespace) ? FormatterNamespace + "." : FormatterNamespace) + x.FormatterName));
+                this.Write(this.ToStringHelper.ToStringWithCulture(x.FormatterName));
                 this.Write("();\r\n");
             }
             this.Write("                default: return null;\r\n");

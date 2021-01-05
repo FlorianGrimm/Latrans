@@ -79,72 +79,72 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
         });
         static readonly Dictionary<string, string> knownGenericTypes = new Dictionary<string, string>
         {
-            {"System.Collections.Generic.List<>", "global::Utf8Json.Formatters.ListFormatter<TREPLACE>" },
-            {"System.Collections.Generic.LinkedList<>", "global::Utf8Json.Formatters.LinkedListFormatter<TREPLACE>"},
-            {"System.Collections.Generic.Queue<>", "global::Utf8Json.Formatters.QeueueFormatter<TREPLACE>"},
-            {"System.Collections.Generic.Stack<>", "global::Utf8Json.Formatters.StackFormatter<TREPLACE>"},
-            {"System.Collections.Generic.HashSet<>", "global::Utf8Json.Formatters.HashSetFormatter<TREPLACE>"},
-            {"System.Collections.ObjectModel.ReadOnlyCollection<>", "global::Utf8Json.Formatters.ReadOnlyCollectionFormatter<TREPLACE>"},
-            {"System.Collections.Generic.IList<>", "global::Utf8Json.Formatters.InterfaceListFormatter<TREPLACE>"},
-            {"System.Collections.Generic.ICollection<>", "global::Utf8Json.Formatters.InterfaceCollectionFormatter<TREPLACE>"},
-            {"System.Collections.Generic.IEnumerable<>", "global::Utf8Json.Formatters.InterfaceEnumerableFormatter<TREPLACE>"},
-            {"System.Collections.Generic.Dictionary<,>", "global::Utf8Json.Formatters.DictionaryFormatter<TREPLACE>"},
-            {"System.Collections.Generic.IDictionary<,>", "global::Utf8Json.Formatters.InterfaceDictionaryFormatter<TREPLACE>"},
-            {"System.Collections.Generic.SortedDictionary<,>", "global::Utf8Json.Formatters.SortedDictionaryFormatter<TREPLACE>"},
-            {"System.Collections.Generic.SortedList<,>", "global::Utf8Json.Formatters.SortedListFormatter<TREPLACE>"},
-            {"System.Linq.ILookup<,>", "global::Utf8Json.Formatters.InterfaceLookupFormatter<TREPLACE>"},
-            {"System.Linq.IGrouping<,>", "global::Utf8Json.Formatters.InterfaceGroupingFormatter<TREPLACE>"},
-            {"System.Collections.ObjectModel.ObservableCollection<>", "global::Utf8Json.Formatters.ObservableCollectionFormatter<TREPLACE>"},
-            {"System.Collections.ObjectModel.ReadOnlyObservableCollection<>", "global::Utf8Json.Formatters.ReadOnlyObservableCollectionFormatter<TREPLACE>" },
-            {"System.Collections.Generic.IReadOnlyList<>", "global::Utf8Json.Formatters.InterfaceReadOnlyListFormatter<TREPLACE>"},
-            {"System.Collections.Generic.IReadOnlyCollection<>", "global::Utf8Json.Formatters.InterfaceReadOnlyCollectionFormatter<TREPLACE>"},
-            {"System.Collections.Generic.ISet<>", "global::Utf8Json.Formatters.InterfaceSetFormatter<TREPLACE>"},
-            {"System.Collections.Concurrent.ConcurrentBag<>", "global::Utf8Json.Formatters.ConcurrentBagFormatter<TREPLACE>"},
-            {"System.Collections.Concurrent.ConcurrentQueue<>", "global::Utf8Json.Formatters.ConcurrentQueueFormatter<TREPLACE>"},
-            {"System.Collections.Concurrent.ConcurrentStack<>", "global::Utf8Json.Formatters.ConcurrentStackFormatter<TREPLACE>"},
-            {"System.Collections.ObjectModel.ReadOnlyDictionary<,>", "global::Utf8Json.Formatters.ReadOnlyDictionaryFormatter<TREPLACE>"},
-            {"System.Collections.Generic.IReadOnlyDictionary<,>", "global::Utf8Json.Formatters.InterfaceReadOnlyDictionaryFormatter<TREPLACE>"},
-            {"System.Collections.Concurrent.ConcurrentDictionary<,>", "global::Utf8Json.Formatters.ConcurrentDictionaryFormatter<TREPLACE>"},
-            {"System.Lazy<>", "global::Utf8Json.Formatters.LazyFormatter<TREPLACE>"},
-            {"System.Threading.Tasks<>", "global::Utf8Json.Formatters.TaskValueFormatter<TREPLACE>"},
+            {"System.Collections.Generic.List<>", "global::Brimborium.Latrans.JSON.Formatters.ListFormatter<TREPLACE>" },
+            {"System.Collections.Generic.LinkedList<>", "global::Brimborium.Latrans.JSON.Formatters.LinkedListFormatter<TREPLACE>"},
+            {"System.Collections.Generic.Queue<>", "global::Brimborium.Latrans.JSON.Formatters.QeueueFormatter<TREPLACE>"},
+            {"System.Collections.Generic.Stack<>", "global::Brimborium.Latrans.JSON.Formatters.StackFormatter<TREPLACE>"},
+            {"System.Collections.Generic.HashSet<>", "global::Brimborium.Latrans.JSON.Formatters.HashSetFormatter<TREPLACE>"},
+            {"System.Collections.ObjectModel.ReadOnlyCollection<>", "global::Brimborium.Latrans.JSON.Formatters.ReadOnlyCollectionFormatter<TREPLACE>"},
+            {"System.Collections.Generic.IList<>", "global::Brimborium.Latrans.JSON.Formatters.InterfaceListFormatter<TREPLACE>"},
+            {"System.Collections.Generic.ICollection<>", "global::Brimborium.Latrans.JSON.Formatters.InterfaceCollectionFormatter<TREPLACE>"},
+            {"System.Collections.Generic.IEnumerable<>", "global::Brimborium.Latrans.JSON.Formatters.InterfaceEnumerableFormatter<TREPLACE>"},
+            {"System.Collections.Generic.Dictionary<,>", "global::Brimborium.Latrans.JSON.Formatters.DictionaryFormatter<TREPLACE>"},
+            {"System.Collections.Generic.IDictionary<,>", "global::Brimborium.Latrans.JSON.Formatters.InterfaceDictionaryFormatter<TREPLACE>"},
+            {"System.Collections.Generic.SortedDictionary<,>", "global::Brimborium.Latrans.JSON.Formatters.SortedDictionaryFormatter<TREPLACE>"},
+            {"System.Collections.Generic.SortedList<,>", "global::Brimborium.Latrans.JSON.Formatters.SortedListFormatter<TREPLACE>"},
+            {"System.Linq.ILookup<,>", "global::Brimborium.Latrans.JSON.Formatters.InterfaceLookupFormatter<TREPLACE>"},
+            {"System.Linq.IGrouping<,>", "global::Brimborium.Latrans.JSON.Formatters.InterfaceGroupingFormatter<TREPLACE>"},
+            {"System.Collections.ObjectModel.ObservableCollection<>", "global::Brimborium.Latrans.JSON.Formatters.ObservableCollectionFormatter<TREPLACE>"},
+            {"System.Collections.ObjectModel.ReadOnlyObservableCollection<>", "global::Brimborium.Latrans.JSON.Formatters.ReadOnlyObservableCollectionFormatter<TREPLACE>" },
+            {"System.Collections.Generic.IReadOnlyList<>", "global::Brimborium.Latrans.JSON.Formatters.InterfaceReadOnlyListFormatter<TREPLACE>"},
+            {"System.Collections.Generic.IReadOnlyCollection<>", "global::Brimborium.Latrans.JSON.Formatters.InterfaceReadOnlyCollectionFormatter<TREPLACE>"},
+            {"System.Collections.Generic.ISet<>", "global::Brimborium.Latrans.JSON.Formatters.InterfaceSetFormatter<TREPLACE>"},
+            {"System.Collections.Concurrent.ConcurrentBag<>", "global::Brimborium.Latrans.JSON.Formatters.ConcurrentBagFormatter<TREPLACE>"},
+            {"System.Collections.Concurrent.ConcurrentQueue<>", "global::Brimborium.Latrans.JSON.Formatters.ConcurrentQueueFormatter<TREPLACE>"},
+            {"System.Collections.Concurrent.ConcurrentStack<>", "global::Brimborium.Latrans.JSON.Formatters.ConcurrentStackFormatter<TREPLACE>"},
+            {"System.Collections.ObjectModel.ReadOnlyDictionary<,>", "global::Brimborium.Latrans.JSON.Formatters.ReadOnlyDictionaryFormatter<TREPLACE>"},
+            {"System.Collections.Generic.IReadOnlyDictionary<,>", "global::Brimborium.Latrans.JSON.Formatters.InterfaceReadOnlyDictionaryFormatter<TREPLACE>"},
+            {"System.Collections.Concurrent.ConcurrentDictionary<,>", "global::Brimborium.Latrans.JSON.Formatters.ConcurrentDictionaryFormatter<TREPLACE>"},
+            {"System.Lazy<>", "global::Brimborium.Latrans.JSON.Formatters.LazyFormatter<TREPLACE>"},
+            {"System.Threading.Tasks<>", "global::Brimborium.Latrans.JSON.Formatters.TaskValueFormatter<TREPLACE>"},
 
-            {"System.Tuple<>", "global::Utf8Json.Formatters.TupleFormatter<TREPLACE>"},
-            {"System.Tuple<,>", "global::Utf8Json.Formatters.TupleFormatter<TREPLACE>"},
-            {"System.Tuple<,,>", "global::Utf8Json.Formatters.TupleFormatter<TREPLACE>"},
-            {"System.Tuple<,,,>", "global::Utf8Json.Formatters.TupleFormatter<TREPLACE>"},
-            {"System.Tuple<,,,,>", "global::Utf8Json.Formatters.TupleFormatter<TREPLACE>"},
-            {"System.Tuple<,,,,,>", "global::Utf8Json.Formatters.TupleFormatter<TREPLACE>"},
-            {"System.Tuple<,,,,,,>", "global::Utf8Json.Formatters.TupleFormatter<TREPLACE>"},
-            {"System.Tuple<,,,,,,,>", "global::Utf8Json.Formatters.TupleFormatter<TREPLACE>"},
+            {"System.Tuple<>", "global::Brimborium.Latrans.JSON.Formatters.TupleFormatter<TREPLACE>"},
+            {"System.Tuple<,>", "global::Brimborium.Latrans.JSON.Formatters.TupleFormatter<TREPLACE>"},
+            {"System.Tuple<,,>", "global::Brimborium.Latrans.JSON.Formatters.TupleFormatter<TREPLACE>"},
+            {"System.Tuple<,,,>", "global::Brimborium.Latrans.JSON.Formatters.TupleFormatter<TREPLACE>"},
+            {"System.Tuple<,,,,>", "global::Brimborium.Latrans.JSON.Formatters.TupleFormatter<TREPLACE>"},
+            {"System.Tuple<,,,,,>", "global::Brimborium.Latrans.JSON.Formatters.TupleFormatter<TREPLACE>"},
+            {"System.Tuple<,,,,,,>", "global::Brimborium.Latrans.JSON.Formatters.TupleFormatter<TREPLACE>"},
+            {"System.Tuple<,,,,,,,>", "global::Brimborium.Latrans.JSON.Formatters.TupleFormatter<TREPLACE>"},
 
-            {"System.ValueTuple<>", "global::Utf8Json.Formatters.ValueTupleFormatter<TREPLACE>"},
-            {"System.ValueTuple<,>", "global::Utf8Json.Formatters.ValueTupleFormatter<TREPLACE>"},
-            {"System.ValueTuple<,,>", "global::Utf8Json.Formatters.ValueTupleFormatter<TREPLACE>"},
-            {"System.ValueTuple<,,,>", "global::Utf8Json.Formatters.ValueTupleFormatter<TREPLACE>"},
-            {"System.ValueTuple<,,,,>", "global::Utf8Json.Formatters.ValueTupleFormatter<TREPLACE>"},
-            {"System.ValueTuple<,,,,,>", "global::Utf8Json.Formatters.ValueTupleFormatter<TREPLACE>"},
-            {"System.ValueTuple<,,,,,,>", "global::Utf8Json.Formatters.ValueTupleFormatter<TREPLACE>"},
-            {"System.ValueTuple<,,,,,,,>", "global::Utf8Json.Formatters.ValueTupleFormatter<TREPLACE>"},
+            {"System.ValueTuple<>", "global::Brimborium.Latrans.JSON.Formatters.ValueTupleFormatter<TREPLACE>"},
+            {"System.ValueTuple<,>", "global::Brimborium.Latrans.JSON.Formatters.ValueTupleFormatter<TREPLACE>"},
+            {"System.ValueTuple<,,>", "global::Brimborium.Latrans.JSON.Formatters.ValueTupleFormatter<TREPLACE>"},
+            {"System.ValueTuple<,,,>", "global::Brimborium.Latrans.JSON.Formatters.ValueTupleFormatter<TREPLACE>"},
+            {"System.ValueTuple<,,,,>", "global::Brimborium.Latrans.JSON.Formatters.ValueTupleFormatter<TREPLACE>"},
+            {"System.ValueTuple<,,,,,>", "global::Brimborium.Latrans.JSON.Formatters.ValueTupleFormatter<TREPLACE>"},
+            {"System.ValueTuple<,,,,,,>", "global::Brimborium.Latrans.JSON.Formatters.ValueTupleFormatter<TREPLACE>"},
+            {"System.ValueTuple<,,,,,,,>", "global::Brimborium.Latrans.JSON.Formatters.ValueTupleFormatter<TREPLACE>"},
 
-            {"System.Collections.Generic.KeyValuePair<,>", "global::Utf8Json.Formatters.KeyValuePairFormatter<TREPLACE>"},
-            {"System.Threading.Tasks.ValueTask<>", "global::Utf8Json.Formatters.KeyValuePairFormatter<TREPLACE>"},
-            {"System.ArraySegment<>", "global::Utf8Json.Formatters.ArraySegmentFormatter<TREPLACE>"},
+            {"System.Collections.Generic.KeyValuePair<,>", "global::Brimborium.Latrans.JSON.Formatters.KeyValuePairFormatter<TREPLACE>"},
+            {"System.Threading.Tasks.ValueTask<>", "global::Brimborium.Latrans.JSON.Formatters.KeyValuePairFormatter<TREPLACE>"},
+            {"System.ArraySegment<>", "global::Brimborium.Latrans.JSON.Formatters.ArraySegmentFormatter<TREPLACE>"},
 
             // extensions
 
-            {"System.Collections.Immutable.ImmutableArray<>", "global::Utf8Json.ImmutableCollection.ImmutableArrayFormatter<TREPLACE>"},
-            {"System.Collections.Immutable.ImmutableList<>", "global::Utf8Json.ImmutableCollection.ImmutableListFormatter<TREPLACE>"},
-            {"System.Collections.Immutable.ImmutableDictionary<,>", "global::Utf8Json.ImmutableCollection.ImmutableDictionaryFormatter<TREPLACE>"},
-            {"System.Collections.Immutable.ImmutableHashSet<>", "global::Utf8Json.ImmutableCollection.ImmutableHashSetFormatter<TREPLACE>"},
-            {"System.Collections.Immutable.ImmutableSortedDictionary<,>", "global::Utf8Json.ImmutableCollection.ImmutableSortedDictionaryFormatter<TREPLACE>"},
-            {"System.Collections.Immutable.ImmutableSortedSet<>", "global::Utf8Json.ImmutableCollection.ImmutableSortedSetFormatter<TREPLACE>"},
-            {"System.Collections.Immutable.ImmutableQueue<>", "global::Utf8Json.ImmutableCollection.ImmutableQueueFormatter<TREPLACE>"},
-            {"System.Collections.Immutable.ImmutableStack<>", "global::Utf8Json.ImmutableCollection.ImmutableStackFormatter<TREPLACE>"},
-            {"System.Collections.Immutable.IImmutableList<>", "global::Utf8Json.ImmutableCollection.InterfaceImmutableListFormatter<TREPLACE>"},
-            {"System.Collections.Immutable.IImmutableDictionary<,>", "global::Utf8Json.ImmutableCollection.InterfaceImmutableDictionaryFormatter<TREPLACE>"},
-            {"System.Collections.Immutable.IImmutableQueue<>", "global::Utf8Json.ImmutableCollection.InterfaceImmutableQueueFormatter<TREPLACE>"},
-            {"System.Collections.Immutable.IImmutableSet<>", "global::Utf8Json.ImmutableCollection.InterfaceImmutableSetFormatter<TREPLACE>"},
-            {"System.Collections.Immutable.IImmutableStack<>", "global::Utf8Json.ImmutableCollection.InterfaceImmutableStackFormatter<TREPLACE>"},
+            {"System.Collections.Immutable.ImmutableArray<>", "global::Brimborium.Latrans.JSON.ImmutableCollection.ImmutableArrayFormatter<TREPLACE>"},
+            {"System.Collections.Immutable.ImmutableList<>", "global::Brimborium.Latrans.JSON.ImmutableCollection.ImmutableListFormatter<TREPLACE>"},
+            {"System.Collections.Immutable.ImmutableDictionary<,>", "global::Brimborium.Latrans.JSON.ImmutableCollection.ImmutableDictionaryFormatter<TREPLACE>"},
+            {"System.Collections.Immutable.ImmutableHashSet<>", "global::Brimborium.Latrans.JSON.ImmutableCollection.ImmutableHashSetFormatter<TREPLACE>"},
+            {"System.Collections.Immutable.ImmutableSortedDictionary<,>", "global::Brimborium.Latrans.JSON.ImmutableCollection.ImmutableSortedDictionaryFormatter<TREPLACE>"},
+            {"System.Collections.Immutable.ImmutableSortedSet<>", "global::Brimborium.Latrans.JSON.ImmutableCollection.ImmutableSortedSetFormatter<TREPLACE>"},
+            {"System.Collections.Immutable.ImmutableQueue<>", "global::Brimborium.Latrans.JSON.ImmutableCollection.ImmutableQueueFormatter<TREPLACE>"},
+            {"System.Collections.Immutable.ImmutableStack<>", "global::Brimborium.Latrans.JSON.ImmutableCollection.ImmutableStackFormatter<TREPLACE>"},
+            {"System.Collections.Immutable.IImmutableList<>", "global::Brimborium.Latrans.JSON.ImmutableCollection.InterfaceImmutableListFormatter<TREPLACE>"},
+            {"System.Collections.Immutable.IImmutableDictionary<,>", "global::Brimborium.Latrans.JSON.ImmutableCollection.InterfaceImmutableDictionaryFormatter<TREPLACE>"},
+            {"System.Collections.Immutable.IImmutableQueue<>", "global::Brimborium.Latrans.JSON.ImmutableCollection.InterfaceImmutableQueueFormatter<TREPLACE>"},
+            {"System.Collections.Immutable.IImmutableSet<>", "global::Brimborium.Latrans.JSON.ImmutableCollection.InterfaceImmutableSetFormatter<TREPLACE>"},
+            {"System.Collections.Immutable.IImmutableStack<>", "global::Brimborium.Latrans.JSON.ImmutableCollection.InterfaceImmutableStackFormatter<TREPLACE>"},
         };
 
 
@@ -167,7 +167,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
             var compilation = RoslynExtensions.GetCompilationFromProject(inputFiles, inputDirs,
                 conditinalSymbols.Concat(new[] { CodegeneratorOnlyPreprocessorSymbol }).ToArray()
             );
-
+            
             this.typeReferences = new ReferenceSymbols(compilation);
             this.disallowInternal = disallowInternal;
 
@@ -251,13 +251,13 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
             };
 
             if (array.IsSZArray) {
-                info.FormatterName = $"global::Utf8Json.Formatters.ArrayFormatter<{elemType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>";
+                info.FormatterName = $"global::Brimborium.Latrans.JSON.Formatters.ArrayFormatter<{elemType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>";
             } else if (array.Rank == 2) {
-                info.FormatterName = $"global::Utf8Json.Formatters.TwoDimentionalArrayFormatter<{elemType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>";
+                info.FormatterName = $"global::Brimborium.Latrans.JSON.Formatters.TwoDimentionalArrayFormatter<{elemType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>";
             } else if (array.Rank == 3) {
-                info.FormatterName = $"global::Utf8Json.Formatters.ThreeDimentionalArrayFormatter<{elemType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>";
+                info.FormatterName = $"global::Brimborium.Latrans.JSON.Formatters.ThreeDimentionalArrayFormatter<{elemType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>";
             } else if (array.Rank == 4) {
-                info.FormatterName = $"global::Utf8Json.Formatters.FourDimentionalArrayFormatter<{elemType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>";
+                info.FormatterName = $"global::Brimborium.Latrans.JSON.Formatters.FourDimentionalArrayFormatter<{elemType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>";
             } else {
                 throw new InvalidOperationException("does not supports array dimention, " + info.FullName);
             }
@@ -283,7 +283,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
 
                 if (!embeddedTypes.Contains(type.TypeArguments[0].ToString())) {
                     var info = new GenericSerializationInfo {
-                        FormatterName = $"global::Utf8Json.Formatters.NullableFormatter<{type.TypeArguments[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>",
+                        FormatterName = $"global::Brimborium.Latrans.JSON.Formatters.NullableFormatter<{type.TypeArguments[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>",
                         FullName = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                     };
 
@@ -336,7 +336,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
         void CollectObject(INamedTypeSymbol type) {
             var isClass = !type.IsValueType;
 
-            var stringMembers = new Dictionary<string, MemberSerializationInfo>();
+            var dictMembers = new Dictionary<string, MemberSerializationInfo>();
 
             int position = 0;
             foreach (var item in type.GetAllMembers().OfType<IPropertySymbol>().Where(x => !x.IsOverride)) {
@@ -366,7 +366,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
                     continue;
                 }
 
-                stringMembers.Add(name, member);
+                dictMembers.Add(name, member);
                 if (!member.IsIgnored) {
                     CollectCore(item.Type); // recursive collect
                 }
@@ -401,19 +401,24 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
                     continue;
                 }
 
-                stringMembers.Add(name, member);
+                dictMembers.Add(name, member);
                 if (!member.IsIgnored) {
                     CollectCore(item.Type); // recursive collect
                 }
             }
 
-            var arrValue = stringMembers.Values.OrderBy(m => m.Order).ThenBy(m => m.Position).ToArray();
-            int idx = 0;
-            foreach (var m in arrValue) {
-                if (m.IsIgnored) {
-                    //
-                } else {
-                    m.Order = idx++;
+            var arrValue = dictMembers.Values.OrderBy(m => m.Order).ThenBy(m => m.Position).ToArray();
+            {
+                int idxOrder = 0;
+                int idxPosition = 0;
+                foreach (var m in arrValue) {
+                    if (m.IsIgnored) {
+                        //
+                        m.Order = -1;
+                    } else {
+                        m.Order = idxOrder++;
+                    }
+                    m.Position = idxPosition++;
                 }
             }
 
@@ -434,7 +439,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
 
             var constructorParameters = new List<MemberSerializationInfo>();
             if (ctor != null) {
-                var constructorLookupDictionary = stringMembers.ToLookup(x => x.Key, x => x, StringComparer.OrdinalIgnoreCase);
+                var constructorLookupDictionary = dictMembers.ToLookup(x => x.Key, x => x, StringComparer.OrdinalIgnoreCase);
                 do {
                     constructorParameters.Clear();
                     var ctorParamIndex = 0;
@@ -482,7 +487,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
                 }
             }
 
-            if (stringMembers.Count == 0) {
+            if (dictMembers.Count == 0) {
                 return;
             }
             foreach (var x in constructorParameters) {
@@ -491,7 +496,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
             var info = new ObjectSerializationInfo {
                 IsClass = isClass,
                 ConstructorParameters = constructorParameters.ToArray(),
-                Members = stringMembers.Values.ToArray(),
+                Members = dictMembers.Values.ToArray(),
                 Name = type.ToDisplayString(shortTypeNameFormat).Replace(".", "_"),
                 FullName = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                 Namespace = type.ContainingNamespace.IsGlobalNamespace ? null : type.ContainingNamespace.ToDisplayString(),

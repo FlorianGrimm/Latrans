@@ -47,12 +47,12 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
                     ShowInvalidArgument(args);
                     IsValid = false;
                     return;
-                } else { 
+                } else {
                     IsValid = true;
                     return;
                 }
             }
-            
+
             void ShowInvalidArgument(string[] invalidArguments) {
                 consoleOut.WriteLine("Invalid Argument:" + string.Join(" ", args));
                 consoleOut.WriteLine();
@@ -80,7 +80,7 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
             args = new string[] {
                 // @"--inputDirs=C:\github\FlorianGrimm\Latrans\src\Brimborium.Latrans.Contracts\",
                 @"--inputFiles=C:\github\FlorianGrimm\Latrans\src\Brimborium.Latrans.JSONCodeGenerator\CodeAnalysis\Definitions.cs",
-                @"--output=C:\temp\gen\gen2.cs"
+                @"--output=C:\github\FlorianGrimm\Latrans\src\Brimborium.Latrans.JSONCodeGenerator\CodeAnalysis\Definitions.g.cs"
             };
 
 
@@ -95,9 +95,9 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
             Console.WriteLine("Project Compilation Start:" + string.Join(",", cmdArgs.InputFiles) + " " + string.Join(",", cmdArgs.InputDirectories));
 
             var collector = new TypeCollector(
-                cmdArgs.InputFiles, 
-                cmdArgs.InputDirectories, 
-                cmdArgs.ConditionalSymbols, 
+                cmdArgs.InputFiles,
+                cmdArgs.InputDirectories,
+                cmdArgs.ConditionalSymbols,
                 !cmdArgs.AllowInternal);
 
             Console.WriteLine("Project Compilation Complete:" + sw.Elapsed.ToString());
@@ -113,17 +113,22 @@ namespace Brimborium.Latrans.JSONCodeGenerator {
             Console.WriteLine("Output Generation Start");
             sw.Restart();
 
+            //var resolversNamespace = cmdArgs.GetNamespaceDot() + "Resolvers";
+            //var formatterNamespace = cmdArgs.GetNamespaceDot() + "Formatters";
+            var resolversNamespace = cmdArgs.NamespaceRoot;
+            var formatterNamespace = resolversNamespace;
+
             var objectFormatterTemplates = objectInfo
                 .GroupBy(x => x.Namespace)
                 .Select(x => new FormatterTemplate() {
-                    Namespace = cmdArgs.GetNamespaceDot() + "Formatters" + ((x.Key == null) ? "" : "." + x.Key),
+                    Namespace = formatterNamespace,
                     objectSerializationInfos = x.ToArray(),
                 })
                 .ToArray();
 
             var resolverTemplate = new ResolverTemplate() {
-                Namespace = cmdArgs.GetNamespaceDot() + "Resolvers",
-                FormatterNamespace = cmdArgs.GetNamespaceDot() + "Formatters",
+                Namespace = resolversNamespace,
+                FormatterNamespace = formatterNamespace,
                 ResolverName = cmdArgs.ResolverName,
                 registerInfos = genericInfo.Cast<IResolverRegisterInfo>().Concat(objectInfo).ToArray()
             };
