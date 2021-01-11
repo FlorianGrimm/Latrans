@@ -5,11 +5,9 @@ using Brimborium.Latrans.Utility;
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
-// EventLogRecordReadable
+
 namespace Brimborium.Latrans.Storeage.Readable {
     public sealed class EventLogStorage
         : IEventLogStorage
@@ -18,15 +16,17 @@ namespace Brimborium.Latrans.Storeage.Readable {
 
         public static Task<IEventLogStorage?> CreateAsync(
             EventLogStorageOptions options,
+            IJsonSerializerFacade jsonSerializerFacade,
             ILocalFileSystem? localFileSystem = default,
             ISystemClock? systemClock = default) {
-            var result = new EventLogStorage(options, localFileSystem, systemClock);
+            var result = new EventLogStorage(options, jsonSerializerFacade, localFileSystem, systemClock);
             result.Initialize();
             //await result.InitializeAsync();
             return Task.FromResult<IEventLogStorage?>(result);
         }
 
         private readonly string _BaseFolder;
+        private readonly IJsonSerializerFacade _JsonSerializerFacade;
         private readonly ILocalFileSystem _LocalFileSystem;
         private readonly ISystemClock _SystemClock;
         private AsyncQueue _LastWrite;
@@ -37,10 +37,12 @@ namespace Brimborium.Latrans.Storeage.Readable {
 
         public EventLogStorage(
             EventLogStorageOptions options,
+            IJsonSerializerFacade jsonSerializerFacade,
             ILocalFileSystem? localFileSystem = default,
             ISystemClock? systemClock = default
             ) {
             this._BaseFolder = options.BaseFolder;
+            this._JsonSerializerFacade = jsonSerializerFacade;
             this._LocalFileSystem = localFileSystem ?? new LocalFileSystem();
             this._SystemClock = systemClock ?? new SystemClock();
             this._LastWrite = AsyncQueue.Create();
@@ -61,6 +63,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
         }
 
         public Task ReadAsync(Action<EventLogRecord> callback) {
+#warning TODO Task ReadAsync NotImplementedException
             throw new NotImplementedException();
         }
         public void Write(EventLogRecord eventLogRecord) {
@@ -71,13 +74,15 @@ namespace Brimborium.Latrans.Storeage.Readable {
             if ((eventLogRecord.DataObject is object)
                 && (eventLogRecord.DataByte == null)
                 && string.IsNullOrEmpty(eventLogRecord.DataText)) {
-                eventLogRecord.DataByte = Utf8Json.JsonSerializer.Serialize(eventLogRecord.DataObject);
+                var t = this._JsonSerializerFacade.Serialize(eventLogRecord.DataObject);
+                eventLogRecord.TypeName = t.TypeName;
+                eventLogRecord.DataByte = t.DataByte;
             }
             var storageFile = this._StorageFile;
             var nextStorageFile = this.EnsureStorageFile(utcNow, storageFile);
             if (nextStorageFile is object) {
                 nextStorageFile.Initialize();
-                
+
                 var oldStorageFile = System.Threading.Interlocked.CompareExchange(
                     ref this._StorageFile,
                         nextStorageFile,
@@ -89,7 +94,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
                         return Task.CompletedTask;
                     }, storageFile);
                 }
-                    
+
             } else if (storageFile is object) {
                 storageFile.Write(eventLogRecord);
             }
@@ -189,6 +194,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
                         filePath,
                         fileMode,
                         filesToDelete,
+                        this._JsonSerializerFacade,
                         this._LocalFileSystem,
                         this._SystemClock
                     );
@@ -259,7 +265,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
                         using (var storageFile = this._StorageFile) {
                             this._StorageFile = null;
                         }
-                    } catch { 
+                    } catch {
                     }
                 }
             }
@@ -283,6 +289,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
         protected readonly string _FilePath;
         protected readonly FileMode _FileMode;
         protected List<string>? _FilesToDelete;
+        protected readonly IJsonSerializerFacade _JsonSerializerFacade;
         protected FileStream? _Stream;
         protected readonly ILocalFileSystem _LocalFileSystem;
         protected readonly ISystemClock _SystemClock;
@@ -293,6 +300,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
                 string filePath,
                 FileMode fileMode,
                 List<string>? filesToDelete,
+                IJsonSerializerFacade jsonSerializerFacade,
                 ILocalFileSystem localFileSystem,
                 ISystemClock systemClock
             ) {
@@ -301,6 +309,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
             this._FilePath = filePath;
             this._FileMode = fileMode;
             this._FilesToDelete = filesToDelete;
+            this._JsonSerializerFacade = jsonSerializerFacade;
             this._LocalFileSystem = localFileSystem;
             this._SystemClock = systemClock;
         }
@@ -346,7 +355,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
 
     }
     public sealed class EventLogStorageFile
-    : EventLogStorageFileBase {
+        : EventLogStorageFileBase {
 
         public EventLogStorageFile(
                 string dtPart,
@@ -354,6 +363,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
                 string filePath,
                 FileMode fileMode,
                 List<string>? filesToDelete,
+                IJsonSerializerFacade jsonSerializerFacade,
                 ILocalFileSystem localFileSystem,
                 ISystemClock systemClock
             ) : base(
@@ -362,6 +372,7 @@ namespace Brimborium.Latrans.Storeage.Readable {
                 filePath,
                 fileMode,
                 filesToDelete,
+                jsonSerializerFacade,
                 localFileSystem,
                 systemClock
             ) {
@@ -387,6 +398,8 @@ namespace Brimborium.Latrans.Storeage.Readable {
         }
 
         public override Task ReadAsync(Action<EventLogRecord> callback) {
+#warning TODO Task ReadAsync NotImplementedException
+            // ReadableLogUtil.Read<>
             throw new NotImplementedException();
         }
 
@@ -394,7 +407,9 @@ namespace Brimborium.Latrans.Storeage.Readable {
             if ((eventLogRecord.DataObject is object)
                 && (eventLogRecord.DataByte == null)
                 && string.IsNullOrEmpty(eventLogRecord.DataText)) {
-                eventLogRecord.DataByte = Utf8Json.JsonSerializer.Serialize(eventLogRecord.DataObject);
+                var t = this._JsonSerializerFacade.Serialize(eventLogRecord.DataObject);
+                eventLogRecord.TypeName = t.TypeName;
+                eventLogRecord.DataByte = t.DataByte;
             }
 
             var stream = this._Stream;

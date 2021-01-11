@@ -1,6 +1,8 @@
 ﻿using Brimborium.Latrans.EventLog;
 using Brimborium.Latrans.Utility;
 
+using Microsoft.IO;
+
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -9,6 +11,8 @@ using System.Text;
 namespace Brimborium.Latrans.Storeage.Readable {
     public static class ReadableLogUtil {
         private static System.Globalization.CultureInfo? _InvariantCulture;
+        //private static readonly RecyclableMemoryStreamManager _RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
+
         public static void Read<TState>(
                 TextReader textReader,
                 TState state,
@@ -301,42 +305,40 @@ namespace Brimborium.Latrans.Storeage.Readable {
             }
         }
 
+        private static char[] arrayCharNewLine = new char[] { '\n' };
+
         public static void WriteUtf8(EventLogRecord readableLog, Stream stream) {
-            var w = new Utf8Writer();
-            w.WriteString("-"); w.WriteRaw(10);
-            w.WriteString(" lg: "); w.WriteUInt64(readableLog.LgId); w.WriteRaw(10);
+            //using (var ms = _RecyclableMemoryStreamManager.GetStream()) 
+            var w = new Utf8Writer(stream);
+            w.WriteString("-");
+            w.WriteString("\n lg: "); w.WriteString(readableLog.LgId.ToString());
             if (readableLog.DT != DateTime.MinValue) {
-                w.WriteString(" at: "); w.WriteString(readableLog.DT.ToString("u")); w.WriteRaw(10);
+                w.WriteString("\n at: "); w.WriteString(readableLog.DT.ToString("u"));
             }
             if (!string.IsNullOrEmpty(readableLog.Key)) {
-                w.WriteString(" ky: "); w.WriteString(readableLog.Key); w.WriteRaw(10);
+                w.WriteString("\n ky: "); w.WriteString(readableLog.Key);
             }
             if (!string.IsNullOrEmpty(readableLog.TypeName)) {
-                w.WriteString(" ty: "); w.WriteString(readableLog.TypeName); w.WriteRaw(10);
+                w.WriteString("\n ty: "); w.WriteString(readableLog.TypeName);
             }
             if (readableLog.DataByte is object) {
-                w.EnsureCapacity(readableLog.DataByte.Length + 6);
-                w.WriteString(" da: ");
+                w.WriteString("\n da: ");
                 w.WriteRaw(readableLog.DataByte);
-                w.WriteRaw(10);
             } else if (readableLog.DataText is object) {
-                w.EnsureCapacity(readableLog.DataText.Length+14);
-                w.WriteString(" da: |"); w.WriteRaw(10);
+                w.WriteString("\n da: |");
 
                 if (readableLog.DataText.Contains("\n")) {
-                    foreach (var line in readableLog.DataText.Split('\n')) {
-                        w.WriteString("  ");
+                    foreach (var line in readableLog.DataText.Split(arrayCharNewLine)) {
+                        w.WriteString("\n  ");
                         w.WriteString(line);
-                        w.WriteRaw(10);
                     }
                 } else {
-                    w.WriteString("  ");
+                    w.WriteString("\n  ");
                     w.WriteString(readableLog.DataText);
-                    w.WriteRaw(10);
                 }
             }
-            //stream.Write(w.AsSpan());
-            stream.Write(w.Buffer!, 0, w.Offset);
+            w.WriteRaw(10);
+            w.Flush();
         }
     }
 }

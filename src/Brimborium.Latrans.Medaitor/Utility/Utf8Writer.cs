@@ -1,205 +1,204 @@
-﻿using System;
+﻿using Brimborium.Latrans.Mediator;
+
+using Microsoft.IO;
+
+using System;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
+
 
 namespace Brimborium.Latrans.Utility {
     public struct Utf8Writer {
+        private static readonly RecyclableMemoryStreamManager manager = new RecyclableMemoryStreamManager();
+        //System.Text.Json.Utf8JsonWriter
         private static Encoding? _UTF8;
+        private readonly Stream _Stream;
+        private byte[] _Buffer;
+        private int _Offset;
 
-        public byte[] Buffer;
-        public int Offset;
-
-        public Span<byte> AsSpan() => new Span<byte>(Buffer, 0, Offset);
-
-        public Utf8Writer(byte[]? buffer=null) {
-            this.Buffer = buffer ?? MemoryPool.GetBuffer();
-            this.Offset = 0;
+        public Utf8Writer(Stream stream, byte[]? buffer = null) {
+            this._Stream = stream;
+            this._Buffer = buffer ?? MemoryPool.GetBuffer();
+            this._Offset = 0;
         }
 
         public byte[] ToUtf8ByteArray() {
-            if (Buffer == null) {
+            if (this._Buffer == null) {
                 return Array.Empty<byte>();
             } else {
-                return BinaryUtil.FastCloneWithResize(Buffer, Offset);
+                return BinaryUtil.FastCloneWithResize(this._Buffer, this._Offset);
             }
         }
 
         public override string ToString() {
-            if (Buffer == null) {
-                return string.Empty;
+            return string.Empty;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool EnsureCapacity(int appendLength, bool ignoreIfTooSmall) {
+            if ((this._Offset + appendLength) > this._Buffer.Length) {
+                if (this._Offset > 0) {
+                    this._Stream.Write(this._Buffer, 0, this._Offset);
+                    this._Offset = 0;
+                }
+                if ((this._Offset + appendLength) < this._Buffer.Length) {
+                    return true;
+                } else {
+                    if (ignoreIfTooSmall) {
+                        return false;
+                    } else {
+                        throw new InvalidOperationException($"appendLength :{appendLength} is too big.");
+                    }
+                }
             } else {
-                return Encoding.UTF8.GetString(Buffer, 0, Offset);
+                return true;
             }
         }
 
-
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void EnsureCapacity(int appendLength) {
-            BinaryUtil.EnsureCapacity(ref Buffer, Offset, appendLength);
+        public void Flush() {
+            if (this._Offset > 0) {
+                this._Stream.Write(this._Buffer, 0, this._Offset);
+                this._Offset = 0;
+            }
         }
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteRaw(byte rawValue) {
-            BinaryUtil.EnsureCapacity(ref Buffer, Offset, 1);
-            Buffer[Offset++] = rawValue;
+            this.EnsureCapacity(1, false);
+            this._Buffer[this._Offset++] = rawValue;
         }
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteRaw(byte[] rawValue) {
-#if false
-            UnsafeMemory.WriteRaw(ref this, rawValue);
-#else
-            BinaryUtil.EnsureCapacity(ref Buffer, Offset, rawValue.Length);
-            System.Buffer.BlockCopy(rawValue, 0, this.Buffer, this.Offset, rawValue.Length);
-            Offset += rawValue.Length;
-#endif
+            if (this.EnsureCapacity(rawValue.Length, true)) {
+                System.Buffer.BlockCopy(rawValue, 0, this._Buffer, this._Offset, rawValue.Length);
+                this._Offset += rawValue.Length;
+            } else {
+                this._Stream.Write(rawValue, 0, rawValue.Length);
+            }
         }
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteRawUnsafe(byte rawValue) {
-            Buffer[Offset++] = rawValue;
-        }
-
-
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteNull() {
-            BinaryUtil.EnsureCapacity(ref Buffer, Offset, 4);
-            Buffer[Offset + 0] = (byte)'n';
-            Buffer[Offset + 1] = (byte)'u';
-            Buffer[Offset + 2] = (byte)'l';
-            Buffer[Offset + 3] = (byte)'l';
-            Offset += 4;
+            this.EnsureCapacity(4, false);
+            this._Buffer[this._Offset + 0] = (byte)'n';
+            this._Buffer[this._Offset + 1] = (byte)'u';
+            this._Buffer[this._Offset + 2] = (byte)'l';
+            this._Buffer[this._Offset + 3] = (byte)'l';
+            this._Offset += 4;
         }
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteBoolean(bool value) {
             if (value) {
-                BinaryUtil.EnsureCapacity(ref Buffer, Offset, 4);
-                Buffer[Offset + 0] = (byte)'t';
-                Buffer[Offset + 1] = (byte)'r';
-                Buffer[Offset + 2] = (byte)'u';
-                Buffer[Offset + 3] = (byte)'e';
-                Offset += 4;
+                this.EnsureCapacity(4, false);
+                this._Buffer[this._Offset + 0] = (byte)'t';
+                this._Buffer[this._Offset + 1] = (byte)'r';
+                this._Buffer[this._Offset + 2] = (byte)'u';
+                this._Buffer[this._Offset + 3] = (byte)'e';
+                this._Offset += 4;
             } else {
-                BinaryUtil.EnsureCapacity(ref Buffer, Offset, 5);
-                Buffer[Offset + 0] = (byte)'f';
-                Buffer[Offset + 1] = (byte)'a';
-                Buffer[Offset + 2] = (byte)'l';
-                Buffer[Offset + 3] = (byte)'s';
-                Buffer[Offset + 4] = (byte)'e';
-                Offset += 5;
+                this.EnsureCapacity(5, false);
+                this._Buffer[this._Offset + 0] = (byte)'f';
+                this._Buffer[this._Offset + 1] = (byte)'a';
+                this._Buffer[this._Offset + 2] = (byte)'l';
+                this._Buffer[this._Offset + 3] = (byte)'s';
+                this._Buffer[this._Offset + 4] = (byte)'e';
+                this._Offset += 5;
             }
         }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteTrue() {
-            BinaryUtil.EnsureCapacity(ref Buffer, Offset, 4);
-            Buffer[Offset + 0] = (byte)'t';
-            Buffer[Offset + 1] = (byte)'r';
-            Buffer[Offset + 2] = (byte)'u';
-            Buffer[Offset + 3] = (byte)'e';
-            Offset += 4;
-        }
+        //public void WriteSingle(Single value) {
+        //    Offset += Utf8Json.Internal.NumberConverter.WriteSingle(ref Buffer, Offset, value);
+        //}
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteFalse() {
-            BinaryUtil.EnsureCapacity(ref Buffer, Offset, 5);
-            Buffer[Offset + 0] = (byte)'f';
-            Buffer[Offset + 1] = (byte)'a';
-            Buffer[Offset + 2] = (byte)'l';
-            Buffer[Offset + 3] = (byte)'s';
-            Buffer[Offset + 4] = (byte)'e';
-            Offset += 5;
-        }
+        ////[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void WriteDouble(double value) {
+        //    Offset += Utf8Json.Internal.NumberConverter.WriteDouble(ref Buffer, Offset, value);
+        //}
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteSingle(Single value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteSingle(ref Buffer, Offset, value);
-        }
+        ////[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void WriteByte(byte value) {
+        //    Offset += Utf8Json.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, (ulong)value);
+        //}
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteDouble(double value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteDouble(ref Buffer, Offset, value);
-        }
+        ////[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void WriteUInt16(ushort value) {
+        //    Offset += Utf8Json.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, (ulong)value);
+        //}
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteByte(byte value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, (ulong)value);
-        }
+        ////[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void WriteUInt32(uint value) {
+        //    Offset += Utf8Json.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, (ulong)value);
+        //}
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteUInt16(ushort value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, (ulong)value);
-        }
+        //public void WriteUInt64(ulong value) {
+        //    Offset += Utf8Json.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, value);
+        //}
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteUInt32(uint value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, (ulong)value);
-        }
+        ////[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void WriteSByte(sbyte value) {
+        //    Offset += Utf8Json.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, (long)value);
+        //}
 
-        public void WriteUInt64(ulong value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteUInt64(ref Buffer, Offset, value);
-        }
+        ////[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void WriteInt16(short value) {
+        //    Offset += Utf8Json.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, (long)value);
+        //}
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteSByte(sbyte value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, (long)value);
-        }
+        ////[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void WriteInt32(int value) {
+        //    Offset += Utf8Json.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, (long)value);
+        //}
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteInt16(short value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, (long)value);
-        }
+        ////[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void WriteInt64(long value) {
+        //    Offset += Utf8Json.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, value);
+        //}
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteInt32(int value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, (long)value);
-        }
-
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteInt64(long value) {
-            Offset += Utf8Json.Internal.NumberConverter.WriteInt64(ref Buffer, Offset, value);
-        }
-
-        public void WriteText(string value) {
+        public void WriteBigString(string value) {
             if (value == null) {
                 return;
             }
             var utf8 = (_UTF8 ??= new UTF8Encoding(false));
 
-            var max = utf8.GetMaxByteCount(value.Length);
-            BinaryUtil.EnsureCapacity(ref Buffer, Offset, max);
-            Offset += utf8.GetBytes(value, 0, value.Length, Buffer, Offset);
+            var max = (value.Length < 1024) ? utf8.GetMaxByteCount(value.Length) : utf8.GetByteCount(value);
+            if (this.EnsureCapacity(max, true)) {
+                this._Offset += utf8.GetBytes(value, 0, value.Length, this._Buffer, this._Offset);
+            } else {
+                var bytes = utf8.GetBytes(value);
+                this._Stream.Write(bytes, 0, bytes.Length);
+            }
+
         }
 
         public void WriteString(string? value) {
-            if (string.IsNullOrEmpty(value)) {
+            if (value is null || string.IsNullOrEmpty(value)) {
                 return;
             } else {
                 var utf8 = (_UTF8 ??= new UTF8Encoding(false));
-
-                BinaryUtil.EnsureCapacity(ref Buffer, Offset, value!.Length);
-
-                // for JIT Optimization, for-loop i < str.Length
-                for (int i = 0; i < value.Length; i++) {
-                    var c = value[i];
-                    if ((uint)c < 127) {
-                        Buffer[Offset++] = (byte)c;
-                        continue;
-                    } else {
-                        var max = utf8.GetMaxByteCount(value.Length - i);
-                        BinaryUtil.EnsureCapacity(ref Buffer, Offset, max);
-
-                        Offset += utf8.GetBytes(value, i, value.Length - i, Buffer, Offset);
-                        return;
+                var max = utf8.GetMaxByteCount(value.Length);
+                if (this.EnsureCapacity(max, true)) {
+                    // for JIT Optimization, for-loop i < str.Length
+                    for (int i = 0; i < value.Length; i++) {
+                        var c = value[i];
+                        if ((uint)c < 127) {
+                            this._Buffer[this._Offset++] = (byte)c;
+                            continue;
+                        } else {
+                            this._Offset += utf8.GetBytes(value, i, value.Length - i, this._Buffer, this._Offset);
+                            return;
+                        }
                     }
+                } else {
+                    WriteBigString(value);
                 }
             }
         }
 
         public void WriteQuotedString(string? value) {
             if (value == null) {
-                WriteNull();
+                this.WriteNull();
                 return;
             } else {
                 var utf8 = (_UTF8 ??= new UTF8Encoding(false));
@@ -207,14 +206,14 @@ namespace Brimborium.Latrans.Utility {
                 // single-path escape
 
                 // nonescaped-ensure
-                var startoffset = Offset;
+                var startoffset = this._Offset;
                 var max = utf8.GetMaxByteCount(value.Length) + 2;
-                BinaryUtil.EnsureCapacity(ref Buffer, startoffset, max);
+                BinaryUtil.EnsureCapacity(ref this._Buffer, startoffset, max);
 
                 var from = 0;
                 var to = value.Length;
 
-                Buffer[Offset++] = (byte)'\"';
+                this._Buffer[this._Offset++] = (byte)'\"';
 
                 // for JIT Optimization, for-loop i < str.Length
                 for (int i = 0; i < value.Length; i++) {
@@ -333,31 +332,31 @@ namespace Brimborium.Latrans.Utility {
                     }
 
                     max += 2;
-                    BinaryUtil.EnsureCapacity(ref Buffer, startoffset, max); // check +escape capacity
+                    BinaryUtil.EnsureCapacity(ref this._Buffer, startoffset, max); // check +escape capacity
 
-                    Offset += utf8.GetBytes(value, from, i - from, Buffer, Offset);
+                    this._Offset += utf8.GetBytes(value, from, i - from, this._Buffer, this._Offset);
                     from = i + 1;
-                    Buffer[Offset++] = (byte)'\\';
-                    Buffer[Offset++] = escapeChar;
+                    this._Buffer[this._Offset++] = (byte)'\\';
+                    this._Buffer[this._Offset++] = escapeChar;
                 }
 
                 if (from != value.Length) {
-                    Offset += utf8.GetBytes(value, from, value.Length - from, Buffer, Offset);
+                    this._Offset += utf8.GetBytes(value, from, value.Length - from, this._Buffer, this._Offset);
                 }
 
-                Buffer[Offset++] = (byte)'\"';
+                this._Buffer[this._Offset++] = (byte)'\"';
             }
         }
 
         internal static class MemoryPool {
             [ThreadStatic]
-            static byte[]? buffer = null;
+            static byte[]? _Buffer = null;
 
             public static byte[] GetBuffer() {
-                if (buffer == null) {
-                    buffer = new byte[65536];
+                if (_Buffer == null) {
+                    _Buffer = new byte[65536];
                 }
-                return buffer;
+                return _Buffer;
             }
         }
     }

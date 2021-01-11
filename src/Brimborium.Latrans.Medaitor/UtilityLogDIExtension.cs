@@ -14,6 +14,7 @@ namespace Microsoft.Extensions.DependencyInjection {
             //}
             services.TryAddTransient<ISystemClock, SystemClock>();
             services.TryAddTransient<ILocalFileSystem, LocalFileSystem>();
+            services.AddTransient<IJsonSerializerFacade, JsonSerializerSystemTextJsonFacade>();
         }
 
         //private class UtilityLogDIExtensionLock { }

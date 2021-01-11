@@ -1,19 +1,16 @@
 ﻿#nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Diagnostics;
-using System.Threading;
-using System.Runtime.Serialization;
+using Brimborium.Latrans.EventLog;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using Xunit;
-using Brimborium.Latrans.EventLog;
-using System.Net.WebSockets;
-using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
+
+using Xunit;
 
 namespace Brimborium.Latrans.Medaitor.Test.Storeage.Readable {
     public class EventLogStorageTests {
@@ -22,9 +19,9 @@ namespace Brimborium.Latrans.Medaitor.Test.Storeage.Readable {
             var d = new Dummy() {
                 A = "1\n2"
             };
-            var json = Utf8Json.JsonSerializer.ToJsonString<Dummy>(d);
-            Assert.False(json.Contains('\n'));
-            //Brimborium.Latrans.JSON.JsonSerializer.Serialize<Dummy>
+
+            var json = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes<Dummy>(d);
+            Assert.DoesNotContain((byte)'\n', json);
         }
 
         [Fact]

@@ -144,7 +144,7 @@ namespace Brimborium.Latrans.Mediator {
                     if (activityContext is null) {
                         //error.Handle((e) => { return true; });
                     } else {
-                        if (activityContext.Status != ActivityStatus.Failed) {
+                        if (activityContext.Status != ActivityStatus.Failed && error != null) {
                             activityContext.SetFailureAsync(error).Forget();
                             activityContext.SetActivityResponseAsync(new FailureActivityResponse(error)).Forget();
                             //var task = activityContext.AddActivityEventAsync(new ActivityEventStateChange(
