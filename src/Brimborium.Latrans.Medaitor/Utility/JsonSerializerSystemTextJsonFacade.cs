@@ -7,8 +7,16 @@ using System.Threading.Tasks;
 
 namespace Brimborium.Latrans.Utility {
     public class JsonSerializerSystemTextJsonFacade : IJsonSerializerFacade {
+        public JsonSerializerSystemTextJsonFacade(
+            System.Text.Json.JsonSerializerOptions jsonSerializerOptions
+            ) {
+            this.JsonSerializerOptions = jsonSerializerOptions;
+        }
+
+        public JsonSerializerOptions JsonSerializerOptions { get; }
 
         public object? Deserialize(JsonSerializedData jsonSerializedData) {
+            Des
 #warning Deserialize  NotImplementedException
             throw new NotImplementedException();
         }
