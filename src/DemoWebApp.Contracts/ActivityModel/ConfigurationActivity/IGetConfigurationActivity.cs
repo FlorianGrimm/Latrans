@@ -18,6 +18,5 @@ namespace DemoWebApp.ActivityModel.ConfigurationActivity{
 
     public class GetConfigurationActivityInvoker
         : ActivityInvoker<GetConfigurationRequest, GetConfigurationResponse> {
-
     }
 }

@@ -6,6 +6,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Brimborium.Latrans.Contracts\Brimborium.Latrans.Contracts.csproj" />
+    <ProjectReference Include="..\Brimborium.Latrans.SourceGen\Brimborium.Latrans.SourceGen.csproj"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer"/>
   </ItemGroup>
 
   <Target Name="Stryker"></Target>

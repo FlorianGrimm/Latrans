@@ -16,7 +16,6 @@ namespace Brimborium.Latrans.Utility {
         public JsonSerializerOptions JsonSerializerOptions { get; }
 
         public object? Deserialize(JsonSerializedData jsonSerializedData) {
-            Des
 #warning Deserialize  NotImplementedException
             throw new NotImplementedException();
         }
