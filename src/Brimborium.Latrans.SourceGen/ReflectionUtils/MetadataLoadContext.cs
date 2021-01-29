@@ -6,21 +6,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+
 using Microsoft.CodeAnalysis;
 
-namespace System.Reflection
-{
-    public class MetadataLoadContext
-    {
-        private readonly Dictionary<string, IAssemblySymbol> _assemblies = new Dictionary<string, IAssemblySymbol>(StringComparer.OrdinalIgnoreCase);
+namespace System.Reflection {
+    public class MetadataLoadContext {
+        private readonly Dictionary<string, IAssemblySymbol> _Assemblies = new Dictionary<string, IAssemblySymbol>(StringComparer.OrdinalIgnoreCase);
 
-        private readonly Compilation _compilation;
+        private readonly Compilation _Compilation;
 
-        private IAssemblySymbol? _collectionsAssemblySymbol;
+        private IAssemblySymbol? _CollectionsAssemblySymbol;
 
-        public MetadataLoadContext(Compilation compilation)
-        {
-            _compilation = compilation;
+        public MetadataLoadContext(Compilation compilation) {
+            this._Compilation = compilation;
             Dictionary<AssemblyName, IAssemblySymbol> assemblies = compilation.References
                 .OfType<PortableExecutableReference>()
                 .ToDictionary(
@@ -28,71 +26,59 @@ namespace System.Reflection
                         new AssemblyName(r.Display) : AssemblyName.GetAssemblyName(r.FilePath),
                     r => (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(r)!);
 
-            foreach (var item in assemblies)
-            {
+            foreach (var item in assemblies) {
                 string key = item.Key.Name;
-                _assemblies[key] = item.Value!;
+                this._Assemblies[key] = item.Value!;
 
-                if (_collectionsAssemblySymbol == null && key == "System.Collections")
-                {
-                    _collectionsAssemblySymbol = item.Value!;
+                if (this._CollectionsAssemblySymbol == null && key == "System.Collections") {
+                    this._CollectionsAssemblySymbol = item.Value!;
                 }
             }
 
-            CoreAssembly = new AssemblyWrapper(compilation.GetTypeByMetadataName("System.Object")!.ContainingAssembly, this);
-            MainAssembly = new AssemblyWrapper(compilation.Assembly, this);
+            this.CoreAssembly = new AssemblyWrapper(compilation.GetTypeByMetadataName("System.Object")!.ContainingAssembly, this);
+            this.MainAssembly = new AssemblyWrapper(compilation.Assembly, this);
         }
 
-        public Type Resolve<T>() => Resolve(typeof(T));
+        public Type Resolve<T>() => this.Resolve(typeof(T))!;
 
-        public Type? Resolve(Type type)
-        {
+        public Type? Resolve(Type type) {
             string assemblyName = type.Assembly.GetName().Name;
             IAssemblySymbol assemblySymbol;
 
-            if (assemblyName == "System.Private.CoreLib" || assemblyName == "mscorlib" || assemblyName == "System.Runtime" || assemblyName == "System.Private.Uri")
-            {
-                Type resolvedType = ResolveFromAssembly(type, CoreAssembly.Symbol);
-                if (resolvedType != null)
-                {
+            if (assemblyName == "System.Private.CoreLib" || assemblyName == "mscorlib" || assemblyName == "System.Runtime" || assemblyName == "System.Private.Uri") {
+                Type? resolvedType = this.ResolveFromAssembly(type, this.CoreAssembly.Symbol);
+                if (resolvedType != null) {
                     return resolvedType;
                 }
 
-                if (_collectionsAssemblySymbol != null && typeof(IEnumerable).IsAssignableFrom(type))
-                {
-                    resolvedType = ResolveFromAssembly(type, _collectionsAssemblySymbol);
-                    if (resolvedType != null)
-                    {
+                if (this._CollectionsAssemblySymbol != null && typeof(IEnumerable).IsAssignableFrom(type)) {
+                    resolvedType = this.ResolveFromAssembly(type, this._CollectionsAssemblySymbol);
+                    if (resolvedType != null) {
                         return resolvedType;
                     }
                 }
             }
 
             CustomAttributeData? typeForwardedFrom = type.GetCustomAttributeData(typeof(TypeForwardedFromAttribute));
-            if (typeForwardedFrom != null)
-            {
+            if (typeForwardedFrom != null) {
                 assemblyName = typeForwardedFrom.GetConstructorArgument<string>(0);
             }
 
-            if (!_assemblies.TryGetValue(new AssemblyName(assemblyName).Name, out assemblySymbol))
-            {
+            if (!this._Assemblies.TryGetValue(new AssemblyName(assemblyName).Name, out assemblySymbol)) {
                 return null;
             }
 
-            return ResolveFromAssembly(type, assemblySymbol);
+            return this.ResolveFromAssembly(type, assemblySymbol);
         }
 
-        private Type? ResolveFromAssembly(Type type, IAssemblySymbol assemblySymbol)
-        {
-            if (type.IsArray)
-            {
+        private Type? ResolveFromAssembly(Type type, IAssemblySymbol assemblySymbol) {
+            if (type.IsArray) {
                 var typeSymbol = assemblySymbol.GetTypeByMetadataName(type.GetElementType().FullName);
-                if (typeSymbol == null)
-                {
+                if (typeSymbol == null) {
                     return null!;
                 }
 
-                return _compilation.CreateArrayTypeSymbol(typeSymbol).AsType(this);
+                return this._Compilation.CreateArrayTypeSymbol(typeSymbol).AsType(this);
             }
 
             // Resolve the full name
@@ -103,10 +89,8 @@ namespace System.Reflection
         private AssemblyWrapper CoreAssembly { get; }
         public Assembly MainAssembly { get; }
 
-        internal Assembly LoadFromAssemblyName(string fullName)
-        {
-            if (_assemblies.TryGetValue(new AssemblyName(fullName).Name, out var assembly))
-            {
+        internal Assembly LoadFromAssemblyName(string fullName) {
+            if (this._Assemblies.TryGetValue(new AssemblyName(fullName).Name, out var assembly)) {
                 return new AssemblyWrapper(assembly, this);
             }
             return null!;

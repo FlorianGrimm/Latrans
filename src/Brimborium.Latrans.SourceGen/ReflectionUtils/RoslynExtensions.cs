@@ -9,7 +9,7 @@ namespace System.Reflection
 {
     public static class RoslynExtensions
     {
-        public static Type AsType(this ITypeSymbol typeSymbol, MetadataLoadContext metadataLoadContext)
+        public static Type? AsType(this ITypeSymbol typeSymbol, MetadataLoadContext metadataLoadContext)
         {
             if (typeSymbol == null)
             {
@@ -23,7 +23,6 @@ namespace System.Reflection
         public static ParameterInfo AsParameterInfo(this IParameterSymbol parameterSymbol, MetadataLoadContext metadataLoadContext) => (parameterSymbol == null ? null : new ParameterInfoWrapper(parameterSymbol, metadataLoadContext))!;
 
         public static MethodInfo AsMethodInfo(this IMethodSymbol methodSymbol, MetadataLoadContext metadataLoadContext) => (methodSymbol == null ? null : new MethodInfoWrapper(methodSymbol, metadataLoadContext))!;
-
 
         public static IEnumerable<INamedTypeSymbol> BaseTypes(this INamedTypeSymbol typeSymbol)
         {

@@ -10,19 +10,19 @@ using System.Runtime.Loader;
 
 namespace Brimborium.Latrans.SourceGen {
     internal static class LooseVersionAssemblyLoader {
-        private static readonly Dictionary<string, Assembly> s_pathsToAssemblies = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
-        private static readonly Dictionary<string, Assembly> s_namesToAssemblies = new Dictionary<string, Assembly>();
+        private static readonly Dictionary<string, Assembly> _PathsToAssemblies = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, Assembly> _NamesToAssemblies = new Dictionary<string, Assembly>();
 
-        private static readonly object s_guard = new object();
-        private static readonly string[] s_extensions = new[] { "ni.dll", "ni.exe", "dll", "exe" };
+        private static readonly object _Guard = new object();
+        private static readonly string[] _Extensions = new[] { "ni.dll", "ni.exe", "dll", "exe" };
 
         /// <summary>
         /// Register an assembly loader that will load assemblies with higher version than what was requested.
         /// </summary>
         public static void Register(string searchPath) {
             AssemblyLoadContext.Default.Resolving += (AssemblyLoadContext context, AssemblyName assemblyName) => {
-                lock (s_guard) {
-                    if (s_namesToAssemblies.TryGetValue(assemblyName.FullName, out var assembly)) {
+                lock (_Guard) {
+                    if (_NamesToAssemblies.TryGetValue(assemblyName.FullName, out var assembly)) {
                         return assembly;
                     }
 
@@ -31,7 +31,11 @@ namespace Brimborium.Latrans.SourceGen {
             };
         }
 
-        private static Assembly TryResolveAssemblyFromPaths_NoLock(AssemblyLoadContext context, AssemblyName assemblyName, string searchPath) {
+        private static Assembly? TryResolveAssemblyFromPaths_NoLock(
+                AssemblyLoadContext context, 
+                AssemblyName assemblyName, 
+                string searchPath
+            ) {
             foreach (var cultureSubfolder in string.IsNullOrEmpty(assemblyName.CultureName)
                 // If no culture is specified, attempt to load directly from
                 // the known dependency paths.
@@ -40,11 +44,11 @@ namespace Brimborium.Latrans.SourceGen {
                 // of the assembly search directories, but fall back to the
                 // bare search directory if that fails.
                 : new[] { assemblyName.CultureName, string.Empty }) {
-                foreach (var extension in s_extensions) {
+                foreach (var extension in _Extensions) {
                     var candidatePath = Path.Combine(
                         searchPath, cultureSubfolder, $"{assemblyName.Name}.{extension}");
 
-                    var isAssemblyLoaded = s_pathsToAssemblies.ContainsKey(candidatePath);
+                    var isAssemblyLoaded = _PathsToAssemblies.ContainsKey(candidatePath);
                     if (isAssemblyLoaded || !File.Exists(candidatePath)) {
                         continue;
                     }
@@ -65,8 +69,10 @@ namespace Brimborium.Latrans.SourceGen {
             var assembly = context.LoadFromAssemblyPath(fullPath);
             var name = assembly.FullName;
 
-            s_pathsToAssemblies[fullPath] = assembly;
-            s_namesToAssemblies[name] = assembly;
+            _PathsToAssemblies[fullPath] = assembly;
+            if (name is object) { 
+                _NamesToAssemblies[name] = assembly;
+            }
 
             return assembly;
         }

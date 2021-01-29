@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +26,7 @@ namespace Brimborium.Latrans.SourceGen {
             var solution = await workspace.OpenSolutionAsync(sln, null, cancellationToken);
             var project = solution.Projects.Where(prj => string.Equals(prj.FilePath, csproj, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
             if (project is null) {
+                System.Console.Error.WriteLine($"csproj: {csproj} not found.");
                 return;
             } else {
                 //var project = await workspace.OpenProjectAsync(csproj, null, cancellationToken);
@@ -31,9 +35,21 @@ namespace Brimborium.Latrans.SourceGen {
                 //foreach (var projectReference in project.ProjectReferences) {
                 //    var projectId = projectReference.ProjectId;
                 //}
-                var compilation = await project.GetCompilationAsync(cancellationToken);
-                // compilation.D
-                // compilation.GetSemanticModel(project.c)
+                var inputCompilation = await project.GetCompilationAsync(cancellationToken);
+                if (inputCompilation is null) {
+                    //
+                } else {
+                    var generator = new ConfigureHandlersSourceGenerator();
+                    GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+                    driver = driver.RunGeneratorsAndUpdateCompilation(inputCompilation, out var outputCompilation, out var diagnostics);
+                    var lstDiagnostics = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
+                    if (lstDiagnostics.Count > 0) {
+                        foreach (var diagnostic in lstDiagnostics) {
+                            System.Console.Error.WriteLine(diagnostic.GetMessage());
+                        }
+                    } else {
+                    }
+                }
             }
         }
     }

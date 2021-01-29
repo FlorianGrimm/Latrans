@@ -7,35 +7,32 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace System.Reflection
-{
-    internal class TypeWrapper : Type
-    {
-        private readonly ITypeSymbol _typeSymbol;
+namespace System.Reflection {
+    internal class TypeWrapper : Type {
+        private readonly ITypeSymbol _TypeSymbol;
+        private readonly MetadataLoadContext _MetadataLoadContext;
+        private INamedTypeSymbol? _NamedTypeSymbol;
+        private IArrayTypeSymbol? _ArrayTypeSymbol;
+        private Type? _ElementType;
+        private Type? _ValueType;
+        private Type? _EnumType;
 
-        private readonly MetadataLoadContext _metadataLoadContext;
-
-        private INamedTypeSymbol? _namedTypeSymbol;
-
-        private IArrayTypeSymbol? _arrayTypeSymbol;
-
-        private Type _elementType;
-
-        public TypeWrapper(ITypeSymbol namedTypeSymbol, MetadataLoadContext metadataLoadContext)
-        {
-            _typeSymbol = namedTypeSymbol;
-            _metadataLoadContext = metadataLoadContext;
-            _namedTypeSymbol = _typeSymbol as INamedTypeSymbol;
-            _arrayTypeSymbol = _typeSymbol as IArrayTypeSymbol;
+        public TypeWrapper(ITypeSymbol namedTypeSymbol, MetadataLoadContext metadataLoadContext) {
+            _TypeSymbol = namedTypeSymbol;
+            _MetadataLoadContext = metadataLoadContext;
+            _NamedTypeSymbol = _TypeSymbol as INamedTypeSymbol;
+            _ArrayTypeSymbol = _TypeSymbol as IArrayTypeSymbol;
         }
 
-        public override Assembly Assembly => new AssemblyWrapper(_typeSymbol.ContainingAssembly, _metadataLoadContext);
+        public override Assembly Assembly => new AssemblyWrapper(_TypeSymbol.ContainingAssembly, _MetadataLoadContext);
 
         public override string AssemblyQualifiedName => throw new NotImplementedException();
 
-        public override Type BaseType => _typeSymbol.BaseType!.AsType(_metadataLoadContext);
+        public override Type BaseType => _TypeSymbol.BaseType?.AsType(_MetadataLoadContext) ?? throw new ArgumentException("No BaseType??");
 
         public override string FullName => Namespace + "." + Name;
 
@@ -46,17 +43,14 @@ namespace System.Reflection
         public override string Namespace =>
             IsArray ?
             GetElementType().Namespace :
-            _typeSymbol.ContainingNamespace?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining))!;
+            _TypeSymbol.ContainingNamespace?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining))!;
 
         public override Type UnderlyingSystemType => this;
 
-        public override string Name
-        {
-            get
-            {
-                if (_arrayTypeSymbol == null)
-                {
-                    return _typeSymbol.MetadataName;
+        public override string Name {
+            get {
+                if (_ArrayTypeSymbol == null) {
+                    return _TypeSymbol.MetadataName;
                 }
 
                 Type elementType = GetElementType();
@@ -64,174 +58,153 @@ namespace System.Reflection
             }
         }
 
-        private Type _enumType;
+        public override bool IsEnum {
+            get {
 
-        public override bool IsEnum
-        {
-            get
-            {
-                _enumType ??= _metadataLoadContext.Resolve(typeof(Enum));
-                return IsSubclassOf(_enumType);
+                _EnumType ??= (
+                    _MetadataLoadContext.Resolve(typeof(Enum))
+                    ?? throw new ArgumentException("typeof(Enum) is not found."));
+                return IsSubclassOf(_EnumType);
             }
         }
 
-        public override bool IsGenericType => _namedTypeSymbol?.IsGenericType == true;
+        public override bool IsGenericType => _NamedTypeSymbol?.IsGenericType == true;
 
-        public override bool ContainsGenericParameters => _namedTypeSymbol?.IsUnboundGenericType == true;
+        public override bool ContainsGenericParameters => _NamedTypeSymbol?.IsUnboundGenericType == true;
 
         public override bool IsGenericTypeDefinition => base.IsGenericTypeDefinition;
 
-        public INamespaceSymbol GetNamespaceSymbol => _typeSymbol.ContainingNamespace;
+        public INamespaceSymbol GetNamespaceSymbol => _TypeSymbol.ContainingNamespace;
 
-        public override Type[] GetGenericArguments()
-        {
-            var args = new List<Type>();
-            foreach (ITypeSymbol item in _namedTypeSymbol.TypeArguments)
-            {
-                args.Add(item.AsType(_metadataLoadContext));
+        public override Type[] GetGenericArguments() {
+            if (_NamedTypeSymbol is null) {
+                return new Type[0];
+            } else {
+                var args = new List<Type>();
+                foreach (ITypeSymbol item in _NamedTypeSymbol.TypeArguments) {
+                    args.Add(item.AsType(_MetadataLoadContext));
+                }
+                return args.ToArray();
             }
-            return args.ToArray();
         }
 
-        public override Type GetGenericTypeDefinition()
-        {
-            return _namedTypeSymbol.ConstructedFrom.AsType(_metadataLoadContext);
+        public override Type GetGenericTypeDefinition() {
+            if (_NamedTypeSymbol is null) {
+                return null!;
+            } else {
+                return _NamedTypeSymbol.ConstructedFrom.AsType(_MetadataLoadContext);
+            }
         }
 
-        public override IList<CustomAttributeData> GetCustomAttributesData()
-        {
+        public override IList<CustomAttributeData> GetCustomAttributesData() {
             var attributes = new List<CustomAttributeData>();
-            foreach (AttributeData a in _typeSymbol.GetAttributes())
-            {
-                attributes.Add(new CustomAttributeDataWrapper(a, _metadataLoadContext));
+            foreach (AttributeData a in _TypeSymbol.GetAttributes()) {
+                attributes.Add(new CustomAttributeDataWrapper(a, _MetadataLoadContext));
             }
             return attributes;
         }
 
-        public override ConstructorInfo[] GetConstructors(BindingFlags bindingAttr)
-        {
+        public override ConstructorInfo[] GetConstructors(BindingFlags bindingAttr) {
             var ctors = new List<ConstructorInfo>();
-            foreach (IMethodSymbol c in _namedTypeSymbol.Constructors)
-            {
-                ctors.Add(new ConstructorInfoWrapper(c, _metadataLoadContext));
+            if (_NamedTypeSymbol is object) {
+                foreach (IMethodSymbol c in _NamedTypeSymbol.Constructors) {
+                    ctors.Add(new ConstructorInfoWrapper(c, _MetadataLoadContext));
+                }
             }
             return ctors.ToArray();
         }
 
-        public override object[] GetCustomAttributes(bool inherit)
-        {
+        public override object[] GetCustomAttributes(bool inherit) {
             throw new NotSupportedException();
         }
 
-        public override object[] GetCustomAttributes(Type attributeType, bool inherit)
-        {
+        public override object[] GetCustomAttributes(Type attributeType, bool inherit) {
             throw new NotSupportedException();
         }
 
-        public override Type GetElementType()
-        {
-            _elementType ??= _arrayTypeSymbol?.ElementType.AsType(_metadataLoadContext)!;
-            return _elementType;
+        public override Type GetElementType() {
+            _ElementType ??= _ArrayTypeSymbol?.ElementType.AsType(_MetadataLoadContext)!;
+            return _ElementType;
         }
 
-        public override EventInfo GetEvent(string name, BindingFlags bindingAttr)
-        {
+        public override EventInfo GetEvent(string name, BindingFlags bindingAttr) {
             throw new NotImplementedException();
         }
 
-        public override EventInfo[] GetEvents(BindingFlags bindingAttr)
-        {
+        public override EventInfo[] GetEvents(BindingFlags bindingAttr) {
             throw new NotImplementedException();
         }
 
-        public override FieldInfo GetField(string name, BindingFlags bindingAttr)
-        {
+        public override FieldInfo GetField(string name, BindingFlags bindingAttr) {
             throw new NotImplementedException();
         }
 
-        public override FieldInfo[] GetFields(BindingFlags bindingAttr)
-        {
+        public override FieldInfo[] GetFields(BindingFlags bindingAttr) {
             var fields = new List<FieldInfo>();
-            foreach (ISymbol item in _typeSymbol.GetMembers())
-            {
+            foreach (ISymbol item in _TypeSymbol.GetMembers()) {
                 // Associated Symbol checks the field is not a backingfield.
-                if (item is IFieldSymbol field && field.AssociatedSymbol == null && !field.IsReadOnly)
-                {
-                    if ((item.DeclaredAccessibility & Accessibility.Public) == Accessibility.Public)
-                    {
-                        fields.Add(new FieldInfoWrapper(field, _metadataLoadContext));
+                if (item is IFieldSymbol field && field.AssociatedSymbol == null && !field.IsReadOnly) {
+                    if ((item.DeclaredAccessibility & Accessibility.Public) == Accessibility.Public) {
+                        fields.Add(new FieldInfoWrapper(field, _MetadataLoadContext));
                     }
                 }
             }
             return fields.ToArray();
         }
 
-        public override Type GetInterface(string name, bool ignoreCase)
-        {
+        public override Type GetInterface(string name, bool ignoreCase) {
             throw new NotImplementedException();
         }
 
-        public override Type[] GetInterfaces()
-        {
+        public override Type[] GetInterfaces() {
             var interfaces = new List<Type>();
-            foreach (INamedTypeSymbol i in _typeSymbol.Interfaces)
-            {
-                interfaces.Add(i.AsType(_metadataLoadContext));
+            foreach (INamedTypeSymbol i in _TypeSymbol.Interfaces) {
+                interfaces.Add(i.AsType(_MetadataLoadContext));
             }
             return interfaces.ToArray();
         }
 
-        public override MemberInfo[] GetMembers(BindingFlags bindingAttr)
-        {
+        public override MemberInfo[] GetMembers(BindingFlags bindingAttr) {
             var members = new List<MemberInfo>();
-            foreach (ISymbol m in _typeSymbol.GetMembers())
-            {
-                members.Add(new MemberInfoWrapper(m, _metadataLoadContext));
+            foreach (ISymbol m in _TypeSymbol.GetMembers()) {
+                members.Add(new MemberInfoWrapper(m, _MetadataLoadContext));
             }
             return members.ToArray();
         }
 
-        public override MethodInfo[] GetMethods(BindingFlags bindingAttr)
-        {
+        public override MethodInfo[] GetMethods(BindingFlags bindingAttr) {
             var methods = new List<MethodInfo>();
-            foreach (ISymbol m in _typeSymbol.GetMembers())
-            {
-                // TODO: Efficiency
-                if (m is IMethodSymbol method && !_namedTypeSymbol.Constructors.Contains(method))
-                {
-                    methods.Add(method.AsMethodInfo(_metadataLoadContext));
+            if (_NamedTypeSymbol is object) {
+                foreach (ISymbol m in _TypeSymbol.GetMembers()) {
+                    // TODO: Efficiency
+                    if (m is IMethodSymbol method && !_NamedTypeSymbol.Constructors.Contains(method)) {
+                        methods.Add(method.AsMethodInfo(_MetadataLoadContext));
+                    }
                 }
             }
             return methods.ToArray();
         }
 
-        public override Type GetNestedType(string name, BindingFlags bindingAttr)
-        {
+        public override Type GetNestedType(string name, BindingFlags bindingAttr) {
             throw new NotImplementedException();
         }
 
-        public override Type[] GetNestedTypes(BindingFlags bindingAttr)
-        {
+        public override Type[] GetNestedTypes(BindingFlags bindingAttr) {
             var nestedTypes = new List<Type>();
-            foreach (INamedTypeSymbol type in _typeSymbol.GetTypeMembers())
-            {
-                nestedTypes.Add(type.AsType(_metadataLoadContext));
+            foreach (INamedTypeSymbol type in _TypeSymbol.GetTypeMembers()) {
+                nestedTypes.Add(type.AsType(_MetadataLoadContext));
             }
             return nestedTypes.ToArray();
         }
 
         // TODO: make sure to use bindingAttr for correctness. Current implementation assumes public and non-static.
-        public override PropertyInfo[] GetProperties(BindingFlags bindingAttr)
-        {
+        public override PropertyInfo[] GetProperties(BindingFlags bindingAttr) {
             var properties = new List<PropertyInfo>();
 
-            foreach (ISymbol item in _typeSymbol.GetMembers())
-            {
-                if (item is IPropertySymbol property && !property.IsReadOnly)
-                {
-                    if ((item.DeclaredAccessibility & Accessibility.Public) == Accessibility.Public)
-                    {
-                        properties.Add(new PropertyWrapper(property, _metadataLoadContext));
+            foreach (ISymbol item in _TypeSymbol.GetMembers()) {
+                if (item is IPropertySymbol property && !property.IsReadOnly) {
+                    if ((item.DeclaredAccessibility & Accessibility.Public) == Accessibility.Public) {
+                        properties.Add(new PropertyWrapper(property, _MetadataLoadContext));
                     }
                 }
             }
@@ -239,115 +212,88 @@ namespace System.Reflection
             return properties.ToArray();
         }
 
-        public override object InvokeMember(string name, BindingFlags invokeAttr, Binder binder, object target, object[] args, ParameterModifier[] modifiers, CultureInfo culture, string[] namedParameters)
-        {
+        public override object InvokeMember(string name, BindingFlags invokeAttr, Binder binder, object target, object[] args, ParameterModifier[] modifiers, CultureInfo culture, string[] namedParameters) {
             throw new NotSupportedException();
         }
 
-        public override bool IsDefined(Type attributeType, bool inherit)
-        {
+        public override bool IsDefined(Type attributeType, bool inherit) {
             throw new NotImplementedException();
         }
 
-        protected override TypeAttributes GetAttributeFlagsImpl()
-        {
+        protected override TypeAttributes GetAttributeFlagsImpl() {
             throw new NotImplementedException();
         }
 
-        protected override ConstructorInfo GetConstructorImpl(BindingFlags bindingAttr, Binder binder, CallingConventions callConvention, Type[] types, ParameterModifier[] modifiers)
-        {
+        protected override ConstructorInfo GetConstructorImpl(BindingFlags bindingAttr, Binder binder, CallingConventions callConvention, Type[] types, ParameterModifier[] modifiers) {
             throw new NotImplementedException();
         }
 
-        protected override MethodInfo GetMethodImpl(string name, BindingFlags bindingAttr, Binder binder, CallingConventions callConvention, Type[] types, ParameterModifier[] modifiers)
-        {
+        protected override MethodInfo GetMethodImpl(string name, BindingFlags bindingAttr, Binder binder, CallingConventions callConvention, Type[] types, ParameterModifier[] modifiers) {
             throw new NotImplementedException();
         }
 
-        protected override PropertyInfo GetPropertyImpl(string name, BindingFlags bindingAttr, Binder binder, Type returnType, Type[] types, ParameterModifier[] modifiers)
-        {
+        protected override PropertyInfo GetPropertyImpl(string name, BindingFlags bindingAttr, Binder binder, Type returnType, Type[] types, ParameterModifier[] modifiers) {
             throw new NotImplementedException();
         }
 
-        protected override bool HasElementTypeImpl()
-        {
+        protected override bool HasElementTypeImpl() {
             throw new NotImplementedException();
         }
 
-        protected override bool IsArrayImpl()
-        {
-            return _arrayTypeSymbol != null;
+        protected override bool IsArrayImpl() {
+            return _ArrayTypeSymbol != null;
         }
 
-        private Type _valueType;
-
-        protected override bool IsValueTypeImpl()
-        {
-            _valueType ??= _metadataLoadContext.Resolve(typeof(ValueType));
-            return IsSubclassOf(_valueType);
+        protected override bool IsValueTypeImpl() {
+            _ValueType ??= (_MetadataLoadContext.Resolve(typeof(ValueType))
+                ?? throw new ArgumentException("typeof(ValueType) not found."));
+            return IsSubclassOf(_ValueType);
         }
 
-        protected override bool IsByRefImpl()
-        {
+        protected override bool IsByRefImpl() {
             throw new NotImplementedException();
         }
 
-        protected override bool IsCOMObjectImpl()
-        {
+        protected override bool IsCOMObjectImpl() {
             throw new NotImplementedException();
         }
 
-        protected override bool IsPointerImpl()
-        {
+        protected override bool IsPointerImpl() {
             throw new NotImplementedException();
         }
 
-        protected override bool IsPrimitiveImpl()
-        {
+        protected override bool IsPrimitiveImpl() {
             throw new NotImplementedException();
         }
 
-        public override bool IsAssignableFrom(Type c)
-        {
-            if (c is TypeWrapper tr)
-            {
-                return tr._typeSymbol.AllInterfaces.Contains(_typeSymbol) || (tr._namedTypeSymbol != null && tr._namedTypeSymbol.BaseTypes().Contains(_typeSymbol));
-            }
-            else if (_metadataLoadContext.Resolve(c) is TypeWrapper trr)
-            {
-                return trr._typeSymbol.AllInterfaces.Contains(_typeSymbol) || (trr._namedTypeSymbol != null && trr._namedTypeSymbol.BaseTypes().Contains(_typeSymbol));
+        public override bool IsAssignableFrom(Type c) {
+            if (c is TypeWrapper tr) {
+                return tr._TypeSymbol.AllInterfaces.Contains(_TypeSymbol) || (tr._NamedTypeSymbol != null && tr._NamedTypeSymbol.BaseTypes().Contains(_TypeSymbol));
+            } else if (_MetadataLoadContext.Resolve(c) is TypeWrapper trr) {
+                return trr._TypeSymbol.AllInterfaces.Contains(_TypeSymbol) || (trr._NamedTypeSymbol != null && trr._NamedTypeSymbol.BaseTypes().Contains(_TypeSymbol));
             }
             return false;
         }
 
-        public override int GetHashCode()
-        {
-            return _typeSymbol.GetHashCode();
+        public override int GetHashCode() {
+            return _TypeSymbol.GetHashCode();
         }
 
-        public override bool Equals(object o)
-        {
-            if (o is TypeWrapper tw)
-            {
-                return _typeSymbol.Equals(tw._typeSymbol, SymbolEqualityComparer.Default);
-            }
-            else if (o is Type t && _metadataLoadContext.Resolve(t) is TypeWrapper tww)
-            {
-                return _typeSymbol.Equals(tww._typeSymbol, SymbolEqualityComparer.Default);
+        public override bool Equals(object o) {
+            if (o is TypeWrapper tw) {
+                return _TypeSymbol.Equals(tw._TypeSymbol, SymbolEqualityComparer.Default);
+            } else if (o is Type t && _MetadataLoadContext.Resolve(t) is TypeWrapper tww) {
+                return _TypeSymbol.Equals(tww._TypeSymbol, SymbolEqualityComparer.Default);
             }
 
             return base.Equals(o);
         }
 
-        public override bool Equals(Type o)
-        {
-            if (o is TypeWrapper tw)
-            {
-                return _typeSymbol.Equals(tw._typeSymbol, SymbolEqualityComparer.Default);
-            }
-            else if (_metadataLoadContext.Resolve(o) is TypeWrapper tww)
-            {
-                return _typeSymbol.Equals(tww._typeSymbol, SymbolEqualityComparer.Default);
+        public override bool Equals(Type o) {
+            if (o is TypeWrapper tw) {
+                return _TypeSymbol.Equals(tw._TypeSymbol, SymbolEqualityComparer.Default);
+            } else if (_MetadataLoadContext.Resolve(o) is TypeWrapper tww) {
+                return _TypeSymbol.Equals(tww._TypeSymbol, SymbolEqualityComparer.Default);
             }
             return base.Equals(o);
         }
